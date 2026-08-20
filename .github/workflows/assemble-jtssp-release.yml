@@ -1,0 +1,100 @@
+name: Assemble JTSSP release
+
+on:
+  push:
+    branches:
+      - serenity-jtssp-release
+
+permissions:
+  contents: write
+
+jobs:
+  assemble:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: serenity-jtssp-release
+          fetch-depth: 0
+
+      - name: Assemble protected distribution
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -d .release/jtssp
+          test -d .release/loader
+          mkdir -p dist/games
+
+          cat .release/jtssp/payload-*.b64 \
+            | base64 --decode \
+            | bzip2 --decompress --stdout \
+            > dist/games/jump-to-steal-soccer-players.lua
+
+          cat .release/loader/payload-*.b64 \
+            | base64 --decode \
+            | bzip2 --decompress --stdout \
+            > dist/loader.lua
+
+          test -s dist/games/jump-to-steal-soccer-players.lua
+          test -s dist/loader.lua
+
+          cat > README.md <<'EOF'
+          <div align="center">
+
+          # 🌙 Serenity Hub
+
+          **A polished Roblox hub with a clean interface and straightforward game support.**
+
+          Serenity Hub is made to stay simple to use and easy to come back to. Open it with one loader, enter a supported game, and everything is ready from there.
+
+          </div>
+
+          ---
+
+          ## Supported Games
+
+          - **Collect All the Leaves**
+          - **⚽ Jump To Steal Soccer Players ⚽**
+
+          ---
+
+          ## Usage
+
+          ```lua
+          loadstring(game:HttpGet(
+              "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/dist/loader.lua"
+          ))()
+          ```
+
+          Run the loader while you are inside a supported game.
+
+          ---
+
+          <div align="center">
+
+          **Serenity Hub** · Maintained by `MUshihara`
+
+          </div>
+          EOF
+
+          # Public release must contain only README + protected dist files.
+          rm -rf .release
+          rm -f .github/workflows/assemble-jtssp-release.yml
+          rmdir .github/workflows 2>/dev/null || true
+          rmdir .github 2>/dev/null || true
+
+          echo "JTSSP bytes: $(wc -c < dist/games/jump-to-steal-soccer-players.lua)"
+          echo "Loader bytes: $(wc -c < dist/loader.lua)"
+          sha256sum dist/games/jump-to-steal-soccer-players.lua dist/loader.lua
+
+      - name: Commit assembled release
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "release: assemble protected JTSSP distribution"
+          git push origin HEAD:serenity-jtssp-release
