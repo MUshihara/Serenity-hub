@@ -13,6 +13,7 @@ Serenity Hub is made to stay simple to use and easy to come back to. Open it wit
 ## Supported Games
 
 - **Collect All the Leaves**
+- **⚽ Jump To Steal Soccer Players ⚽**
 
 ---
 
