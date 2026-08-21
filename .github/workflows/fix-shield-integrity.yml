@@ -1,0 +1,49 @@
+name: Fix Serenity Shield Integrity
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Repair decrypt seed initialization
+        shell: python
+        run: |
+          from pathlib import Path
+
+          fixes = {
+              Path('dist/loader.lua'): (
+                  'local _0xfrxNSvIHXiSsiU=_0xVtWJJRNNncXWWa%4294967296',
+                  'local _0xfrxNSvIHXiSsiU=bit32.bxor(_0xVtWJJRNNncXWWa,_0xJBNaWcgOfyJSbC)%4294967296',
+              ),
+              Path('dist/games/jump-to-steal-soccer-players.lua'): (
+                  'local _0xPUbxPKTKqweGYL=_0xOsprTsfwLfoCzW%4294967296',
+                  'local _0xPUbxPKTKqweGYL=bit32.bxor(_0xOsprTsfwLfoCzW,_0xXtlodlzKxmjQhR)%4294967296',
+              ),
+          }
+
+          for path, (old, new) in fixes.items():
+              text = path.read_text(encoding='utf-8')
+              if text.count(old) != 1:
+                  raise SystemExit(f'{path}: expected exactly one faulty seed initializer, found {text.count(old)}')
+              path.write_text(text.replace(old, new, 1), encoding='utf-8')
+              print(f'fixed {path}')
+      - name: Remove one-shot workflow and commit repair
+        shell: bash
+        run: |
+          rm -f .github/workflows/fix-shield-integrity.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'fix: repair Serenity Shield decrypt integrity'
+          git push origin HEAD:main
