@@ -73,14 +73,12 @@ local function _0xwzDxXdRMbslryg(_0xNABZkAUXpWlYKn)
 end
 local _0xxKGyNfuRJSmODS=(958842676-755132)
 if _0xwzDxXdRMbslryg(_0xjxWDzMOGnvxIVc)~=_0xxKGyNfuRJSmODS then error("Serenity Shield integrity check failed",0) end
-local _0xsrnOld="o[n]=(p-_k)%256 end end end"
-local _0xsrnNew="o[n]=(p-_k)%256;v=v%(2^bits) end end end"
-local _0xsrnPos=string.find(_0xjxWDzMOGnvxIVc,_0xsrnOld,1,true)
-if _0xsrnPos then
-    _0xjxWDzMOGnvxIVc=string.sub(_0xjxWDzMOGnvxIVc,1,_0xsrnPos-1).._0xsrnNew..string.sub(_0xjxWDzMOGnvxIVc,_0xsrnPos+#_0xsrnOld)
-else
-    error("Serenity JTSSP packed decoder patch target missing",0)
-end
+local _0xsrnPat="local%s+([_%a][_%w]*)%s*=%s*([_%a][_%w%.]*)%(([_%a][_%w]*)%s*/%s*%(2%^([_%a][_%w]*)%)%)%%256"
+local _0xsrnCount
+_0xjxWDzMOGnvxIVc,_0xsrnCount=string.gsub(_0xjxWDzMOGnvxIVc,_0xsrnPat,function(_p,_floor,_acc,_bits)
+    return "local ".._p.."=".._floor.."(".._acc.."/(2^".._bits.."))%256;".._acc.."=".._acc.."%(2^".._bits..")"
+end,1)
+if _0xsrnCount~=1 then error("Serenity JTSSP decoder compatibility patch failed",0) end
 local _0xLppRPSTxJZhsok=loadstring
 if type(_0xLppRPSTxJZhsok)~="function" then error("Serenity Shield requires loadstring support",0) end
 local _0xNABZkAUXpWlYKn,_0xEXrYrGDuaieXpv=_0xLppRPSTxJZhsok(_0xjxWDzMOGnvxIVc,"@SerenityShield/D591569FB945266C-L1")
