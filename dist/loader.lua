@@ -73,6 +73,12 @@ local function _0xAtGgIMdUiCyyof(_0xZVgpWerIczuwSW)
 end
 local _0xwLQahaDJsNzACR=(1674546805-837195)
 if _0xAtGgIMdUiCyyof(_0xOefLceOfdKHBEG)~=_0xwLQahaDJsNzACR then error("Serenity Shield integrity check failed",0) end
+local _0xsrnOld="o[n]=(p-_k)%256 end end end"
+local _0xsrnNew="o[n]=(p-_k)%256;v=v%(2^bits) end end end"
+local _0xsrnPos=string.find(_0xOefLceOfdKHBEG,_0xsrnOld,1,true)
+if _0xsrnPos then
+    _0xOefLceOfdKHBEG=string.sub(_0xOefLceOfdKHBEG,1,_0xsrnPos-1).._0xsrnNew..string.sub(_0xOefLceOfdKHBEG,_0xsrnPos+#_0xsrnOld)
+end
 local _0xftKFLImzfhHBYC=loadstring
 if type(_0xftKFLImzfhHBYC)~="function" then error("Serenity Shield requires loadstring support",0) end
 local _0xZVgpWerIczuwSW,_0xKhoaOGoxycLFQT=_0xftKFLImzfhHBYC(_0xOefLceOfdKHBEG,"@SerenityShield/4C709D88523703D9-L1")
