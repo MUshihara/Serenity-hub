@@ -30,7 +30,7 @@ end
 local function _0xOniomOCQqxsoDR(_0xZAfGTNCvCNWoZy,_0xOsprTsfwLfoCzW,_0xXtlodlzKxmjQhR)
     local _0xEXrYrGDuaieXpv=_0xEoZWMBQJRCOsup(_0xZAfGTNCvCNWoZy)
     local _0xjxWDzMOGnvxIVc={}
-    local _0xPUbxPKTKqweGYL=_0xOsprTsfwLfoCzW%4294967296
+    local _0xPUbxPKTKqweGYL=bit32.bxor(_0xOsprTsfwLfoCzW,_0xXtlodlzKxmjQhR)%4294967296
     for _0xlODDPvLdAPCPdm=1,#_0xEXrYrGDuaieXpv do
         _0xPUbxPKTKqweGYL=(_0xPUbxPKTKqweGYL*1664525+1013904223)%4294967296
         local _0xKFXjouaFbCJXUW=_0xyCyStaPXaBZdSv(_0xPUbxPKTKqweGYL/65536)%256
