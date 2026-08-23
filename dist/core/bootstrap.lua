@@ -1,4 +1,4 @@
--- SERENITY HUB // OFFICIAL ARCHITECTURE V3 BOOTSTRAP
+-- SERENITY HUB // OFFICIAL ARCHITECTURE V3.0.1 BOOTSTRAP
 -- Public shared architecture entry used by migrated Serenity game plugins.
 --
 -- Game plugins own game mechanics/controllers.
@@ -105,6 +105,24 @@ return function(manifest, options)
         or "dist/ui/v13-desktop.lua"
 
     local renderer = runRemote(rendererPath)
+
+    -- V3.0.1 routing integrity guard. If a transport or publication mistake
+    -- ever points a mobile path at the desktop renderer (or vice versa), do
+    -- not silently construct the wrong UI.
+    local expectedKind = profile.Layout == "Mobile" and "Mobile" or "Desktop"
+    if type(renderer) ~= "table" or renderer.RendererKind ~= expectedKind then
+        error(
+            ("[SERENITY HUB] Renderer routing mismatch. Detected=%s Expected=%s Loaded=%s Path=%s")
+                :format(
+                    tostring(profile.Layout),
+                    tostring(expectedKind),
+                    tostring(type(renderer) == "table" and renderer.RendererKind or type(renderer)),
+                    tostring(rendererPath)
+                ),
+            0
+        )
+    end
+
     local Runtime = runRemote("dist/core/runtime.lua")
     local Config = runRemote("dist/core/config.lua")
     local Adapter = runRemote("dist/core/manifest-renderer.lua")
@@ -154,7 +172,7 @@ return function(manifest, options)
     end
 
     local app = {
-        Version = "3.0.0",
+        Version = "3.0.1",
         APIVersion = Validator.APIVersion,
         Runtime = runtime,
         Profile = profile,
@@ -169,13 +187,14 @@ return function(manifest, options)
     end
 
     print("============================================================")
-    print(" SERENITY HUB // OFFICIAL ARCHITECTURE V3")
+    print(" SERENITY HUB // OFFICIAL ARCHITECTURE V3.0.1")
     print("============================================================")
     print("Layout      :", profile.Layout)
     print("Renderer    :", profile.Renderer)
     print("Confidence  :", profile.Confidence)
     print("Platform    :", profile.Platform)
     print("Executor    :", profile.Executor)
+    print("Router      :", profile.RouterVersion or "legacy")
     print(
         "Viewport    :",
         tostring(profile.Viewport.X) .. "x" .. tostring(profile.Viewport.Y)
