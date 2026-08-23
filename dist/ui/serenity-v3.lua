@@ -9,6 +9,7 @@
 -- library until older game payloads are migrated and regression-tested.
 
 local BASE = "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
+local RELEASE_TAG = "?serenity=3.0.1"
 
 local cache = {}
 
@@ -18,7 +19,7 @@ local function runRemote(path)
     end
 
     local okHttp, source = pcall(function()
-        return game:HttpGet(BASE .. path)
+        return game:HttpGet(BASE .. path .. RELEASE_TAG)
     end)
 
     if not okHttp or type(source) ~= "string" or source == "" then
