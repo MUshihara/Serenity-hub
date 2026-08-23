@@ -1,0 +1,107 @@
+name: Sync Access V2 Verifier
+
+on:
+  push:
+    branches:
+      - access-v2-verifier-sync-20260824
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: access-v2-verifier-sync-20260824
+          fetch-depth: 0
+
+      - name: Derive current Access V2 verifier and patch release entries
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          import urllib.request
+
+          KEY_URL = "https://pastebin.com/raw/AW0QjxQ4"
+          MOD = 4294967291
+
+          req = urllib.request.Request(
+              KEY_URL,
+              headers={"User-Agent": "SerenityHub-AccessV2-VerifierSync/1.0"},
+          )
+          with urllib.request.urlopen(req, timeout=20) as response:
+              key = response.read().decode("utf-8").strip()
+
+          if len(key) >= 2 and key[0] == key[-1] and key[0] in ("'", '"'):
+              key = key[1:-1].strip()
+
+          lower = key.lower()
+          if not (2 <= len(key) <= 128) or "<html" in lower or "<!doctype" in lower:
+              raise SystemExit("Pastebin key response is empty or invalid")
+
+          def access_v2_hash(text: str) -> int:
+              q = 5381
+              for b in text.encode("utf-8"):
+                  q = (q * 33 + b + 17) % MOD
+              return q
+
+          verifier = access_v2_hash(key)
+          left = verifier // 2
+          right = verifier - left
+          expr = f"(({left}+{right})%4294967291)"
+
+          core_path = Path("dist/access-v2/core.lua")
+          core = core_path.read_text(encoding="utf-8")
+
+          core, n = re.subn(
+              r'local currentVerifier="[^"\n]+"',
+              f'local currentVerifier="{expr}"',
+              core,
+              count=1,
+          )
+          if n != 1:
+              raise SystemExit(f"core.lua currentVerifier target count={n}, expected 1")
+
+          old_tag = "mainstyle-keyfix-20260824c"
+          new_tag = "mainstyle-keyfix-20260824d"
+          if core.count(old_tag) != 2:
+              raise SystemExit(f"core.lua cache-tag target count={core.count(old_tag)}, expected 2")
+          core = core.replace(old_tag, new_tag)
+
+          old_chunk = "@SerenityShield/AccessV2-MainStyle-KeyFix-C"
+          new_chunk = "@SerenityShield/AccessV2-MainStyle-KeyFix-D"
+          if core.count(old_chunk) != 1:
+              raise SystemExit(f"core.lua chunk-tag target count={core.count(old_chunk)}, expected 1")
+          core = core.replace(old_chunk, new_chunk)
+
+          if key in core:
+              raise SystemExit("plaintext key unexpectedly appeared in core.lua")
+          core_path.write_text(core, encoding="utf-8")
+
+          for rel in ("dist/loader.lua", "dist/loader-access-v2-test.lua"):
+              path = Path(rel)
+              text = path.read_text(encoding="utf-8")
+              old = "20260824-mainstyle-keyfix-c"
+              new = "20260824-mainstyle-keyfix-d"
+              if text.count(old) != 1:
+                  raise SystemExit(f"{rel}: cache-tag target count={text.count(old)}, expected 1")
+              text = text.replace(old, new)
+              if key in text:
+                  raise SystemExit(f"{rel}: plaintext key unexpectedly appeared")
+              path.write_text(text, encoding="utf-8")
+
+          print(f"derived Access V2 verifier: {verifier}")
+          print("plaintext key was not written to repository files")
+
+      - name: Commit generated verifier repair and remove one-shot workflow
+        shell: bash
+        run: |
+          rm -f .github/workflows/sync-access-v2-verifier.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git diff --cached --check
+          git commit -m 'fix: sync Access V2 fallback from current key'
+          git push origin HEAD:access-v2-verifier-sync-20260824
