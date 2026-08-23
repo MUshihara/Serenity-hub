@@ -1,0 +1,239 @@
+ local main=New("Frame",{AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromScale(.5,.5),Size=UDim2.fromOffset(W,H),BorderSizePixel=0,ClipsDescendants=true,ZIndex=10,Parent=g});bind(main,"BackgroundColor3","BG");shellGlass(main);Round(main,14);local mainStroke=Stroke(main,T.A1,.55);bind(mainStroke,"Color","A1")
+ task.spawn(function()
+  while mainStroke.Parent and not X.Destroyed do
+   Tw(mainStroke,2.8,{Transparency=.38}).Completed:Wait()
+   if not mainStroke.Parent then break end
+   Tw(mainStroke,2.8,{Transparency=.64}).Completed:Wait()
+  end
+ end)
+ local sc=New("UIScale",{Scale=1,Parent=main});local function rs()local c=workspace.CurrentCamera;if c then local v=c.ViewportSize;sc.Scale=math.min(1,(v.X-24)/W,(v.Y-24)/H)end end;rs();if workspace.CurrentCamera then X.Connections[#X.Connections+1]=workspace.CurrentCamera:GetPropertyChangedSignal("ViewportSize"):Connect(rs)end
+ local top=New("Frame",{Size=UDim2.new(1,0,0,50),BorderSizePixel=0,ZIndex=12,Parent=main});bind(top,"BackgroundColor3","Top");shellGlass(top)
+ New("ImageLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(10,5),Size=UDim2.fromOffset(40,40),Image=LOGO,ScaleType=Enum.ScaleType.Fit,ZIndex=14,Parent=top})
+ local ttl=New("TextLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(55,0),Size=UDim2.new(1,-270,1,0),Font=Enum.Font.GothamBold,Text="SERENITY HUB",TextSize=17,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=14,Parent=top});bind(ttl,"TextColor3","Text")
+ local line=New("Frame",{Position=UDim2.new(0,0,1,-1),Size=UDim2.new(1,0,0,1),BorderSizePixel=0,ZIndex=14,Parent=top});bind(line,"BackgroundColor3","A2")
+ local lineGradient=New("UIGradient",{Color=ColorSequence.new({ColorSequenceKeypoint.new(0,T.A2),ColorSequenceKeypoint.new(.5,T.A1),ColorSequenceKeypoint.new(1,T.A3)}),Offset=Vector2.new(-1,0),Parent=line})
+ task.spawn(function()
+  while lineGradient.Parent and not X.Destroyed do
+   lineGradient.Offset=Vector2.new(-1,0)
+   Tw(lineGradient,4.6,{Offset=Vector2.new(1,0)}).Completed:Wait()
+   task.wait(1.1)
+  end
+ end)
+ X.ThemeRefreshers[#X.ThemeRefreshers+1]=function()
+  if lineGradient.Parent then
+   lineGradient.Color=ColorSequence.new({
+    ColorSequenceKeypoint.new(0,T.A2),
+    ColorSequenceKeypoint.new(.5,T.A1),
+    ColorSequenceKeypoint.new(1,T.A3)
+   })
+  end
+ end
+ local pr=New("Frame",{AnchorPoint=Vector2.new(1,.5),Position=UDim2.new(1,-84,.5,0),Size=UDim2.fromOffset(150,34),BorderSizePixel=0,ZIndex=15,Parent=top});bind(pr,"BackgroundColor3","Panel");shellGlass(pr);Round(pr,10);bind(Stroke(pr,T.Stroke,.75),"Color","Stroke")
+ local av=New("ImageLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(4,3),Size=UDim2.fromOffset(28,28),Image="",ZIndex=16,Parent=pr});Round(av,999);task.spawn(function()av.Image=Avatar()end)
+ local online=New("Frame",{AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromOffset(31,29),Size=UDim2.fromOffset(6,6),BorderSizePixel=0,ZIndex=18,Parent=pr});bind(online,"BackgroundColor3","A1");Round(online,999)
+ local pn=New("TextLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(38,3),Size=UDim2.new(1,-43,0,15),Font=Enum.Font.GothamMedium,Text=LP.DisplayName,TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=16,Parent=pr});bind(pn,"TextColor3","Text")
+ local pu=New("TextLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(38,17),Size=UDim2.new(1,-43,0,13),Font=Enum.Font.Gotham,Text="@"..LP.Name,TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=16,Parent=pr});bind(pu,"TextColor3","Dim")
+ local function tb(txt,x,fn)local b=New("TextButton",{AnchorPoint=Vector2.new(1,.5),Position=UDim2.new(1,x,.5,0),Size=UDim2.fromOffset(30,30),AutoButtonColor=false,BorderSizePixel=0,Font=Enum.Font.GothamBold,Text=txt,TextSize=10,ZIndex=16,Parent=top});bind(b,"BackgroundColor3","Panel2");bind(b,"TextColor3","Soft");Round(b,8);b.MouseButton1Click:Connect(fn);return b end
+ local body=New("Frame",{BackgroundTransparency=1,Position=UDim2.fromOffset(0,50),Size=UDim2.new(1,0,1,-50),Parent=main})
+ local side=New("Frame",{Size=UDim2.new(0,164,1,0),BorderSizePixel=0,ZIndex=12,Parent=body});bind(side,"BackgroundColor3","Side");shellGlass(side)
+ New("ImageLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(10,8),Size=UDim2.fromOffset(34,34),Image=LOGO,ScaleType=Enum.ScaleType.Fit,ZIndex=14,Parent=side})
+ local st=New("TextLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(47,7),Size=UDim2.new(1,-50,0,34),Font=Enum.Font.GothamBold,Text="SERENITY HUB",TextSize=10,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=14,Parent=side});bind(st,"TextColor3","Text")
+ local nav=New("ScrollingFrame",{BackgroundTransparency=1,BorderSizePixel=0,Position=UDim2.fromOffset(7,50),Size=UDim2.new(1,-14,1,-86),CanvasSize=UDim2.new(),AutomaticCanvasSize=Enum.AutomaticSize.Y,ScrollBarThickness=0,ZIndex=13,Parent=side});New("UIListLayout",{Padding=UDim.new(0,4),SortOrder=Enum.SortOrder.LayoutOrder,Parent=nav})
+ local foot=New("Frame",{AnchorPoint=Vector2.new(0,1),Position=UDim2.new(0,7,1,-6),Size=UDim2.new(1,-14,0,26),BorderSizePixel=0,ZIndex=13,Parent=side});bind(foot,"BackgroundColor3","Panel");shellGlass(foot);Round(foot,8)
+ local pulse=New("Frame",{AnchorPoint=Vector2.new(.5,.5),Position=UDim2.fromOffset(11.5,12.5),Size=UDim2.fromOffset(7,7),BorderSizePixel=0,BackgroundTransparency=.55,ZIndex=13,Parent=foot});bind(pulse,"BackgroundColor3","A1");Round(pulse,999)
+ local fd=New("Frame",{Position=UDim2.fromOffset(8,9),Size=UDim2.fromOffset(7,7),BorderSizePixel=0,ZIndex=14,Parent=foot});bind(fd,"BackgroundColor3","A1");Round(fd,999)
+ task.spawn(function()
+  while pulse.Parent and not X.Destroyed do
+   pulse.Size=UDim2.fromOffset(7,7);pulse.BackgroundTransparency=.55
+   Tw(pulse,1.45,{Size=UDim2.fromOffset(18,18),BackgroundTransparency=1}).Completed:Wait()
+   task.wait(.25)
+  end
+ end)
+ local ft=New("TextLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(21,0),Size=UDim2.new(1,-25,1,0),Font=Enum.Font.GothamMedium,Text="READY",TextSize=9,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=14,Parent=foot});bind(ft,"TextColor3","Soft")
+ local cont=New("Frame",{BackgroundTransparency=1,Position=UDim2.fromOffset(164,0),Size=UDim2.new(1,-164,1,0),Parent=body})
+ local ptitle=New("TextLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(12,5),Size=UDim2.new(1,-24,0,25),Font=Enum.Font.GothamBold,Text="Dashboard",TextSize=15,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=14,Parent=cont});bind(ptitle,"TextColor3","Text")
+ local ph=New("Frame",{BackgroundTransparency=1,Position=UDim2.fromOffset(9,34),Size=UDim2.new(1,-18,1,-40),ClipsDescendants=true,ZIndex=13,Parent=cont})
+ -- RC1.2 PERMANENT SERENITY ORB
+ -- Always visible whether the main UI is open or hidden.
+ local launcher=New("TextButton",{BackgroundTransparency=.12,BorderSizePixel=0,Position=UDim2.new(0,20,.5,-28),Size=UDim2.fromOffset(56,56),Text="",Visible=true,ZIndex=30,Parent=g});bind(launcher,"BackgroundColor3","Panel");shellGlass(launcher);Round(launcher,999);bind(Stroke(launcher,T.A1,.4),"Color","A1");New("ImageLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(7,7),Size=UDim2.fromOffset(42,42),Image=LOGO,ScaleType=Enum.ScaleType.Fit,ZIndex=31,Parent=launcher})
+
+ local launcherPointerDown=false
+ local launcherDragStart=nil
+ local launcherDragged=false
+
+ launcher.InputBegan:Connect(function(input)
+  if input.UserInputType==Enum.UserInputType.MouseButton1
+   or input.UserInputType==Enum.UserInputType.Touch then
+   launcherPointerDown=true
+   launcherDragged=false
+   launcherDragStart=input.Position
+  end
+ end)
+
+ X.Connections[#X.Connections+1]=UserInputService.InputChanged:Connect(function(input)
+  if launcherPointerDown and launcherDragStart
+   and (input.UserInputType==Enum.UserInputType.MouseMovement
+    or input.UserInputType==Enum.UserInputType.Touch) then
+   if (input.Position-launcherDragStart).Magnitude>=7 then
+    launcherDragged=true
+   end
+  end
+ end)
+
+ X.Connections[#X.Connections+1]=UserInputService.InputEnded:Connect(function(input)
+  if input.UserInputType==Enum.UserInputType.MouseButton1
+   or input.UserInputType==Enum.UserInputType.Touch then
+   launcherPointerDown=false
+   launcherDragStart=nil
+  end
+ end)
+
+ function X:IsOpen()
+  return main.Visible
+ end
+
+ function X:Minimize()
+  X:CloseActivePopup()
+  main.Visible=false
+  launcher.Visible=true
+ end
+
+ function X:Restore()
+  launcher.Visible=true
+  main.Visible=true
+ end
+
+ function X:ToggleVisibility()
+  if X:IsOpen() then
+   X:Minimize()
+  else
+   X:Restore()
+  end
+ end
+
+ launcher.MouseButton1Click:Connect(function()
+  if launcherDragged then
+   launcherDragged=false
+   return
+  end
+
+  X:ToggleVisibility()
+ end)
+
+ Drag(top,main)
+ Drag(launcher,launcher)
+ function X:Destroy()if X.Destroyed then return end;X.Destroyed=true;for _,c in ipairs(X.Connections)do pcall(function()c:Disconnect()end)end;for _,f in ipairs(X.Cleanups)do pcall(f)end;pcall(function()RunService:Set3dRenderingEnabled(true)end);save();if g then g:Destroy()end; end
+ tb("—",-44,function()X:Minimize()end);tb("X",-9,function()X:Destroy()end)
+ X._theme=T;X._bind=bind;X._shellGlass=shellGlass;X._featureGlass=featureGlass;X._controlGlass=controlGlass;X._ak=ak;X._applyGlass=applyGlass;X._main=main;X._nav=nav;X._pageHolder=ph;X._pageTitle=ptitle;X._cover=cover;X._saveLater=later;X._save=save
+
+
+ -- POPUP / OUTSIDE-CLICK MANAGER --------------------------------------
+ -- Select and MultiSelect use one shared popup manager.
+ -- Only one menu can be open at a time.
+ -- Clicking/tapping anywhere outside the active selector/menu closes it.
+ local function pointInside(guiObject,position)
+  if not guiObject or not guiObject.Parent or not guiObject.Visible then
+   return false
+  end
+
+  local pos=guiObject.AbsolutePosition
+  local size=guiObject.AbsoluteSize
+
+  return position.X>=pos.X
+   and position.X<=pos.X+size.X
+   and position.Y>=pos.Y
+   and position.Y<=pos.Y+size.Y
+ end
+
+ function X:ActivatePopup(item)
+  if X.ActivePopup and X.ActivePopup~=item then
+   pcall(function()
+    X.ActivePopup:Close(true)
+   end)
+  end
+
+  X.ActivePopup=item
+ end
+
+ function X:DeactivatePopup(item)
+  if X.ActivePopup==item then
+   X.ActivePopup=nil
+  end
+ end
+
+ function X:CloseActivePopup()
+  local active=X.ActivePopup
+
+  if active then
+   pcall(function()
+    active:Close(true)
+   end)
+  end
+
+  X.ActivePopup=nil
+ end
+
+ X.Connections[#X.Connections+1]=UserInputService.InputBegan:Connect(function(input)
+  if not X.ActivePopup then
+   return
+  end
+
+  if input.KeyCode==Enum.KeyCode.Escape then
+   X:CloseActivePopup()
+   return
+  end
+
+  if input.UserInputType~=Enum.UserInputType.MouseButton1
+   and input.UserInputType~=Enum.UserInputType.Touch then
+   return
+  end
+
+  local active=X.ActivePopup
+  local position=input.Position
+
+  -- Keep it open when interacting with its own selector or popup.
+  if pointInside(active._Selector,position)
+   or pointInside(active._Menu,position) then
+   return
+  end
+
+  -- Any click/tap elsewhere closes it, including the Roblox world.
+  X:CloseActivePopup()
+ end)
+
+ -- PAGE SYSTEM ---------------------------------------------------------
+ local navOrder=0
+ function X:AddPage(name,opts)
+  opts=opts or{};if X.Pages[name]then return X.Pages[name]end;navOrder+=1
+  local page=New("ScrollingFrame",{Name=name,BackgroundTransparency=1,BorderSizePixel=0,Size=UDim2.fromScale(1,1),CanvasSize=UDim2.new(),AutomaticCanvasSize=Enum.AutomaticSize.Y,ScrollBarThickness=3,ScrollBarImageTransparency=.3,Visible=false,ZIndex=14,Parent=ph});bind(page,"ScrollBarImageColor3","A2");New("UIPadding",{PaddingRight=UDim.new(0,3),PaddingBottom=UDim.new(0,6),Parent=page});New("UIListLayout",{Padding=UDim.new(0,5),SortOrder=Enum.SortOrder.LayoutOrder,Parent=page})
+  page:SetAttribute("AllowMultipleFeatures",opts.AllowMultipleFeatures==true)
+
+  local tab=New("TextButton",{AutoButtonColor=false,BackgroundTransparency=.68,BorderSizePixel=0,Size=UDim2.new(1,0,0,40),LayoutOrder=navOrder,Text="",ZIndex=14,Parent=nav});bind(tab,"BackgroundColor3","Panel2");Round(tab,9);local ts=Stroke(tab,T.Stroke,.82);bind(ts,"Color","Stroke")
+
+  local rail=New("Frame",{BackgroundTransparency=1,BorderSizePixel=0,Position=UDim2.fromOffset(2,7),Size=UDim2.fromOffset(3,26),ZIndex=15,Parent=tab});bind(rail,"BackgroundColor3","A1");Round(rail,999)
+
+  local icon=New("ImageLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(10,10),Size=UDim2.fromOffset(20,20),Image=Icons[name] or Icons.Misc,ImageTransparency=.22,ZIndex=15,Parent=tab});bind(icon,"ImageColor3","Soft")
+
+  local label=New("TextLabel",{BackgroundTransparency=1,Position=UDim2.fromOffset(39,0),Size=UDim2.new(1,-45,1,0),Font=Enum.Font.GothamMedium,Text=name,TextSize=11,TextXAlignment=Enum.TextXAlignment.Left,ZIndex=15,Parent=tab});bind(label,"TextColor3","Soft")
+
+  tab.MouseButton1Click:Connect(function()X:SwitchPage(name)end)
+  tab.MouseEnter:Connect(function()if X.CurrentPage~=name then Tw(tab,.1,{BackgroundTransparency=.48});Tw(icon,.1,{ImageTransparency=0})end end)
+  tab.MouseLeave:Connect(function()if X.CurrentPage~=name then Tw(tab,.1,{BackgroundTransparency=.68});Tw(icon,.1,{ImageTransparency=.18})end end)
+
+  X.Pages[name]=page
+  X.Nav[name]={Tab=tab,Stroke=ts,Rail=rail,Icon=icon,Label=label}
+  if not X.CurrentPage then X:SwitchPage(name)end
+  return page
+ end
+ function X:SwitchPage(name)
+  local page=X.Pages[name]if not page then return end
+  X:CloseActivePopup()
+  X.CurrentPage=name;ptitle.Text=name;X:SetConfig("LastPage",name)
+  for n,p in pairs(X.Pages)do p.Visible=n==name end
+  for n,d in pairs(X.Nav)do
+   local active=n==name
+   Tw(d.Tab,.12,{BackgroundTransparency=active and .18 or .68})
+   Tw(d.Rail,.12,{BackgroundTransparency=active and 0 or 1})
+   Tw(d.Icon,.12,{ImageTransparency=active and 0 or .18})
+   d.Icon.ImageColor3=active and T.A2 or T.Soft
+   d.Label.TextColor3=active and T.Text or T.Soft
