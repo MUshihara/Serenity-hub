@@ -14,6 +14,7 @@ Serenity Hub is made to stay simple to use and easy to come back to. Open it wit
 
 - **Collect All the Leaves**
 - **⚽ Jump To Steal Soccer Players ⚽**
+- **+1 Drain Water Per Click**
 
 ---
 
