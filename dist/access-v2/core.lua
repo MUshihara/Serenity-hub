@@ -3,8 +3,8 @@ local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local PROTECTED=BASE.."dist/access-v2/core-protected.lua"
 local UIPATCH=BASE.."dist/access-v2/ui-mainstyle-keyfix.lua.txt"
 
-local outer=game:HttpGet(PROTECTED.."?v=mainstyle-keyfix-20260824c",true)
-local uiPatch=game:HttpGet(UIPATCH.."?v=mainstyle-keyfix-20260824c",true)
+local outer=game:HttpGet(PROTECTED.."?v=mainstyle-keyfix-20260824d",true)
+local uiPatch=game:HttpGet(UIPATCH.."?v=mainstyle-keyfix-20260824d",true)
 
 if type(outer)~="string" or outer=="" then
     error("[SERENITY HUB] Access V2 protected core is unavailable.",0)
@@ -16,7 +16,7 @@ end
 -- The public UI patch never stores the lifetime key itself. Keep only its
 -- transformed verifier here so Pastebin outages do not lock out valid users.
 local oldVerifier="((2100000000+2027360581)%4294967291)"
-local currentVerifier="((700000000+12271173)%4294967291)"
+local currentVerifier="((356135586+356135587)%4294967291)"
 local n
 uiPatch,n=uiPatch:gsub(oldVerifier,currentVerifier,1)
 if n~=1 then
@@ -46,7 +46,7 @@ local inject=
 outer=string.sub(outer,1,pos-1)..inject..string.sub(outer,pos+#outerMarker)
 uiPatch=nil
 
-local fn,err=loadstring(outer,"@SerenityShield/AccessV2-MainStyle-KeyFix-C")
+local fn,err=loadstring(outer,"@SerenityShield/AccessV2-MainStyle-KeyFix-D")
 outer=nil
 if not fn then
     error("[SERENITY HUB] Access V2 repaired core compile failed: "..tostring(err),0)
