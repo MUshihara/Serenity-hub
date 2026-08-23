@@ -1,7 +1,7 @@
--- SERENITY HUB // OFFICIAL DEVICE ROUTER V3
+-- SERENITY HUB // OFFICIAL DEVICE ROUTER V3.0.1
 local UserInputService = game:GetService("UserInputService")
 
-local Router = {Version = 1}
+local Router = {Version = 2}
 
 local MOBILE_EXECUTOR_HINTS = {
     ["delta"] = true,
@@ -69,10 +69,20 @@ local function preferredInput()
 end
 
 local function platform()
+    -- GetPlatform can be restricted in ordinary client code. It is strictly
+    -- best-effort here: pcall keeps the public router safe when unavailable.
     local ok, value = pcall(function()
         return UserInputService:GetPlatform()
     end)
     return ok and tostring(value) or "Unavailable"
+end
+
+local function isMobilePlatform(value)
+    local p = normalize(value)
+    return string.find(p,"android",1,true) ~= nil
+        or string.find(p,"ios",1,true) ~= nil
+        or string.find(p,"iphone",1,true) ~= nil
+        or string.find(p,"ipad",1,true) ~= nil
 end
 
 function Router.Detect()
@@ -81,17 +91,19 @@ function Router.Detect()
     local mouse = UserInputService.MouseEnabled
     local gamepad = UserInputService.GamepadEnabled
     local preferred = preferredInput()
+    local platformName = platform()
     local camera = workspace.CurrentCamera
     local viewport = camera and camera.ViewportSize or Vector2.new(0,0)
     local shortest = math.min(viewport.X, viewport.Y)
     local executorName, executorVersion, executorAPI = getExecutor()
+    local hinted, matched = executorHint(executorName)
     local reasons = {}
 
     local function finish(layout, confidence, reason)
         reasons[#reasons+1] = reason
         return {
             Layout = layout,
-            Renderer = layout == "Mobile" and "V14" or "V13",
+            Renderer = layout == "Mobile" and "V14.5" or "V13.3",
             Confidence = confidence,
             Reasons = reasons,
             PreferredInput = preferred and tostring(preferred) or "Unavailable",
@@ -99,24 +111,41 @@ function Router.Detect()
             KeyboardEnabled = keyboard,
             MouseEnabled = mouse,
             GamepadEnabled = gamepad,
-            Platform = platform(),
+            Platform = platformName,
             Viewport = viewport,
             Executor = executorName,
             ExecutorVersion = executorVersion,
             ExecutorAPI = executorAPI,
+            RouterVersion = Router.Version,
         }
     end
 
+    -- Strongest mobile capability signal.
     if touch and not keyboard and not mouse then
         return finish("Mobile","High","Touch is available while keyboard and mouse are unavailable.")
     end
 
+    -- Android/iOS is decisive when GetPlatform is exposed by the environment.
+    -- This intentionally comes before keyboard/mouse checks because some mobile
+    -- executors expose synthetic desktop input capabilities.
+    if touch and isMobilePlatform(platformName) then
+        return finish("Mobile","High","Touch plus the reported mobile platform identifies a mobile client.")
+    end
+
+    -- Form factor + touch remains independent of executor identity.
     if touch and shortest > 0 and shortest <= 700 then
         reasons[#reasons+1] = "Touch is enabled with a phone/tablet-sized short edge."
         if preferred == Enum.PreferredInput.Touch then
             return finish("Mobile","High","PreferredInput and form factor both agree with mobile.")
         end
-        return finish("Mobile","Medium","Form-factor evidence strongly suggests mobile.")
+        return finish("Mobile","High","Touch plus form factor strongly identifies mobile even if synthetic desktop input exists.")
+    end
+
+    -- A known mobile executor is only medium evidence, but touch + that hint is
+    -- stronger than a synthetic KeyboardAndMouse PreferredInput value.
+    if touch and hinted == "Mobile" then
+        reasons[#reasons+1] = "Touch is enabled and mobile executor fallback matched: " .. tostring(matched)
+        return finish("Mobile","Medium","Touch and executor evidence agree with mobile.")
     end
 
     if keyboard and mouse and not touch then
@@ -135,7 +164,6 @@ function Router.Detect()
         return finish("Desktop","Medium","Keyboard/mouse is the current preferred input.")
     end
 
-    local hinted, matched = executorHint(executorName)
     if hinted then
         reasons[#reasons+1] = "Executor fallback matched: " .. tostring(matched)
         return finish(hinted,"Low","Executor identity was used only after stronger signals were inconclusive.")
