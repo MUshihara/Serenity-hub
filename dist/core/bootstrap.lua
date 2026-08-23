@@ -6,6 +6,7 @@
 -- runtime ownership and manifest-to-UI construction.
 
 local BASE = "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
+local RELEASE_TAG = "?serenity=3.0.1"
 
 local moduleCache = {}
 
@@ -15,7 +16,7 @@ local function runRemote(path)
     end
 
     local okHttp, source = pcall(function()
-        return game:HttpGet(BASE .. path)
+        return game:HttpGet(BASE .. path .. RELEASE_TAG)
     end)
 
     if not okHttp or type(source) ~= "string" or source == "" then
@@ -77,10 +78,7 @@ end
 return function(manifest, options)
     options = options or {}
 
-    -- Validate BEFORE replacing an existing runtime. A malformed new game
-    -- manifest should not destroy an already-working Serenity instance.
     local Validator = runRemote("dist/core/manifest-validator.lua")
-
     local valid, errors, warnings = Validator.Validate(manifest)
 
     if not valid then
@@ -98,7 +96,6 @@ return function(manifest, options)
     local DeviceRouter = runRemote("dist/core/device-router.lua")
     local profile = DeviceRouter.Detect()
 
-    -- Only download/compile the renderer the client actually needs.
     local rendererPath =
         profile.Layout == "Mobile"
         and "dist/ui/v14-mobile.lua"
@@ -106,9 +103,6 @@ return function(manifest, options)
 
     local renderer = runRemote(rendererPath)
 
-    -- V3.0.1 routing integrity guard. If a transport or publication mistake
-    -- ever points a mobile path at the desktop renderer (or vice versa), do
-    -- not silently construct the wrong UI.
     local expectedKind = profile.Layout == "Mobile" and "Mobile" or "Desktop"
     if type(renderer) ~= "table" or renderer.RendererKind ~= expectedKind then
         error(
