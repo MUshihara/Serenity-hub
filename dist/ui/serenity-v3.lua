@@ -1,4 +1,4 @@
--- SERENITY HUB // OFFICIAL PUBLIC UI ARCHITECTURE V3
+-- SERENITY HUB // OFFICIAL PUBLIC UI ARCHITECTURE V3.0.1
 --
 -- New/finalized game plugins should use:
 --
@@ -57,7 +57,7 @@ local function runRemote(path)
 end
 
 local Serenity = {
-    Version = "3.0.0",
+    Version = "3.0.1",
     APIVersion = 3,
     DesktopRenderer = "V13.3",
     MobileRenderer = "V14.5",
