@@ -160,8 +160,8 @@ end
 savedReceipt=nil
 expectedReceipt=nil
 
-local outer=game:HttpGet(PROTECTED.."?v=dynamic-key-v2-20260824g",true)
-local uiPatch=game:HttpGet(UIPATCH.."?v=dynamic-key-v2-20260824g",true)
+local outer=game:HttpGet(PROTECTED.."?v=dynamic-key-v2-20260824h",true)
+local uiPatch=game:HttpGet(UIPATCH.."?v=dynamic-key-v2-20260824h",true)
 
 if type(outer)~="string" or outer=="" then
     error("[SERENITY HUB] Access V2 protected core is unavailable.",0)
@@ -310,7 +310,7 @@ currentKey=nil
 uiPatch=nil
 KEY_DATA=nil
 
-local fn,err=loadstring(outer,"@SerenityShield/AccessV2-DynamicKey-G")
+local fn,err=loadstring(outer,"@SerenityShield/AccessV2-DynamicKey-H")
 outer=nil
 if not fn then
     error("[SERENITY HUB] Access V2 dynamic-key build failed: "..tostring(err),0)
