@@ -9,7 +9,10 @@ pcall(function()
 end)
 
 local U="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/dist/access-v2/core.lua"
-local source=game:HttpGet(U.."?v=20260824-dynamic-key-v2-h",true)
+local source=game:HttpGet(
+    U.."?v=20260824-dynamic-key-v2-i&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    true
+)
 local fn,err=loadstring(source,"@SerenityHub/AccessV2")
 source=nil
 if not fn then
