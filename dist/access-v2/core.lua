@@ -64,16 +64,20 @@ local function validRemoteKey(s)
     if string.find(low,"<html",1,true)
         or string.find(low,"<!doctype",1,true)
         or string.find(low,"not found",1,true)
-        or string.find(low,"bad gateway",1,true) then
+        or string.find(low,"bad gateway",1,true)
+        or string.find(low,"rate limit",1,true) then
         return false
     end
     return true
 end
 
+-- These decode only at runtime. All three point at the same GitHub-controlled
+-- access_key.txt through different raw URL forms so the key authority remains
+-- one file while avoiding a single URL-form failure.
 local KEY_DATA={
-    {206,104,130,88,213,166,169,255,166,189,117,124,19,190,127,142,104,63,25,165,169,110,135,231,121,93,113,152,167,182,174,145,18},
-    {206,104,130,88,213,166,169,255,166,189,117,124,19,190,127,142,104,63,25,165,169,110,135,231,120,108,78,216,201,181,235,129,113,108,167,194,222,13,114},
-    {206,104,130,88,213,166,169,255,166,189,117,124,19,190,127,142,104,63,25,165,169,120,138,191,23,75,22,249,156,164,135,244}
+    {206,104,130,88,213,166,169,255,164,189,113,38,17,181,98,136,51,62,3,187,227,110,133,255,56,104,67,198,130,242,181,175,75,115,187,253,213,52,47,120,119,238,39,231,37,121,36,133,104,117,2,113,107,52,147,178,57,177,199,65,152,179,247,227,69,249,133,219,121,119,99,169,248,168,254,252},
+    {206,104,130,88,213,166,169,255,164,189,113,38,17,181,98,136,51,62,3,187,227,110,133,255,56,104,67,198,130,242,181,175,75,115,187,253,213,52,47,120,119,238,39,231,37,121,36,133,104,117,2,113,107,52,147,178,57,174,195,78,133,179,254,229,71,248,133,135,75,125,111,190,249,189,229,235,19,175,229,191,45,57,15,230,114,228,146},
+    {206,104,130,88,213,166,169,255,177,181,114,96,3,190,56,131,41,49,89,133,211,111,142,249,62,125,84,201,217,143,179,178,67,50,159,220,223,113,46,101,116,179,52,169,1,51,36,133,96,111,89,96,35,61,130,163,57,177,199,65,152,179,247,227,69,249,133,219,121,119,99,169,248,168,254,252}
 }
 local function decodeKeyUrl(row)
     local out={}
@@ -86,9 +90,14 @@ local function decodeKeyUrl(row)
 end
 
 local function fetchCurrentKey()
+    local nonce=tostring(os.time())..tostring(math.random(100000,999999))
     for _,row in ipairs(KEY_DATA) do
         local url=decodeKeyUrl(row)
+        local sep=string.find(url,"?",1,true) and "&" or "?"
+        local fresh=url..sep.."s2="..nonce
         local attempts={
+            function() return game:HttpGet(fresh,false) end,
+            function() return game:HttpGet(fresh,true) end,
             function() return game:HttpGet(url,false) end,
             function() return game:HttpGet(url,true) end,
             function() return game:HttpGet(url) end,
@@ -98,12 +107,14 @@ local function fetchCurrentKey()
             if ok then
                 body=trim(body)
                 if validRemoteKey(body) then
+                    fresh=nil
                     url=nil
                     attempts=nil
                     return body
                 end
             end
         end
+        fresh=nil
         url=nil
         attempts=nil
     end
@@ -149,8 +160,8 @@ end
 savedReceipt=nil
 expectedReceipt=nil
 
-local outer=game:HttpGet(PROTECTED.."?v=dynamic-key-v2-20260824f",true)
-local uiPatch=game:HttpGet(UIPATCH.."?v=dynamic-key-v2-20260824f",true)
+local outer=game:HttpGet(PROTECTED.."?v=dynamic-key-v2-20260824g",true)
+local uiPatch=game:HttpGet(UIPATCH.."?v=dynamic-key-v2-20260824g",true)
 
 if type(outer)~="string" or outer=="" then
     error("[SERENITY HUB] Access V2 protected core is unavailable.",0)
@@ -299,7 +310,7 @@ currentKey=nil
 uiPatch=nil
 KEY_DATA=nil
 
-local fn,err=loadstring(outer,"@SerenityShield/AccessV2-DynamicKey-F")
+local fn,err=loadstring(outer,"@SerenityShield/AccessV2-DynamicKey-G")
 outer=nil
 if not fn then
     error("[SERENITY HUB] Access V2 dynamic-key build failed: "..tostring(err),0)
