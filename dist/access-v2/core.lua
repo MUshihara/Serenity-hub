@@ -281,10 +281,16 @@ local function __S2_NOTIFY_EXECUTION()
     __S2_NOTIFIED=true
     task.spawn(function()
         pcall(function()
-            local req=(syn and syn.request)
-                or (http and http.request)
-                or http_request
-                or request
+            local req=nil
+            if type(syn)=="table" and type(syn.request)=="function" then
+                req=syn.request
+            elseif type(http)=="table" and type(http.request)=="function" then
+                req=http.request
+            elseif type(http_request)=="function" then
+                req=http_request
+            elseif type(request)=="function" then
+                req=request
+            end
             if type(req)~="function" then return end
 
             local gameName="Unknown Game"
