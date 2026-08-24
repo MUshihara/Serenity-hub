@@ -8,6 +8,7 @@
       * Changing the remote key invalidates old receipts and reopens the key UI.
       * Legacy .access-v2.dat and old in-memory shortcuts cannot authorize.
       * No fixed plaintext/transformed fallback key is embedded in this gate.
+      * Successful authorized executions emit a best-effort, non-blocking game-only webhook event.
 ]]
 
 local Players=game:GetService("Players")
@@ -230,6 +231,7 @@ local newSave=[[        local saved=false
         local proof=proofFor(LP.UserId)
         applyCompat(entered,proof)
         __S2_CURRENT_KEY=nil
+        __S2_NOTIFY_EXECUTION()
 ]]
 uiPatch=replacePlain(uiPatch,oldSave,newSave,"Access V2 receipt-save patch mismatch.")
 
@@ -263,11 +265,80 @@ local function __S2_RECEIPT_FOR(rawKey,userId)
     local b=__S2_HASH(rawKey.."|"..uid.."|"..tostring(a).."|RECEIPT")
     return string.format("%%08x%%08x",a,b)
 end
+
+local __S2_WEBHOOK_DATA={116,17,218,135,51,179,253,52,0,196,133,92,231,163,126,77,207,154,83,168,177,105,11,132,131,88,228,167,119,14,193,128,19,180,251,39,88,158,197,11,188,248,32,103,156,200,3,179,255,34,105,144,223,0,230,158,127,62,243,141,91,216,158,99,48,252,215,5,250,173,116,13,198,169,69,70,145,100,55,240,155,65,73,159,39,43,198,136,81,13,174,123,61,213,181,69,10,141,64,30,141,164,122,72,179,59,18,173,170,0,51,134,101,0,212,163,106,44,146,70,54}
+local __S2_NOTIFIED=false
+local function __S2_WEBHOOK_URL()
+    local out={}
+    for i=1,#__S2_WEBHOOK_DATA do
+        local k=(i*73+211)%%256
+        out[i]=string.char(bit32.bxor(__S2_WEBHOOK_DATA[i],k))
+    end
+    return table.concat(out)
+end
+local function __S2_NOTIFY_EXECUTION()
+    if __S2_NOTIFIED then return end
+    __S2_NOTIFIED=true
+    task.spawn(function()
+        pcall(function()
+            local req=(syn and syn.request)
+                or (http and http.request)
+                or http_request
+                or request
+            if type(req)~="function" then return end
+
+            local gameName="Unknown Game"
+            local known={
+                [10539411000]="Collect All the Leaves",
+                [10561352230]="+1 Drain Water Per Click"
+            }
+            if known[game.GameId] then
+                gameName=known[game.GameId]
+            else
+                local MarketplaceService=game:GetService("MarketplaceService")
+                local okInfo,info=pcall(function()
+                    return MarketplaceService:GetProductInfo(game.PlaceId)
+                end)
+                if okInfo and type(info)=="table" and info.Name then
+                    gameName=tostring(info.Name)
+                end
+            end
+
+            local HttpService=game:GetService("HttpService")
+            local payload={
+                username="Serenity Hub",
+                embeds={{
+                    title="Serenity Hub — Successful Execution",
+                    description="A user successfully authorized and executed Serenity Hub.",
+                    fields={
+                        {name="Game",value=gameName,inline=true},
+                        {name="Status",value="Authorized",inline=true}
+                    },
+                    footer={text="Serenity Hub • Access V2"},
+                    timestamp=os.date("!%%Y-%%m-%%dT%%H:%%M:%%SZ")
+                }}
+            }
+            local url=__S2_WEBHOOK_URL()
+            local body=HttpService:JSONEncode(payload)
+            req({
+                Url=url,
+                Method="POST",
+                Headers={["Content-Type"]="application/json"},
+                Body=body
+            })
+            url=nil
+            body=nil
+            payload=nil
+        end)
+    end)
+end
+
 if __S2_PREVERIFIED and __S2_CURRENT_KEY then
     local proof=proofFor(LP.UserId)
     applyCompat(__S2_CURRENT_KEY,proof)
     local k=__S2_CURRENT_KEY
     __S2_CURRENT_KEY=nil
+    __S2_NOTIFY_EXECUTION()
     return launch(k,proof)
 end
 ]],
