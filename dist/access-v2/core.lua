@@ -18,19 +18,13 @@ local LP = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local BASE = "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local PROTECTED = BASE .. "dist/access-v2/core-protected.lua"
 local UIPATCH = BASE .. "dist/access-v2/ui-mainstyle-keyfix.lua.txt"
-
--- Build the key URL in pieces so the complete destination is not stored as one
--- literal in the public entry file. This is obfuscation only; the remote key is
--- intentionally the authority, not a client-side secret.
 local KEY_URL = BASE .. ("access_" .. "key" .. ".txt")
 local ACCESS_DIR = "SerenityHub"
 local ACCESS_FILE = ACCESS_DIR .. "/.access"
-
 local MOD = 4294967291
 
 local function trim(s)
     s = tostring(s or "")
-    -- UTF-8 BOM
     if #s >= 3 and string.byte(s,1) == 239 and string.byte(s,2) == 187 and string.byte(s,3) == 191 then
         s = string.sub(s,4)
     end
@@ -39,9 +33,6 @@ local function trim(s)
     return s
 end
 
--- Exact Access V2 hash primitive. This is the same DJB-style primitive used by
--- the existing Access V2 verifier; the receipt construction below is now the
--- canonical V2 receipt format going forward.
 local function accessHash(s)
     local q = 5381
     for i = 1, #s do
@@ -112,11 +103,21 @@ local function readReceipt()
 end
 
 local function removeInvalidReceipt()
-    if type(delfile) == "function" then
-        pcall(function()
-            if isfile(ACCESS_FILE) then delfile(ACCESS_FILE) end
-        end)
+    if type(delfile) ~= "function" then return end
+    pcall(function()
+        if isfile(ACCESS_FILE) then delfile(ACCESS_FILE) end
+    end)
+end
+
+local function replacePlain(source, old, new, required)
+    local p = string.find(source, old, 1, true)
+    if not p then
+        if required then
+            error("[SERENITY HUB] " .. tostring(required), 0)
+        end
+        return source, false
     end
+    return string.sub(source,1,p-1) .. new .. string.sub(source,p+#old), true
 end
 
 local currentKey = fetchCurrentKey()
@@ -124,14 +125,13 @@ local expectedReceipt = currentKey and receiptFor(currentKey, LP.UserId) or nil
 local savedReceipt = readReceipt()
 local preverified = expectedReceipt ~= nil and savedReceipt ~= nil and savedReceipt == expectedReceipt
 
--- A receipt that no longer matches the CURRENT remote key is deliberately stale.
 if savedReceipt and expectedReceipt and not preverified then
     removeInvalidReceipt()
 end
 savedReceipt = nil
 
-local outer = game:HttpGet(PROTECTED .. "?v=current-key-v2-20260824a", true)
-local uiPatch = game:HttpGet(UIPATCH .. "?v=current-key-v2-20260824a", true)
+local outer = game:HttpGet(PROTECTED .. "?v=current-key-v2-20260824b", true)
+local uiPatch = game:HttpGet(UIPATCH .. "?v=current-key-v2-20260824b", true)
 
 if type(outer) ~= "string" or outer == "" then
     error("[SERENITY HUB] Access V2 protected core is unavailable.", 0)
@@ -140,49 +140,39 @@ if type(uiPatch) ~= "string" or uiPatch == "" then
     error("[SERENITY HUB] Access V2 UI is unavailable.", 0)
 end
 
--- The old public UI patch contained a fixed transformed fallback. Remove that
--- completely: only the current remote raw key may authorize a new receipt.
-local oldVerify = [[
-        local embeddedOk=(H(entered)==((2100000000+2027360581)%4294967291))
+-- Remove the fixed transformed-key fallback. The remote current key is the only
+-- source that may authorize creation of a new receipt.
+local oldVerify = [[        local embeddedOk=(H(entered)==((2100000000+2027360581)%4294967291))
         local valid=(remoteUsable and secureEq(entered,remote)) or embeddedOk
         remote=nil
 ]]
-local newVerify = [[
-        local valid=(remoteUsable and secureEq(entered,remote))
+local newVerify = [[        local valid=(remoteUsable and secureEq(entered,remote))
         remote=nil
 ]]
+uiPatch = replacePlain(uiPatch, oldVerify, newVerify, "Access V2 verifier patch mismatch.")
 
-local n
-uiPatch, n = uiPatch:gsub(oldVerify, newVerify, 1)
-if n ~= 1 then
-    -- The previous conversation may have already patched the numeric fallback.
-    uiPatch, n = uiPatch:gsub(
-        "        local embeddedOk=%(H%(entered%)==.-%)\n        local valid=%(remoteUsable and secureEq%(entered,remote%)%) or embeddedOk\n        remote=nil\n",
-        newVerify,
-        1
-    )
-end
-if n ~= 1 then
-    error("[SERENITY HUB] Access V2 verifier patch mismatch.", 0)
-end
+-- Point the existing verify button at the new shared raw key and cache-bust it.
+uiPatch = replacePlain(
+    uiPatch,
+    "local keyUrl=R(ID_KEY)",
+    "local keyUrl=__S2_KEY_URL..\"?accessv2=\"..tostring(os.time())..tostring(math.random(100000,999999))",
+    "Access V2 key-source patch mismatch."
+)
 
--- Replace only the UI's key-source lookup. Provider/game links remain inside the
--- protected resolver and are not moved into this readable wrapper.
-uiPatch = uiPatch:gsub("local keyUrl=R%(ID_KEY%)", "local keyUrl=__S2_KEY_URL", 1)
-
--- Replace old receipt writing with the new .access receipt. The file contains
--- exactly the derived receipt and never the user's raw key.
-local oldSave = [[
-        local saved,proof=saveReceipt(entered)
+-- Replace the legacy receipt writer. Only the derived V2 receipt is written.
+local oldSave = [[        local saved,proof=saveReceipt(entered)
         proof=proof or proofFor(LP.UserId)
         applyCompat(entered,proof)
 ]]
-local newSave = [[
-        local saved=false
+local newSave = [[        local saved=false
         if __S2_FS_READY then
             pcall(function()
-                if type(makefolder)=="function" and not isfolder("SerenityHub") then
-                    makefolder("SerenityHub")
+                if type(makefolder)=="function" then
+                    if type(isfolder)=="function" then
+                        if not isfolder("SerenityHub") then makefolder("SerenityHub") end
+                    else
+                        makefolder("SerenityHub")
+                    end
                 end
             end)
             local receipt=__S2_RECEIPT_FOR(entered,LP.UserId)
@@ -193,13 +183,8 @@ local newSave = [[
         local proof=proofFor(LP.UserId)
         applyCompat(entered,proof)
 ]]
-uiPatch, n = uiPatch:gsub(oldSave, newSave, 1)
-if n ~= 1 then
-    error("[SERENITY HUB] Access V2 receipt-save patch mismatch.", 0)
-end
+uiPatch = replacePlain(uiPatch, oldSave, newSave, "Access V2 receipt-save patch mismatch.")
 
--- If the new .access receipt was valid against today's remote key, skip the UI
--- but still use the existing protected launch/session compatibility path.
 local uiMarker = "local function New(class,props)"
 local uiPos = string.find(uiPatch, uiMarker, 1, true)
 if not uiPos then
@@ -244,8 +229,8 @@ end
 
 uiPatch = string.sub(uiPatch, 1, uiPos - 1) .. preamble .. string.sub(uiPatch, uiPos)
 
--- Disable the legacy receipt file inside the protected core. Access V2 now owns
--- SerenityHub/.access and validates it before the protected route engine runs.
+-- Replace the legacy local receipt path in the decrypted protected source so an
+-- old .access-v2.dat can never silently authorize before the new current-key gate.
 local outerMarker = 'local FN,ER=L(SRC,"@SerenityShield/ACCESSV2-92C8406BEAB4-FINAL2")'
 local outerPos = string.find(outer, outerMarker, 1, true)
 if not outerPos then
@@ -253,7 +238,7 @@ if not outerPos then
 end
 
 local inject =
-    ' SRC=string.gsub(SRC,"SerenityHub/%%.access%%-v2%%.dat","SerenityHub/.access-v2-legacy-disabled")' ..
+    ' SRC=string.gsub(SRC,"SerenityHub/%.access%-v2%.dat","SerenityHub/.access-v2-legacy-disabled")' ..
     ' local __s2_ui_marker="local function New(class,props)"' ..
     ' local __s2_ui_pos=string.find(SRC,__s2_ui_marker,1,true)' ..
     ' if not __s2_ui_pos then error("[SERENITY HUB] Access UI marker mismatch.",0) end' ..
@@ -262,13 +247,11 @@ local inject =
 
 outer = string.sub(outer, 1, outerPos - 1) .. inject .. string.sub(outer, outerPos + #outerMarker)
 
--- Clear plaintext remote material from this wrapper before the protected source
--- is compiled. The key still necessarily exists briefly at runtime when used.
 currentKey = nil
 expectedReceipt = nil
 uiPatch = nil
 
-local fn, err = loadstring(outer, "@SerenityShield/AccessV2-CurrentKey")
+local fn, err = loadstring(outer, "@SerenityShield/AccessV2-CurrentKey-B")
 outer = nil
 if not fn then
     error("[SERENITY HUB] Access V2 current-key build failed: " .. tostring(err), 0)
