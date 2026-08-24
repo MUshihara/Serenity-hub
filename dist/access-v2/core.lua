@@ -17,11 +17,16 @@ end
 -- transformed verifier here so Pastebin outages do not lock out valid users.
 local oldVerifier="((2100000000+2027360581)%4294967291)"
 local currentVerifier="((356135586+356135587)%4294967291)"
-local n
-uiPatch,n=uiPatch:gsub(oldVerifier,currentVerifier,1)
-if n~=1 then
+local verifierPos=string.find(uiPatch,oldVerifier,1,true)
+if not verifierPos then
     error("[SERENITY HUB] Access verifier patch mismatch.",0)
 end
+if string.find(uiPatch,oldVerifier,verifierPos+#oldVerifier,true) then
+    error("[SERENITY HUB] Access verifier patch is ambiguous.",0)
+end
+uiPatch=string.sub(uiPatch,1,verifierPos-1)
+    ..currentVerifier
+    ..string.sub(uiPatch,verifierPos+#oldVerifier)
 
 uiPatch=uiPatch:gsub(
     "Key server returned an invalid response%. Check the key or try again%.",
@@ -46,7 +51,7 @@ local inject=
 outer=string.sub(outer,1,pos-1)..inject..string.sub(outer,pos+#outerMarker)
 uiPatch=nil
 
-local fn,err=loadstring(outer,"@SerenityShield/AccessV2-MainStyle-KeyFix-D")
+local fn,err=loadstring(outer,"@SerenityShield/AccessV2-MainStyle-KeyFix-D-Literal")
 outer=nil
 if not fn then
     error("[SERENITY HUB] Access V2 repaired core compile failed: "..tostring(err),0)
