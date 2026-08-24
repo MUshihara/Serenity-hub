@@ -296,6 +296,7 @@ local function __S2_NOTIFY_EXECUTION()
             local gameName="Unknown Game"
             local known={
                 [10539411000]="Collect All the Leaves",
+                [10551595617]="Jump To Steal Soccer Players",
                 [10561352230]="+1 Drain Water Per Click"
             }
             if known[game.GameId] then
