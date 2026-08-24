@@ -1,6 +1,15 @@
 -- SERENITY HUB // ACCESS V2 ENTRY
+
+-- One-time migration cleanup: Access V2 now persists only SerenityHub/.access.
+pcall(function()
+    if type(delfile)=="function" and type(isfile)=="function"
+        and isfile("SerenityHub/.access-v2.dat") then
+        delfile("SerenityHub/.access-v2.dat")
+    end
+end)
+
 local U="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/dist/access-v2/core.lua"
-local source=game:HttpGet(U.."?v=20260824-current-key-v2-c",true)
+local source=game:HttpGet(U.."?v=20260824-current-key-v2-d",true)
 local fn,err=loadstring(source,"@SerenityHub/AccessV2")
 source=nil
 if not fn then
