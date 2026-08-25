@@ -38,7 +38,22 @@ local function isSuperheroEvolution()
         and workspace:FindFirstChild("CombatZoneTrigger")
         and (workspace:FindFirstChild("MapTest") or workspace:FindFirstChild("Map3"))
 
-    return controllerMatch and remoteMatch and worldMatch and true or false
+    if controllerMatch and remoteMatch and worldMatch then
+        return true
+    end
+
+    -- Last fallback for alternate runtime/sub-place IDs.
+    local ok,info=pcall(function()
+        return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+    end)
+    if ok and type(info)=="table" and type(info.Name)=="string" then
+        local name=string.lower(info.Name)
+        if string.find(name,"superhero",1,true) and string.find(name,"evolution",1,true) then
+            return true
+        end
+    end
+
+    return false
 end
 
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
@@ -46,7 +61,7 @@ local targetSuperhero=isSuperheroEvolution()
 local path=targetSuperhero and "dist/access-v2/superhero.lua" or "dist/access-v2/core.lua"
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260826-superhero-fingerprint&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260826-superhero-fingerprint-name&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,targetSuperhero and "@SerenityHub/AccessV2-Superhero" or "@SerenityHub/AccessV2")
