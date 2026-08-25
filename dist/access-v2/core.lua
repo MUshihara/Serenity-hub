@@ -78,7 +78,7 @@ end
 local KEY_DATA={
     {206,104,130,88,213,166,169,255,164,189,113,38,17,181,98,136,51,62,3,187,227,110,133,255,56,104,67,198,130,242,181,175,75,115,187,253,213,52,47,120,119,238,39,231,37,121,36,133,104,117,2,113,107,52,147,178,57,177,199,65,152,179,247,227,69,249,133,219,121,119,99,169,248,168,254,252},
     {206,104,130,88,213,166,169,255,164,189,113,38,17,181,98,136,51,62,3,187,227,110,133,255,56,104,67,198,130,242,181,175,75,115,187,253,213,52,47,120,119,238,39,231,37,121,36,133,104,117,2,113,107,52,147,178,57,174,195,78,133,179,254,229,71,248,133,135,75,125,111,190,249,189,229,235,19,175,229,191,45,57,15,230,114,228,146},
-    {206,104,130,88,213,166,169,255,177,181,114,96,3,190,56,131,41,49,89,133,211,111,142,249,62,125,84,201,217,143,179,178,67,50,159,220,223,113,46,101,116,179,52,169,1,51,36,133,96,111,89,96,35,61,130,163,57,177,199,65,152,179,247,227,69,249,133,219,121,119,99,169,248,168,254,252}
+    {206,104,130,88,213,166,169,255,177,181,114,96,3,190,56,131,41,49,89,133,211,111,142,249,62,125,84,201,217,143,178,67,50,159,220,223,113,46,101,116,179,52,169,1,51,36,133,96,111,89,96,35,61,130,163,57,177,199,65,152,179,247,227,69,249,133,219,121,119,99,169,248,168,254,252}
 }
 local function decodeKeyUrl(row)
     local out={}
@@ -232,6 +232,11 @@ local newSave=[[        local saved=false
         applyCompat(entered,proof)
         __S2_CURRENT_KEY=nil
         __S2_NOTIFY_EXECUTION()
+        if game.GameId==10577588270 then
+            task.wait(.15)
+            if gui then gui:Destroy() end
+            return __S2_LAUNCH_SUPERHERO()
+        end
 ]]
 uiPatch=replacePlain(uiPatch,oldSave,newSave,"Access V2 receipt-save patch mismatch.")
 
@@ -297,7 +302,8 @@ local function __S2_NOTIFY_EXECUTION()
             local known={
                 [10539411000]="Collect All the Leaves",
                 [10551595617]="Jump To Steal Soccer Players",
-                [10561352230]="+1 Drain Water Per Click"
+                [10561352230]="+1 Drain Water Per Click",
+                [10577588270]="+1 Superhero Evolution"
             }
             if known[game.GameId] then
                 gameName=known[game.GameId]
@@ -340,12 +346,39 @@ local function __S2_NOTIFY_EXECUTION()
     end)
 end
 
+local function __S2_LAUNCH_SUPERHERO()
+    local url="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/dist/games/plus-1-superhero-evolution.lua"
+    local sep=string.find(url,"?",1,true) and "&" or "?"
+    local fresh=url..sep.."s2game="..tostring(os.time())..tostring(math.random(100000,999999))
+    local ok,source=pcall(function()
+        return game:HttpGet(fresh,true)
+    end)
+    fresh=nil
+    url=nil
+    if not ok or type(source)~="string" or source=="" then
+        error("[SERENITY HUB] +1 Superhero Evolution payload is unavailable.",0)
+    end
+    local chunk,compileError=loadstring(source,"@Serenity/Games/Plus1SuperheroEvolution")
+    source=nil
+    if not chunk then
+        error("[SERENITY HUB] +1 Superhero Evolution payload compile failed: "..tostring(compileError),0)
+    end
+    local okRun,result=pcall(chunk)
+    if not okRun then
+        error("[SERENITY HUB] +1 Superhero Evolution payload failed: "..tostring(result),0)
+    end
+    return result
+end
+
 if __S2_PREVERIFIED and __S2_CURRENT_KEY then
     local proof=proofFor(LP.UserId)
     applyCompat(__S2_CURRENT_KEY,proof)
     local k=__S2_CURRENT_KEY
     __S2_CURRENT_KEY=nil
     __S2_NOTIFY_EXECUTION()
+    if game.GameId==10577588270 then
+        return __S2_LAUNCH_SUPERHERO()
+    end
     return launch(k,proof)
 end
 ]],
