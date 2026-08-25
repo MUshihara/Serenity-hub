@@ -8,12 +8,15 @@ pcall(function()
     end
 end)
 
-local U="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/dist/access-v2/core.lua"
+local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
+local targetSuperhero=(game.PlaceId==97824450589417 or game.GameId==10577588270)
+local path=targetSuperhero and "dist/access-v2/superhero.lua" or "dist/access-v2/core.lua"
+local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260824-dynamic-key-v2-i&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260826-superhero-route&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
-local fn,err=loadstring(source,"@SerenityHub/AccessV2")
+local fn,err=loadstring(source,targetSuperhero and "@SerenityHub/AccessV2-Superhero" or "@SerenityHub/AccessV2")
 source=nil
 if not fn then
     error("[SERENITY HUB] Access V2 entry compile failed: "..tostring(err),0)
