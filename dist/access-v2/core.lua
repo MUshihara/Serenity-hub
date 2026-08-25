@@ -232,7 +232,7 @@ local newSave=[[        local saved=false
         applyCompat(entered,proof)
         __S2_CURRENT_KEY=nil
         __S2_NOTIFY_EXECUTION()
-        if game.GameId==10577588270 then
+        if game.PlaceId==97824450589417 or game.GameId==10577588270 then
             task.wait(.15)
             if gui then gui:Destroy() end
             return __S2_LAUNCH_SUPERHERO()
@@ -376,7 +376,7 @@ if __S2_PREVERIFIED and __S2_CURRENT_KEY then
     local k=__S2_CURRENT_KEY
     __S2_CURRENT_KEY=nil
     __S2_NOTIFY_EXECUTION()
-    if game.GameId==10577588270 then
+    if game.PlaceId==97824450589417 or game.GameId==10577588270 then
         return __S2_LAUNCH_SUPERHERO()
     end
     return launch(k,proof)
