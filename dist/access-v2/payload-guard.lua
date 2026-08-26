@@ -1,5 +1,10 @@
 -- SERENITY HUB // GUARDED PAYLOAD RUNNER
--- Public game entrypoints use this before executing their obfuscated payload.
+-- Public game entrypoints use this before executing their protected payload.
+--
+-- V2.1 adds a one-time closure ticket passed into the payload chunk.
+-- New payloads may require that ticket so executing the raw runtime file
+-- directly routes back through the canonical loader/access system.
+-- Existing payloads remain compatible because unused varargs are ignored.
 
 local Players=game:GetService("Players")
 local LP=Players.LocalPlayer or Players.PlayerAdded:Wait()
@@ -140,6 +145,21 @@ local function runMainLoader()
     return fn()
 end
 
+local function oneTimeLaunchTicket(payloadPath)
+    local secret={}
+    local consumed=false
+
+    local function verify(candidate,candidatePath)
+        if consumed then return false end
+        if candidate~=secret then return false end
+        if tostring(candidatePath)~=tostring(payloadPath) then return false end
+        consumed=true
+        return true
+    end
+
+    return secret,verify
+end
+
 return function(payloadPath)
     if type(payloadPath)~="string" or payloadPath=="" then
         error("[SERENITY HUB] Invalid payload route.",0)
@@ -163,5 +183,17 @@ return function(payloadPath)
     if not fn then
         error("[SERENITY HUB] Authorized payload compile failed: "..tostring(err),0)
     end
-    return fn()
+
+    -- The secret never enters getgenv/_G. It exists only in this closure and
+    -- is consumed on the first successful verification by a guarded payload.
+    local ticket,verify=oneTimeLaunchTicket(payloadPath)
+    local okRun,result=pcall(fn,ticket,verify)
+    ticket=nil
+    verify=nil
+
+    if not okRun then
+        error("[SERENITY HUB] Authorized payload failed: "..tostring(result),0)
+    end
+
+    return result
 end
