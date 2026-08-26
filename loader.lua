@@ -22,6 +22,18 @@ local function marketplaceName()
     return nil
 end
 
+local function isGreedyGrowers()
+    -- Universe identity covers the experience and future normal sub-places.
+    if game.PlaceId==74102906764176 or game.GameId==10440833423 then
+        return true
+    end
+
+    local name=marketplaceName()
+    return name~=nil
+        and string.find(name,"greedy",1,true)~=nil
+        and string.find(name,"growers",1,true)~=nil
+end
+
 local function isMonkeyEvolution()
     -- Universe identity covers all normal sub-places in the experience.
     if game.PlaceId==91701030914075 or game.GameId==10605939914 then
@@ -72,12 +84,16 @@ local function isSuperheroEvolution()
 end
 
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
-local targetMonkey=isMonkeyEvolution()
-local targetSuperhero=not targetMonkey and isSuperheroEvolution()
+local targetGreedy=isGreedyGrowers()
+local targetMonkey=not targetGreedy and isMonkeyEvolution()
+local targetSuperhero=not targetGreedy and not targetMonkey and isSuperheroEvolution()
 
 local path
 local chunkName
-if targetMonkey then
+if targetGreedy then
+    path="dist/access-v2/greedy-growers.lua"
+    chunkName="@SerenityHub/AccessV2-GreedyGrowers"
+elseif targetMonkey then
     path="dist/access-v2/monkey.lua"
     chunkName="@SerenityHub/AccessV2-Monkey"
 elseif targetSuperhero then
@@ -90,7 +106,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260826-monkey-superhero-access-v2&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260826-greedy-monkey-superhero-access-v2&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
