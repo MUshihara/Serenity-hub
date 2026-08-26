@@ -110,7 +110,8 @@ local function trustedAccessCaller()
             local low=source:lower()
             if low:find("serenityshield",1,true)
                 or low:find("serenityhub/accessv2",1,true)
-                or low:find("accessv2-superhero",1,true) then
+                or low:find("accessv2-superhero",1,true)
+                or low:find("accessv2-greedygrowers",1,true) then
                 return true
             end
         end
@@ -186,8 +187,10 @@ return function(payloadPath)
 
     -- The secret never enters getgenv/_G. It exists only in this closure and
     -- is consumed on the first successful verification by a guarded payload.
+    -- The protected route is passed too, so new payloads can bind the ticket
+    -- to the exact runtime file they were authorized to execute.
     local ticket,verify=oneTimeLaunchTicket(payloadPath)
-    local okRun,result=pcall(fn,ticket,verify)
+    local okRun,result=pcall(fn,ticket,verify,payloadPath)
     ticket=nil
     verify=nil
 
