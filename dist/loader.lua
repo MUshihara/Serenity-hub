@@ -12,6 +12,29 @@ if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
+local function marketplaceName()
+    local ok,info=pcall(function()
+        return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+    end)
+    if ok and type(info)=="table" and type(info.Name)=="string" then
+        return string.lower(info.Name)
+    end
+    return nil
+end
+
+local function isMonkeyEvolution()
+    -- Universe identity covers all normal sub-places in the experience.
+    if game.PlaceId==91701030914075 or game.GameId==10605939914 then
+        return true
+    end
+
+    -- Fallback for unusual executor/runtime identity behavior.
+    local name=marketplaceName()
+    return name~=nil
+        and string.find(name,"monkey",1,true)~=nil
+        and string.find(name,"evolution",1,true)~=nil
+end
+
 local function isSuperheroEvolution()
     -- Primary identity checks.
     if game.PlaceId==97824450589417 or game.GameId==10577588270 then
@@ -42,29 +65,35 @@ local function isSuperheroEvolution()
         return true
     end
 
-    -- Last fallback for alternate runtime/sub-place IDs.
-    local ok,info=pcall(function()
-        return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
-    end)
-    if ok and type(info)=="table" and type(info.Name)=="string" then
-        local name=string.lower(info.Name)
-        if string.find(name,"superhero",1,true) and string.find(name,"evolution",1,true) then
-            return true
-        end
-    end
-
-    return false
+    local name=marketplaceName()
+    return name~=nil
+        and string.find(name,"superhero",1,true)~=nil
+        and string.find(name,"evolution",1,true)~=nil
 end
 
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
-local targetSuperhero=isSuperheroEvolution()
-local path=targetSuperhero and "dist/access-v2/superhero.lua" or "dist/access-v2/core.lua"
+local targetMonkey=isMonkeyEvolution()
+local targetSuperhero=not targetMonkey and isSuperheroEvolution()
+
+local path
+local chunkName
+if targetMonkey then
+    path="dist/access-v2/monkey.lua"
+    chunkName="@SerenityHub/AccessV2-Monkey"
+elseif targetSuperhero then
+    path="dist/access-v2/superhero.lua"
+    chunkName="@SerenityHub/AccessV2-Superhero"
+else
+    path="dist/access-v2/core.lua"
+    chunkName="@SerenityHub/AccessV2"
+end
+
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260826-superhero-fingerprint-name&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260826-monkey-superhero-access-v2&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
-local fn,err=loadstring(source,targetSuperhero and "@SerenityHub/AccessV2-Superhero" or "@SerenityHub/AccessV2")
+local fn,err=loadstring(source,chunkName)
 source=nil
 if not fn then
     error("[SERENITY HUB] Access V2 entry compile failed: "..tostring(err),0)
