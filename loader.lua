@@ -23,7 +23,6 @@ local function marketplaceName()
 end
 
 local function isGreedyGrowers()
-    -- Universe identity covers the experience and future normal sub-places.
     if game.PlaceId==74102906764176 or game.GameId==10440833423 then
         return true
     end
@@ -34,13 +33,24 @@ local function isGreedyGrowers()
         and string.find(name,"growers",1,true)~=nil
 end
 
+local function isChickenFarm()
+    -- Primary supported-experience identity.
+    if game.PlaceId==137233438285284 or game.GameId==10209534490 then
+        return true
+    end
+
+    -- Marketplace fallback for unusual executor/runtime identity behavior.
+    local name=marketplaceName()
+    return name~=nil
+        and string.find(name,"chicken",1,true)~=nil
+        and string.find(name,"farm",1,true)~=nil
+end
+
 local function isMonkeyEvolution()
-    -- Universe identity covers all normal sub-places in the experience.
     if game.PlaceId==91701030914075 or game.GameId==10605939914 then
         return true
     end
 
-    -- Fallback for unusual executor/runtime identity behavior.
     local name=marketplaceName()
     return name~=nil
         and string.find(name,"monkey",1,true)~=nil
@@ -48,13 +58,10 @@ local function isMonkeyEvolution()
 end
 
 local function isSuperheroEvolution()
-    -- Primary identity checks.
     if game.PlaceId==97824450589417 or game.GameId==10577588270 then
         return true
     end
 
-    -- Runtime/sub-place fallback: identify the game by a combination of
-    -- replicated controllers, remotes, and world objects unique to this build.
     local RS=game:GetService("ReplicatedStorage")
     local Client=RS:FindFirstChild("Client")
     local Shared=RS:FindFirstChild("Shared")
@@ -85,14 +92,18 @@ end
 
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local targetGreedy=isGreedyGrowers()
-local targetMonkey=not targetGreedy and isMonkeyEvolution()
-local targetSuperhero=not targetGreedy and not targetMonkey and isSuperheroEvolution()
+local targetChicken=not targetGreedy and isChickenFarm()
+local targetMonkey=not targetGreedy and not targetChicken and isMonkeyEvolution()
+local targetSuperhero=not targetGreedy and not targetChicken and not targetMonkey and isSuperheroEvolution()
 
 local path
 local chunkName
 if targetGreedy then
     path="dist/access-v2/greedy-growers.lua"
     chunkName="@SerenityHub/AccessV2-GreedyGrowers"
+elseif targetChicken then
+    path="dist/access-v2/chicken-farm.lua"
+    chunkName="@SerenityHub/AccessV2-ChickenFarm"
 elseif targetMonkey then
     path="dist/access-v2/monkey.lua"
     chunkName="@SerenityHub/AccessV2-Monkey"
@@ -106,7 +117,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260826-greedy-monkey-superhero-access-v2&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260827-chicken-greedy-monkey-superhero-access-v2&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
