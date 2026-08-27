@@ -27,7 +27,7 @@ Serenity Hub is made to stay simple to use and easy to come back to. Open it wit
 
 ```lua
 loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/dist/loader.lua"
+    "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/dist/run.lua"
 ))()
 ```
 
