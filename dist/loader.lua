@@ -22,6 +22,17 @@ local function marketplaceName()
     return nil
 end
 
+local function isCutGrassAdventure()
+    if game.PlaceId==90086669327265 or game.GameId==10410945205 then
+        return true
+    end
+
+    local name=marketplaceName()
+    return name~=nil
+        and string.find(name,"cut grass",1,true)~=nil
+        and string.find(name,"adventure",1,true)~=nil
+end
+
 local function isGreedyGrowers()
     if game.PlaceId==74102906764176 or game.GameId==10440833423 then
         return true
@@ -89,14 +100,18 @@ local function isSuperheroEvolution()
 end
 
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
-local targetGreedy=isGreedyGrowers()
-local targetChicken=not targetGreedy and isChickenFarm()
-local targetMonkey=not targetGreedy and not targetChicken and isMonkeyEvolution()
-local targetSuperhero=not targetGreedy and not targetChicken and not targetMonkey and isSuperheroEvolution()
+local targetCutGrass=isCutGrassAdventure()
+local targetGreedy=not targetCutGrass and isGreedyGrowers()
+local targetChicken=not targetCutGrass and not targetGreedy and isChickenFarm()
+local targetMonkey=not targetCutGrass and not targetGreedy and not targetChicken and isMonkeyEvolution()
+local targetSuperhero=not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and isSuperheroEvolution()
 
 local path
 local chunkName
-if targetGreedy then
+if targetCutGrass then
+    path="dist/access-v2/cut-grass.lua"
+    chunkName="@SerenityHub/AccessV2-CutGrass"
+elseif targetGreedy then
     path="dist/access-v2/greedy-growers.lua"
     chunkName="@SerenityHub/AccessV2-GreedyGrowers"
 elseif targetChicken then
@@ -115,7 +130,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260827-chicken-greedy-monkey-superhero-access-v2&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260828-cut-grass-access-v2&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)

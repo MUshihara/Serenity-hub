@@ -19,6 +19,7 @@ Serenity Hub is made to stay simple to use and easy to come back to. Open it wit
 - **+1 Monkey Evolution**
 - **+1 Superhero Evolution**
 - **Chicken Farm 🐣**
+- **+1 Cut Grass Adventure 🌿**
 
 ---
 
