@@ -109,8 +109,8 @@ local targetSuperhero=not targetCutGrass and not targetGreedy and not targetChic
 local path
 local chunkName
 if targetCutGrass then
-    path="dist/access-v2/cut-grass.lua"
-    chunkName="@SerenityHub/AccessV2-CutGrass"
+    path="dist/access-v2/cut-grass-v2.lua"
+    chunkName="@SerenityHub/AccessV2-CutGrass-V2"
 elseif targetGreedy then
     path="dist/access-v2/greedy-growers.lua"
     chunkName="@SerenityHub/AccessV2-GreedyGrowers"
@@ -130,7 +130,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260828-cut-grass-access-v2&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260828-cut-grass-provider-v2&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
