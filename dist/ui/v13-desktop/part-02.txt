@@ -382,6 +382,363 @@
     end
 
     --------------------------------------------------------------------
+    -- GLOBAL SEARCH
+    -- Manifest entries are registered once while the UI is built. Search
+    -- never scans the live hierarchy, so it stays responsive on large games.
+    --------------------------------------------------------------------
+
+    Window.SearchEntries = {}
+
+    local searchBackdrop = New("TextButton", {
+        BackgroundColor3 = Theme.BG,
+        BackgroundTransparency = .72,
+        BorderSizePixel = 0,
+        Position = UDim2.fromOffset(0,62),
+        Size = UDim2.new(1,0,1,-62),
+        Text = "",
+        AutoButtonColor = false,
+        Visible = false,
+        ZIndex = 38,
+        Parent = main,
+    })
+
+    local searchPanel = New("Frame", {
+        AnchorPoint = Vector2.new(1,0),
+        Position = UDim2.new(1,-16,0,68),
+        Size = UDim2.fromOffset(430,366),
+        BackgroundColor3 = Theme.Panel,
+        BackgroundTransparency = .08,
+        BorderSizePixel = 0,
+        Visible = false,
+        ZIndex = 40,
+        Parent = main,
+    })
+    Round(searchPanel,14)
+    Stroke(searchPanel,Theme.Cyan,.42,1)
+    Glass(searchPanel,.20,.42)
+
+    local searchHeader = New("TextLabel", {
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(16,10),
+        Size = UDim2.new(1,-32,0,20),
+        Font = Enum.Font.GothamBold,
+        Text = "SEARCH SERENITY",
+        TextColor3 = Theme.Text,
+        TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 41,
+        Parent = searchPanel,
+    })
+
+    local searchField = New("Frame", {
+        Position = UDim2.fromOffset(14,38),
+        Size = UDim2.new(1,-28,0,42),
+        BackgroundColor3 = Theme.Panel2,
+        BackgroundTransparency = .34,
+        BorderSizePixel = 0,
+        ZIndex = 41,
+        Parent = searchPanel,
+    })
+    Round(searchField,10)
+    Stroke(searchField,Theme.StrokeSoft,.58,1)
+
+    Icon(searchField,"search",{
+        Position=UDim2.fromOffset(13,12),
+        Size=UDim2.fromOffset(18,18),
+        Color=Theme.Cyan,
+        ZIndex=42,
+    })
+
+    local searchBox = New("TextBox", {
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(40,0),
+        Size = UDim2.new(1,-50,1,0),
+        ClearTextOnFocus = false,
+        Font = Enum.Font.Gotham,
+        PlaceholderText = "Search pages, features, or settings...",
+        PlaceholderColor3 = Theme.TextDim,
+        Text = "",
+        TextColor3 = Theme.Text,
+        TextSize = 12,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 42,
+        Parent = searchField,
+    })
+
+    local searchStatus = New("TextLabel", {
+        BackgroundTransparency = 1,
+        Position = UDim2.fromOffset(16,86),
+        Size = UDim2.new(1,-32,0,18),
+        Font = Enum.Font.Gotham,
+        Text = "Start typing to find anything.",
+        TextColor3 = Theme.TextDim,
+        TextSize = 9,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ZIndex = 41,
+        Parent = searchPanel,
+    })
+
+    local searchResults = New("ScrollingFrame", {
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        Position = UDim2.fromOffset(12,110),
+        Size = UDim2.new(1,-24,1,-122),
+        CanvasSize = UDim2.new(),
+        AutomaticCanvasSize = Enum.AutomaticSize.Y,
+        ScrollBarThickness = 3,
+        ScrollBarImageColor3 = Theme.Cyan,
+        ZIndex = 41,
+        Parent = searchPanel,
+    })
+    New("UIListLayout", {
+        Padding = UDim.new(0,6),
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Parent = searchResults,
+    })
+
+    local function normalizeSearch(value)
+        return string.lower(tostring(value or ""))
+            :gsub("^%s+","")
+            :gsub("%s+$","")
+    end
+
+    local function resolveSearchTarget(target)
+        if typeof(target) == "Instance" then
+            return target
+        end
+        if type(target) == "table" then
+            if target.Primary ~= nil or target.Fallback ~= nil then
+                return resolveSearchTarget(target.Primary)
+                    or resolveSearchTarget(target.Fallback)
+            end
+            return target.Row or target.Frame or target.Button
+                or target.Content or target._Row or target._Frame
+        end
+        return nil
+    end
+
+    function Window:FocusSearchTarget(target)
+        local object = resolveSearchTarget(target)
+        if not object or not object.Parent or not object:IsA("GuiObject") then
+            return
+        end
+
+        local scroller = object.Parent
+        while scroller and scroller ~= main and not scroller:IsA("ScrollingFrame") do
+            scroller = scroller.Parent
+        end
+
+        if scroller and scroller:IsA("ScrollingFrame") then
+            local y = object.AbsolutePosition.Y - scroller.AbsolutePosition.Y
+                + scroller.CanvasPosition.Y - 10
+            scroller.CanvasPosition = Vector2.new(
+                scroller.CanvasPosition.X,
+                math.max(0,y)
+            )
+        end
+
+        local old = object:FindFirstChild("SerenitySearchFocus")
+        if old then old:Destroy() end
+        local focusStroke = New("UIStroke", {
+            Name = "SerenitySearchFocus",
+            Color = Theme.Cyan,
+            Transparency = .05,
+            Thickness = 2,
+            ApplyStrokeMode = Enum.ApplyStrokeMode.Border,
+            Parent = object,
+        })
+        task.delay(1.35,function()
+            if focusStroke.Parent then
+                Tween(focusStroke,.25,{Transparency=1}).Completed:Wait()
+                focusStroke:Destroy()
+            end
+        end)
+    end
+
+    local function clearSearchResults()
+        for _,child in ipairs(searchResults:GetChildren()) do
+            if child:IsA("GuiButton") then
+                child:Destroy()
+            end
+        end
+    end
+
+    local function scoreSearchEntry(entry, query)
+        if query == "" then
+            return entry.Kind == "Page" and 30 or entry.Kind == "Feature" and 20 or 10
+        end
+
+        local title = normalizeSearch(entry.Title)
+        local feature = normalizeSearch(entry.Feature)
+        local page = normalizeSearch(entry.Page)
+        local description = normalizeSearch(entry.Description)
+        local kind = normalizeSearch(entry.Kind)
+        local score = 0
+
+        if title == query then score += 140
+        elseif string.sub(title,1,#query) == query then score += 105
+        elseif string.find(title,query,1,true) then score += 80 end
+        if string.find(feature,query,1,true) then score += 48 end
+        if string.find(page,query,1,true) then score += 36 end
+        if string.find(description,query,1,true) then score += 24 end
+        if string.find(kind,query,1,true) then score += 12 end
+
+        for token in string.gmatch(query,"%S+") do
+            local haystack = table.concat({title,feature,page,description,kind}," ")
+            if not string.find(haystack,token,1,true) then
+                return 0
+            end
+            score += 4
+        end
+
+        return score
+    end
+
+    local function renderSearch()
+        clearSearchResults()
+        local query = normalizeSearch(searchBox.Text)
+        local matches = {}
+
+        for _,entry in ipairs(Window.SearchEntries) do
+            local score = scoreSearchEntry(entry,query)
+            if score > 0 then
+                matches[#matches+1] = {Entry=entry,Score=score}
+            end
+        end
+
+        table.sort(matches,function(a,b)
+            if a.Score == b.Score then
+                return tostring(a.Entry.Title) < tostring(b.Entry.Title)
+            end
+            return a.Score > b.Score
+        end)
+
+        local shown = math.min(#matches,18)
+        searchStatus.Text = query == ""
+            and ("Browse %d searchable items or start typing."):format(#matches)
+            or ("%d result%s"):format(#matches,#matches == 1 and "" or "s")
+
+        if shown == 0 then
+            searchStatus.Text = "No matching page, feature, or setting."
+            return
+        end
+
+        for index = 1,shown do
+            local entry = matches[index].Entry
+            local result = New("TextButton", {
+                LayoutOrder = index,
+                AutoButtonColor = false,
+                BackgroundColor3 = Theme.Panel2,
+                BackgroundTransparency = .48,
+                BorderSizePixel = 0,
+                Size = UDim2.new(1,-4,0,50),
+                Text = "",
+                ZIndex = 42,
+                Parent = searchResults,
+            })
+            Round(result,10)
+            local resultStroke = Stroke(result,Theme.StrokeSoft,.76,1)
+
+            New("TextLabel", {
+                BackgroundTransparency = 1,
+                Position = UDim2.fromOffset(12,5),
+                Size = UDim2.new(1,-24,0,19),
+                Font = Enum.Font.GothamMedium,
+                Text = tostring(entry.Title or "Untitled"),
+                TextColor3 = Theme.Text,
+                TextSize = 11,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                ZIndex = 43,
+                Parent = result,
+            })
+
+            local trail = {}
+            if entry.Page then trail[#trail+1] = entry.Page end
+            if entry.Feature and entry.Feature ~= entry.Title then
+                trail[#trail+1] = entry.Feature
+            end
+            trail[#trail+1] = entry.Kind or "Item"
+
+            New("TextLabel", {
+                BackgroundTransparency = 1,
+                Position = UDim2.fromOffset(12,25),
+                Size = UDim2.new(1,-24,0,16),
+                Font = Enum.Font.Gotham,
+                Text = table.concat(trail,"  ›  "),
+                TextColor3 = Theme.TextDim,
+                TextSize = 9,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                ZIndex = 43,
+                Parent = result,
+            })
+
+            result.MouseEnter:Connect(function()
+                Tween(result,.10,{BackgroundTransparency=.26})
+                Tween(resultStroke,.10,{Color=Theme.Cyan,Transparency=.42})
+            end)
+            result.MouseLeave:Connect(function()
+                Tween(result,.10,{BackgroundTransparency=.48})
+                Tween(resultStroke,.10,{Color=Theme.StrokeSoft,Transparency=.76})
+            end)
+            result.MouseButton1Click:Connect(function()
+                Window:CloseSearch()
+                if type(entry.Activate) == "function" then
+                    entry.Activate()
+                end
+            end)
+        end
+    end
+
+    function Window:RegisterSearchEntry(entry)
+        if type(entry) == "table" and entry.Title then
+            table.insert(Window.SearchEntries,entry)
+            if searchPanel.Visible then renderSearch() end
+        end
+    end
+
+    function Window:OpenSearch()
+        if Window.Destroyed then return end
+        if Window._OpenPicker and type(Window._OpenPicker.Close) == "function" then
+            Window._OpenPicker:Close()
+        end
+        searchBackdrop.Visible = true
+        searchPanel.Visible = true
+        renderSearch()
+        task.defer(function()
+            if searchBox.Parent then searchBox:CaptureFocus() end
+        end)
+    end
+
+    function Window:CloseSearch()
+        searchBox:ReleaseFocus()
+        searchPanel.Visible = false
+        searchBackdrop.Visible = false
+    end
+
+    function Window:ToggleSearch()
+        if searchPanel.Visible then Window:CloseSearch() else Window:OpenSearch() end
+    end
+
+    searchBackdrop.MouseButton1Click:Connect(function()
+        Window:CloseSearch()
+    end)
+    searchBox:GetPropertyChangedSignal("Text"):Connect(renderSearch)
+    Track(UserInputService.InputBegan:Connect(function(input,gameProcessed)
+        if input.KeyCode == Enum.KeyCode.Escape and searchPanel.Visible then
+            Window:CloseSearch()
+            return
+        end
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode.K
+            and (UserInputService:IsKeyDown(Enum.KeyCode.LeftControl)
+                or UserInputService:IsKeyDown(Enum.KeyCode.RightControl)) then
+            Window:ToggleSearch()
+        end
+    end))
+
+    --------------------------------------------------------------------
     -- EXISTING V11 PAGE API
     --------------------------------------------------------------------
 

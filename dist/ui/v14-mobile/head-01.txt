@@ -30,6 +30,7 @@ local Icons={
  Components="rbxassetid://10709782582",
  Misc="rbxassetid://10734950309",
  Settings="rbxassetid://14007344336",
+ Search="rbxassetid://10734943674",
  ["Settings UI"]="rbxassetid://10734950309",
 }
 

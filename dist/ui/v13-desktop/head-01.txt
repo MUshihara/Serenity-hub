@@ -17,7 +17,7 @@ local CoreGui = game:GetService("CoreGui")
 local player = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local Library = {}
 
-Library.Version = "13.3-desktop-v3-final"
+Library.Version = "13.4-desktop-v3-search"
 Library.APIVersion = 3
 Library.RendererKind = "Desktop"
 Library.DiscordInvite = "https://discord.gg/ccsvkN7Pp"
@@ -63,6 +63,7 @@ local Icons = {
     Quests = "rbxassetid://10709782582",
     Others = "rbxassetid://10734950309",
     Settings = "rbxassetid://14007344336",
+    search = "rbxassetid://10734943674",
     minimize = "rbxassetid://10734895698",
     close = "rbxassetid://10709798174",
     chevron = "rbxassetid://10709790948",

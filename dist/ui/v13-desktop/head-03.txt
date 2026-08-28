@@ -72,7 +72,8 @@
 
     New("ImageLabel", {
         BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(14,9),
+        AnchorPoint = Vector2.new(.5,.5),
+        Position = UDim2.fromScale(.5,.5),
         Size = UDim2.fromOffset(44,44),
         ScaleType = Enum.ScaleType.Fit,
         Image = logoId,
@@ -83,8 +84,8 @@
 
     local topTitle = New("TextLabel", {
         BackgroundTransparency = 1,
-        Position = UDim2.fromOffset(74,0),
-        Size = UDim2.new(1, showTopProfile and -390 or -180, 1, 0),
+        Position = UDim2.fromOffset(18,0),
+        Size = UDim2.fromOffset(250,62),
         Font = Enum.Font.GothamBold,
         Text = "SERENITY HUB",
         TextColor3 = Theme.Text,

@@ -39,6 +39,7 @@ function Adapter.new(options)
     self.Window = nil
     self.Controls = {}
     self.Features = {}
+    self.FeatureTargets = {}
     return self
 end
 
@@ -58,6 +59,33 @@ function Adapter:_changed(page,feature,control,value)
     local key = self:_key(page,feature,control)
     self.Config:Set(key,value,false)
     safeCallback(control.Changed or control.Callback,value,self.Window,self)
+end
+
+function Adapter:_registerSearch(entry)
+    local W = self.Window
+    if type(W.RegisterSearchEntry) ~= "function" or type(entry) ~= "table" then
+        return
+    end
+
+    local pageTitle = entry.Page
+    local target = entry.Target
+    local opener = entry.Opener
+
+    entry.Activate = function()
+        if pageTitle then
+            W:SwitchPage(pageTitle)
+        end
+        if opener and type(opener.Open) == "function" then
+            opener:Open()
+        end
+        if type(W.FocusSearchTarget) == "function" then
+            task.defer(function()
+                W:FocusSearchTarget(target)
+            end)
+        end
+    end
+
+    W:RegisterSearchEntry(entry)
 end
 
 function Adapter:_makeControl(parent,page,feature,control)
@@ -147,6 +175,40 @@ function Adapter:_makeControl(parent,page,feature,control)
     end
 
     if control.Id then self.Controls[key] = item end
+
+    local featureTarget = self.FeatureTargets[page.Id.."."..feature.Id] or {}
+    local controlTarget = item
+
+    -- Several renderer controls intentionally return a small state object
+    -- instead of their visual row. The newest/highest-order row is the exact
+    -- visual target in that case, which lets search scroll to the setting
+    -- rather than stopping at the containing feature.
+    if type(item) == "table" and typeof(item.Row) ~= "Instance"
+        and typeof(parent) == "Instance" then
+        local bestOrder = -math.huge
+        for _,child in ipairs(parent:GetChildren()) do
+            if child:IsA("GuiObject") and child.LayoutOrder >= bestOrder then
+                bestOrder = child.LayoutOrder
+                controlTarget = child
+            end
+        end
+    end
+
+    self:_registerSearch({
+        Id = key,
+        Kind = "Setting",
+        Title = control.Title or control.Id or control.Type,
+        Description = control.Description or control.Text or "",
+        Page = page.Title,
+        Feature = feature.Title,
+        Type = control.Type,
+        Target = {
+            Primary = controlTarget,
+            Fallback = featureTarget.Target,
+        },
+        Opener = featureTarget.Opener,
+    })
+
     return item
 end
 
@@ -157,7 +219,7 @@ function Adapter:_addDefaultDashboardIdentity(pageObject, leftColumn)
     local W = self.Window
 
     if self.Layout == "Desktop" then
-        local group = W:Group(
+        local group, groupFrame = W:Group(
             leftColumn,
             "Account",
             "Current experience and player identity.",
@@ -180,11 +242,42 @@ function Adapter:_addDefaultDashboardIdentity(pageObject, leftColumn)
             })
         end
 
+        local communityCard
+        if type(W.CommunityCard) == "function" then
+            communityCard = W:CommunityCard(group,{
+                Kicker="SERENITY COMMUNITY",
+                Title="Join the Serenity Hub Discord",
+                Description=self.Library.DiscordInvite,
+                ButtonText="Copy Discord Invite",
+                Accent=Color3.fromRGB(166,126,255),
+            })
+        end
+
         self.Features["Dashboard.__SerenityAccount"] = group
+        self.FeatureTargets["Dashboard.__SerenityAccount"] = {
+            Target = groupFrame or group,
+        }
+        self:_registerSearch({
+            Id = "Dashboard.__SerenityAccount",
+            Kind = "Feature",
+            Title = "Account",
+            Description = "Current experience and player identity.",
+            Page = "Dashboard",
+            Target = groupFrame or group,
+        })
+        self:_registerSearch({
+            Id = "Dashboard.__SerenityDiscord",
+            Kind = "Community",
+            Title = "Serenity Hub Discord",
+            Description = self.Library.DiscordInvite or "Official Serenity Hub community invite.",
+            Page = "Dashboard",
+            Feature = "Account",
+            Target = communityCard or groupFrame or group,
+        })
         return group
     end
 
-    local content = W:Feature(
+    local content, featureItem = W:Feature(
         pageObject,
         "Account",
         "Current game and player identity.",
@@ -202,7 +295,52 @@ function Adapter:_addDefaultDashboardIdentity(pageObject, leftColumn)
         W:PlayerCard(content)
     end
 
+    local discordRow
+    if type(W.Paragraph) == "function" then
+        discordRow = W:Paragraph(
+            content,
+            "Serenity Hub Discord",
+            self.Library.DiscordInvite or "Official Serenity Hub community invite."
+        )
+    end
+    if type(W.Action) == "function" then
+        discordRow = W:Action(
+            content,
+            "Copy Discord Invite",
+            self.Library.DiscordInvite or "Copy the official Serenity Hub community invite.",
+            function()
+                if type(W.CopyDiscordInvite) == "function" then
+                    W:CopyDiscordInvite()
+                end
+            end,
+            {Accent="purple",ButtonText="COPY"}
+        ) or discordRow
+    end
+
     self.Features["Dashboard.__SerenityAccount"] = content
+    self.FeatureTargets["Dashboard.__SerenityAccount"] = {
+        Target = featureItem and featureItem.Frame or content,
+        Opener = featureItem,
+    }
+    self:_registerSearch({
+        Id = "Dashboard.__SerenityAccount",
+        Kind = "Feature",
+        Title = "Account",
+        Description = "Current game and player identity.",
+        Page = "Dashboard",
+        Target = featureItem and featureItem.Frame or content,
+        Opener = featureItem,
+    })
+    self:_registerSearch({
+        Id = "Dashboard.__SerenityDiscord",
+        Kind = "Community",
+        Title = "Serenity Hub Discord",
+        Description = self.Library.DiscordInvite or "Official Serenity Hub community invite.",
+        Page = "Dashboard",
+        Feature = "Account",
+        Target = discordRow or (featureItem and featureItem.Frame or content),
+        Opener = featureItem,
+    })
     return content
 end
 
@@ -235,6 +373,14 @@ function Adapter:Build()
             local pageObject
             if self.Layout == "Desktop" then
                 pageObject = W:AddPage(page.Title,page.Icon)
+                self:_registerSearch({
+                    Id = page.Id,
+                    Kind = "Page",
+                    Title = page.Title,
+                    Description = page.Description or "Open this page.",
+                    Page = page.Title,
+                    Target = pageObject,
+                })
                 local isDashboard = page.Id == "Dashboard" or page.Title == "Dashboard"
                 local left = W:Section(
                     pageObject,
@@ -260,10 +406,22 @@ function Adapter:Build()
                         local column = feature.Column == "Right" and right
                             or feature.Column == "Left" and left
                             or (visibleIndex % 2 == 0 and right or left)
-                        local group = W:Group(column,feature.Title,feature.Description,{
+                        local group, groupFrame = W:Group(column,feature.Title,feature.Description,{
                             Accent=feature.Accent
                         })
-                        self.Features[page.Id.."."..feature.Id] = group
+                        local featureKey = page.Id.."."..feature.Id
+                        self.Features[featureKey] = group
+                        self.FeatureTargets[featureKey] = {
+                            Target = groupFrame or group,
+                        }
+                        self:_registerSearch({
+                            Id = featureKey,
+                            Kind = "Feature",
+                            Title = feature.Title,
+                            Description = feature.Description or "",
+                            Page = page.Title,
+                            Target = groupFrame or group,
+                        })
                         for _,control in ipairs(feature.Controls or {}) do
                             self:_makeControl(group,page,feature,control)
                         end
@@ -271,6 +429,14 @@ function Adapter:Build()
                 end
             else
                 pageObject = W:AddPage(page.Title,{Icon=page.Icon})
+                self:_registerSearch({
+                    Id = page.Id,
+                    Kind = "Page",
+                    Title = page.Title,
+                    Description = page.Description or "Open this page.",
+                    Page = page.Title,
+                    Target = pageObject,
+                })
 
                 if page.Id == "Dashboard" or page.Title == "Dashboard" then
                     self:_addDefaultDashboardIdentity(pageObject,nil)
@@ -278,11 +444,25 @@ function Adapter:Build()
 
                 for _,feature in ipairs(page.Features or {}) do
                     if platformVisible(feature,self.Layout) then
-                        local content = W:Feature(pageObject,feature.Title,feature.Description,{
+                        local content, featureItem = W:Feature(pageObject,feature.Title,feature.Description,{
                             Accent=feature.Accent,
                             Expanded=feature.Expanded == true,
                         })
-                        self.Features[page.Id.."."..feature.Id] = content
+                        local featureKey = page.Id.."."..feature.Id
+                        self.Features[featureKey] = content
+                        self.FeatureTargets[featureKey] = {
+                            Target = featureItem and featureItem.Frame or content,
+                            Opener = featureItem,
+                        }
+                        self:_registerSearch({
+                            Id = featureKey,
+                            Kind = "Feature",
+                            Title = feature.Title,
+                            Description = feature.Description or "",
+                            Page = page.Title,
+                            Target = featureItem and featureItem.Frame or content,
+                            Opener = featureItem,
+                        })
                         for _,control in ipairs(feature.Controls or {}) do
                             self:_makeControl(content,page,feature,control)
                         end

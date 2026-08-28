@@ -165,6 +165,10 @@
 
     Window.Destroy = Window.Close
 
+    topButton("search",showTopProfile and -310 or -100,function()
+        Window:ToggleSearch()
+    end)
+
     topButton("close",-16,function()
         Window:Close()
     end)

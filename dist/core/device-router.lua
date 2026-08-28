@@ -1,4 +1,4 @@
--- SERENITY HUB // OFFICIAL DEVICE ROUTER V3.0.1
+-- SERENITY HUB // OFFICIAL DEVICE ROUTER V3.0.2
 local UserInputService = game:GetService("UserInputService")
 
 local Router = {Version = 2}
@@ -103,7 +103,7 @@ function Router.Detect()
         reasons[#reasons+1] = reason
         return {
             Layout = layout,
-            Renderer = layout == "Mobile" and "V14.5" or "V13.3",
+            Renderer = layout == "Mobile" and "V14.6" or "V13.4",
             Confidence = confidence,
             Reasons = reasons,
             PreferredInput = preferred and tostring(preferred) or "Unavailable",

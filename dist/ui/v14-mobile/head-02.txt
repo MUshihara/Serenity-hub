@@ -20,7 +20,7 @@ local function GameIcon()local id=tonumber(game.GameId) or tonumber(game.PlaceId
 local function GameName()local ok,r=pcall(function()return MarketplaceService:GetProductInfo(game.PlaceId,Enum.InfoType.Asset)end)return ok and r and r.Name or "Current Experience" end
 local function Drag(h,t)local d=false;local s;local p h.InputBegan:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then d=true;s=i.Position;p=t.Position end end) UserInputService.InputChanged:Connect(function(i)if d and(i.UserInputType==Enum.UserInputType.MouseMovement or i.UserInputType==Enum.UserInputType.Touch)then local x=i.Position-s;t.Position=UDim2.new(p.X.Scale,p.X.Offset+x.X,p.Y.Scale,p.Y.Offset+x.Y)end end) UserInputService.InputEnded:Connect(function(i)if i.UserInputType==Enum.UserInputType.MouseButton1 or i.UserInputType==Enum.UserInputType.Touch then d=false end end)end
 
-local Library={Version="14.5-mobile-v3-final",APIVersion=3,RendererKind="Mobile",DiscordInvite=DISCORD}
+local Library={Version="14.6-mobile-v3-search",APIVersion=3,RendererKind="Mobile",DiscordInvite=DISCORD}
 function Library.Create(opt)
  opt=opt or{};local W=opt.Width or 650;local H=opt.Height or 420;local T=Presets[opt.Theme or"Serenity"] or Presets.Serenity
  local X={Pages={},Nav={},Items={},Features={},Binds={},ShellGlass={},FeatureGlass={},ControlGlass={},Connections={},Cleanups={},ThemeRefreshers={},ActivePopup=nil,Destroyed=false,ThemeName=opt.Theme or"Serenity"}

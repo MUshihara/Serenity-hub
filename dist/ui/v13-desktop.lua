@@ -1,5 +1,6 @@
 -- SERENITY HUB // V13 DESKTOP TRANSPORT
 local BASE = "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/dist/ui/v13-desktop/"
+local RELEASE_TAG = "?serenity=3.0.2"
 local names = {
     "head-01.txt",
     "head-02.txt",
@@ -17,7 +18,7 @@ local parts = {}
 
 for i, path in ipairs(names) do
     local ok, src = pcall(function()
-        return game:HttpGet(BASE .. path)
+        return game:HttpGet(BASE .. path .. RELEASE_TAG)
     end)
 
     if not ok or type(src) ~= "string" or src == "" then
