@@ -159,7 +159,7 @@ local ID_KEY,ID_LV,ID_LL,ID_DC=1,2,3,4
 local VALUES={
     [ID_KEY]=BASE.."access_key.txt",
     [ID_LV]="https://link-center.net/2480209/D0mYrc0M948W",
-    [ID_LL]="https://lootdest.org/s?a51Wabb2",
+    [ID_LL]="https://loot-link.com/s?jbyyXFuO",
     [ID_DC]="https://discord.gg/ccsvkN7Pp"
 }
 local function R(id) return VALUES[id] end
