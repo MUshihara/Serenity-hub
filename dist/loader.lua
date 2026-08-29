@@ -26,111 +26,69 @@ local function marketplaceName()
 end
 
 local function isCutGrassAdventure()
-    if game.PlaceId==90086669327265 or game.GameId==10410945205 then
-        return true
-    end
-
+    if game.PlaceId==90086669327265 or game.GameId==10410945205 then return true end
     local name=marketplaceName()
-    return name~=nil
-        and string.find(name,"cut grass",1,true)~=nil
-        and string.find(name,"adventure",1,true)~=nil
+    return name~=nil and string.find(name,"cut grass",1,true)~=nil and string.find(name,"adventure",1,true)~=nil
 end
 
 local function isDrainWater()
-    if game.PlaceId==103883942725157 or game.GameId==10561352230 then
-        return true
-    end
-
+    if game.PlaceId==103883942725157 or game.GameId==10561352230 then return true end
     local name=marketplaceName()
-    return name~=nil
-        and string.find(name,"drain water",1,true)~=nil
+    return name~=nil and string.find(name,"drain water",1,true)~=nil
 end
 
 local function isSellOres()
-    if game.PlaceId==122572082932179 or game.GameId==10336278580 then
-        return true
-    end
-
+    if game.PlaceId==122572082932179 or game.GameId==10336278580 then return true end
     local name=marketplaceName()
-    return name~=nil
-        and string.find(name,"sell ores",1,true)~=nil
+    return name~=nil and string.find(name,"sell ores",1,true)~=nil
 end
 
 local function isGreedyGrowers()
-    if game.PlaceId==74102906764176 or game.GameId==10440833423 then
-        return true
-    end
-
+    if game.PlaceId==74102906764176 or game.GameId==10440833423 then return true end
     local name=marketplaceName()
-    return name~=nil
-        and string.find(name,"greedy",1,true)~=nil
-        and string.find(name,"growers",1,true)~=nil
+    return name~=nil and string.find(name,"greedy",1,true)~=nil and string.find(name,"growers",1,true)~=nil
 end
 
 local function isChickenFarm()
-    if game.PlaceId==137233438285284 or game.GameId==10209534490 then
-        return true
-    end
-
+    if game.PlaceId==137233438285284 or game.GameId==10209534490 then return true end
     local name=marketplaceName()
-    return name~=nil
-        and string.find(name,"chicken",1,true)~=nil
-        and string.find(name,"farm",1,true)~=nil
+    return name~=nil and string.find(name,"chicken",1,true)~=nil and string.find(name,"farm",1,true)~=nil
 end
 
 local function isMonkeyEvolution()
-    if game.PlaceId==91701030914075 or game.GameId==10605939914 then
-        return true
-    end
-
+    if game.PlaceId==91701030914075 or game.GameId==10605939914 then return true end
     local name=marketplaceName()
-    return name~=nil
-        and string.find(name,"monkey",1,true)~=nil
-        and string.find(name,"evolution",1,true)~=nil
+    return name~=nil and string.find(name,"monkey",1,true)~=nil and string.find(name,"evolution",1,true)~=nil
 end
 
 local function isSuperheroEvolution()
-    if game.PlaceId==97824450589417 or game.GameId==10577588270 then
-        return true
-    end
+    if game.PlaceId==97824450589417 or game.GameId==10577588270 then return true end
 
     local RS=game:GetService("ReplicatedStorage")
     local Client=RS:FindFirstChild("Client")
     local Shared=RS:FindFirstChild("Shared")
     local Remotes=Shared and Shared:FindFirstChild("Remotes")
 
-    local controllerMatch=Client
-        and Client:FindFirstChild("ItemController")
-        and Client:FindFirstChild("DataController")
+    local controllerMatch=Client and Client:FindFirstChild("ItemController") and Client:FindFirstChild("DataController")
+    local remoteMatch=Remotes and Remotes:FindFirstChild("RequestRebirth") and Remotes:FindFirstChild("RequestWorldChange") and Remotes:FindFirstChild("EnemyMeleeContact")
+    local worldMatch=workspace:FindFirstChild("BossFightStage") and workspace:FindFirstChild("CombatZoneTrigger") and (workspace:FindFirstChild("MapTest") or workspace:FindFirstChild("Map3"))
 
-    local remoteMatch=Remotes
-        and Remotes:FindFirstChild("RequestRebirth")
-        and Remotes:FindFirstChild("RequestWorldChange")
-        and Remotes:FindFirstChild("EnemyMeleeContact")
-
-    local worldMatch=workspace:FindFirstChild("BossFightStage")
-        and workspace:FindFirstChild("CombatZoneTrigger")
-        and (workspace:FindFirstChild("MapTest") or workspace:FindFirstChild("Map3"))
-
-    if controllerMatch and remoteMatch and worldMatch then
-        return true
-    end
+    if controllerMatch and remoteMatch and worldMatch then return true end
 
     local name=marketplaceName()
-    return name~=nil
-        and string.find(name,"superhero",1,true)~=nil
-        and string.find(name,"evolution",1,true)~=nil
+    return name~=nil and string.find(name,"superhero",1,true)~=nil and string.find(name,"evolution",1,true)~=nil
 end
 
 local function isHeroesRNG()
-    if game.PlaceId==108307565942574 or game.GameId==10153098880 then
-        return true
-    end
-
+    if game.PlaceId==108307565942574 or game.GameId==10153098880 then return true end
     local name=marketplaceName()
-    return name~=nil
-        and string.find(name,"heroes",1,true)~=nil
-        and string.find(name,"rng",1,true)~=nil
+    return name~=nil and string.find(name,"heroes",1,true)~=nil and string.find(name,"rng",1,true)~=nil
+end
+
+local function isThrowCoin()
+    if game.PlaceId==115681808123944 or game.GameId==10131390815 then return true end
+    local name=marketplaceName()
+    return name~=nil and string.find(name,"throw a coin",1,true)~=nil
 end
 
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
@@ -142,6 +100,7 @@ local targetChicken=not targetDrain and not targetSellOres and not targetCutGras
 local targetMonkey=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and isMonkeyEvolution()
 local targetSuperhero=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and isSuperheroEvolution()
 local targetHeroesRNG=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and isHeroesRNG()
+local targetThrowCoin=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and isThrowCoin()
 
 local path
 local chunkName
@@ -169,6 +128,11 @@ elseif targetSuperhero then
 elseif targetHeroesRNG then
     path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/runtime/games/Heroes_RNG.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-HeroesRNG" or "@SerenityHub/Game-HeroesRNG"
+elseif targetThrowCoin then
+    -- Access is currently disabled. When Access V2 is restored, this falls through
+    -- the generic access gate until a dedicated Throw a Coin access route is added.
+    path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/games/Throw_a_coin.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-ThrowCoin" or "@SerenityHub/Game-ThrowCoin"
 else
     path="dist/access-v2/core.lua"
     chunkName="@SerenityHub/AccessV2"
@@ -176,7 +140,7 @@ end
 
 if not ACCESS_ENABLED then
     local supported=targetDrain or targetSellOres or targetCutGrass or targetGreedy
-        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG
+        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin
     if supported then
         local env=(type(getgenv)=="function" and getgenv()) or _G
         env.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -186,7 +150,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260830-heroes-rng&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260830-throw-coin&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
