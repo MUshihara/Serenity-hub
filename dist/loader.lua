@@ -122,6 +122,17 @@ local function isSuperheroEvolution()
         and string.find(name,"evolution",1,true)~=nil
 end
 
+local function isHeroesRNG()
+    if game.PlaceId==108307565942574 or game.GameId==10153098880 then
+        return true
+    end
+
+    local name=marketplaceName()
+    return name~=nil
+        and string.find(name,"heroes",1,true)~=nil
+        and string.find(name,"rng",1,true)~=nil
+end
+
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local targetDrain=isDrainWater()
 local targetSellOres=not targetDrain and isSellOres()
@@ -130,6 +141,7 @@ local targetGreedy=not targetDrain and not targetSellOres and not targetCutGrass
 local targetChicken=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and isChickenFarm()
 local targetMonkey=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and isMonkeyEvolution()
 local targetSuperhero=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and isSuperheroEvolution()
+local targetHeroesRNG=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and isHeroesRNG()
 
 local path
 local chunkName
@@ -154,6 +166,9 @@ elseif targetMonkey then
 elseif targetSuperhero then
     path=ACCESS_ENABLED and "dist/access-v2/superhero.lua" or "dist/games/plus-1-superhero-evolution.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-Superhero" or "@SerenityHub/Game-Superhero"
+elseif targetHeroesRNG then
+    path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/runtime/games/Heroes_RNG.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-HeroesRNG" or "@SerenityHub/Game-HeroesRNG"
 else
     path="dist/access-v2/core.lua"
     chunkName="@SerenityHub/AccessV2"
@@ -161,7 +176,7 @@ end
 
 if not ACCESS_ENABLED then
     local supported=targetDrain or targetSellOres or targetCutGrass or targetGreedy
-        or targetChicken or targetMonkey or targetSuperhero
+        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG
     if supported then
         local env=(type(getgenv)=="function" and getgenv()) or _G
         env.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -171,7 +186,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260829-access-paused&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260830-heroes-rng&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
