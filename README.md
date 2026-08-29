@@ -21,6 +21,7 @@ Serenity Hub is made to stay simple to use and easy to come back to. Open it wit
 - **Chicken Farm 🐣**
 - **+1 Cut Grass Adventure 🌿**
 - **Sell Ores ⛏️**
+- **Heroes RNG**
 
 ---
 
