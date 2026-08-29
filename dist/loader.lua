@@ -1,5 +1,8 @@
 -- SERENITY HUB // ACCESS V2 ENTRY
 
+-- Temporary global switch. Set to true to restore the key system.
+local ACCESS_ENABLED=false
+
 -- One-time cleanup: only SerenityHub/.access is used by the current gate.
 pcall(function()
     if type(delfile)=="function" and type(isfile)=="function"
@@ -31,6 +34,16 @@ local function isCutGrassAdventure()
     return name~=nil
         and string.find(name,"cut grass",1,true)~=nil
         and string.find(name,"adventure",1,true)~=nil
+end
+
+local function isDrainWater()
+    if game.PlaceId==103883942725157 or game.GameId==10561352230 then
+        return true
+    end
+
+    local name=marketplaceName()
+    return name~=nil
+        and string.find(name,"drain water",1,true)~=nil
 end
 
 local function isSellOres()
@@ -110,41 +123,55 @@ local function isSuperheroEvolution()
 end
 
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
-local targetSellOres=isSellOres()
-local targetCutGrass=not targetSellOres and isCutGrassAdventure()
-local targetGreedy=not targetSellOres and not targetCutGrass and isGreedyGrowers()
-local targetChicken=not targetSellOres and not targetCutGrass and not targetGreedy and isChickenFarm()
-local targetMonkey=not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and isMonkeyEvolution()
-local targetSuperhero=not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and isSuperheroEvolution()
+local targetDrain=isDrainWater()
+local targetSellOres=not targetDrain and isSellOres()
+local targetCutGrass=not targetDrain and not targetSellOres and isCutGrassAdventure()
+local targetGreedy=not targetDrain and not targetSellOres and not targetCutGrass and isGreedyGrowers()
+local targetChicken=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and isChickenFarm()
+local targetMonkey=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and isMonkeyEvolution()
+local targetSuperhero=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and isSuperheroEvolution()
 
 local path
 local chunkName
-if targetSellOres then
-    path="dist/access-v2/sell-ores.lua"
-    chunkName="@SerenityHub/AccessV2-SellOres"
+if targetDrain then
+    path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/games/drain-water.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2" or "@SerenityHub/Game-DrainWater"
+elseif targetSellOres then
+    path=ACCESS_ENABLED and "dist/access-v2/sell-ores.lua" or "dist/games/sell_ores.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-SellOres" or "@SerenityHub/Game-SellOres"
 elseif targetCutGrass then
-    path="dist/access-v2/cut-grass-v2.lua"
-    chunkName="@SerenityHub/AccessV2-CutGrass-V2"
+    path=ACCESS_ENABLED and "dist/access-v2/cut-grass-v2.lua" or "dist/games/1-Cut-Grass-Adventure.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-CutGrass-V2" or "@SerenityHub/Game-CutGrass"
 elseif targetGreedy then
-    path="dist/access-v2/greedy-growers.lua"
-    chunkName="@SerenityHub/AccessV2-GreedyGrowers"
+    path=ACCESS_ENABLED and "dist/access-v2/greedy-growers.lua" or "dist/games/GreedyGrowers.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-GreedyGrowers" or "@SerenityHub/Game-GreedyGrowers"
 elseif targetChicken then
-    path="dist/access-v2/chicken-farm.lua"
-    chunkName="@SerenityHub/AccessV2-ChickenFarm"
+    path=ACCESS_ENABLED and "dist/access-v2/chicken-farm.lua" or "dist/games/Chickenfarm.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-ChickenFarm" or "@SerenityHub/Game-ChickenFarm"
 elseif targetMonkey then
-    path="dist/access-v2/monkey.lua"
-    chunkName="@SerenityHub/AccessV2-Monkey"
+    path=ACCESS_ENABLED and "dist/access-v2/monkey.lua" or "dist/games/plus-1-monkey-evolution.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-Monkey" or "@SerenityHub/Game-Monkey"
 elseif targetSuperhero then
-    path="dist/access-v2/superhero.lua"
-    chunkName="@SerenityHub/AccessV2-Superhero"
+    path=ACCESS_ENABLED and "dist/access-v2/superhero.lua" or "dist/games/plus-1-superhero-evolution.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-Superhero" or "@SerenityHub/Game-Superhero"
 else
     path="dist/access-v2/core.lua"
     chunkName="@SerenityHub/AccessV2"
 end
 
+if not ACCESS_ENABLED then
+    local supported=targetDrain or targetSellOres or targetCutGrass or targetGreedy
+        or targetChicken or targetMonkey or targetSuperhero
+    if supported then
+        local env=(type(getgenv)=="function" and getgenv()) or _G
+        env.__SERENITY_PAYLOAD_AUTHORIZED=true
+        _G.__SERENITY_PAYLOAD_AUTHORIZED=true
+    end
+end
+
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260829-sell-ores&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260829-access-paused&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
