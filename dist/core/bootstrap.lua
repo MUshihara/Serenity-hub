@@ -1,4 +1,4 @@
--- SERENITY HUB // OFFICIAL ARCHITECTURE V3.0.2 BOOTSTRAP
+-- SERENITY HUB // OFFICIAL ARCHITECTURE V3.0.3 BOOTSTRAP
 -- Public shared architecture entry used by migrated Serenity game plugins.
 --
 -- Game plugins own game mechanics/controllers.
@@ -6,7 +6,7 @@
 -- runtime ownership and manifest-to-UI construction.
 
 local BASE = "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
-local RELEASE_TAG = "?serenity=3.0.2"
+local RELEASE_TAG = "?serenity=3.0.3"
 
 local moduleCache = {}
 
@@ -166,7 +166,7 @@ return function(manifest, options)
     end
 
     local app = {
-        Version = "3.0.2",
+        Version = "3.0.3",
         APIVersion = Validator.APIVersion,
         Runtime = runtime,
         Profile = profile,
@@ -181,7 +181,7 @@ return function(manifest, options)
     end
 
     print("============================================================")
-    print(" SERENITY HUB // OFFICIAL ARCHITECTURE V3.0.2")
+    print(" SERENITY HUB // OFFICIAL ARCHITECTURE V3.0.3")
     print("============================================================")
     print("Layout      :", profile.Layout)
     print("Renderer    :", profile.Renderer)

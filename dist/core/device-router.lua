@@ -1,4 +1,4 @@
--- SERENITY HUB // OFFICIAL DEVICE ROUTER V3.0.2
+-- SERENITY HUB // OFFICIAL DEVICE ROUTER V3.0.3
 local UserInputService = game:GetService("UserInputService")
 
 local Router = {Version = 2}
@@ -69,8 +69,6 @@ local function preferredInput()
 end
 
 local function platform()
-    -- GetPlatform can be restricted in ordinary client code. It is strictly
-    -- best-effort here: pcall keeps the public router safe when unavailable.
     local ok, value = pcall(function()
         return UserInputService:GetPlatform()
     end)
@@ -103,7 +101,7 @@ function Router.Detect()
         reasons[#reasons+1] = reason
         return {
             Layout = layout,
-            Renderer = layout == "Mobile" and "V14.6" or "V13.4",
+            Renderer = layout == "Mobile" and "V14.7" or "V13.5",
             Confidence = confidence,
             Reasons = reasons,
             PreferredInput = preferred and tostring(preferred) or "Unavailable",
@@ -120,19 +118,14 @@ function Router.Detect()
         }
     end
 
-    -- Strongest mobile capability signal.
     if touch and not keyboard and not mouse then
         return finish("Mobile","High","Touch is available while keyboard and mouse are unavailable.")
     end
 
-    -- Android/iOS is decisive when GetPlatform is exposed by the environment.
-    -- This intentionally comes before keyboard/mouse checks because some mobile
-    -- executors expose synthetic desktop input capabilities.
     if touch and isMobilePlatform(platformName) then
         return finish("Mobile","High","Touch plus the reported mobile platform identifies a mobile client.")
     end
 
-    -- Form factor + touch remains independent of executor identity.
     if touch and shortest > 0 and shortest <= 700 then
         reasons[#reasons+1] = "Touch is enabled with a phone/tablet-sized short edge."
         if preferred == Enum.PreferredInput.Touch then
@@ -141,8 +134,6 @@ function Router.Detect()
         return finish("Mobile","High","Touch plus form factor strongly identifies mobile even if synthetic desktop input exists.")
     end
 
-    -- A known mobile executor is only medium evidence, but touch + that hint is
-    -- stronger than a synthetic KeyboardAndMouse PreferredInput value.
     if touch and hinted == "Mobile" then
         reasons[#reasons+1] = "Touch is enabled and mobile executor fallback matched: " .. tostring(matched)
         return finish("Mobile","Medium","Touch and executor evidence agree with mobile.")

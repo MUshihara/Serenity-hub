@@ -1,4 +1,4 @@
--- SERENITY HUB // OFFICIAL PUBLIC UI ARCHITECTURE V3.0.2
+-- SERENITY HUB // OFFICIAL PUBLIC UI ARCHITECTURE V3.0.3
 --
 -- New/finalized game plugins should use:
 --
@@ -9,7 +9,7 @@
 -- library until older game payloads are migrated and regression-tested.
 
 local BASE = "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
-local RELEASE_TAG = "?serenity=3.0.2"
+local RELEASE_TAG = "?serenity=3.0.3"
 
 local cache = {}
 
@@ -58,10 +58,10 @@ local function runRemote(path)
 end
 
 local Serenity = {
-    Version = "3.0.2",
+    Version = "3.0.3",
     APIVersion = 3,
-    DesktopRenderer = "V13.4",
-    MobileRenderer = "V14.6",
+    DesktopRenderer = "V13.5",
+    MobileRenderer = "V14.7",
 }
 
 function Serenity.Detect()
