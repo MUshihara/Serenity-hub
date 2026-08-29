@@ -33,6 +33,16 @@ local function isCutGrassAdventure()
         and string.find(name,"adventure",1,true)~=nil
 end
 
+local function isSellOres()
+    if game.PlaceId==122572082932179 or game.GameId==10336278580 then
+        return true
+    end
+
+    local name=marketplaceName()
+    return name~=nil
+        and string.find(name,"sell ores",1,true)~=nil
+end
+
 local function isGreedyGrowers()
     if game.PlaceId==74102906764176 or game.GameId==10440833423 then
         return true
@@ -100,15 +110,19 @@ local function isSuperheroEvolution()
 end
 
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
-local targetCutGrass=isCutGrassAdventure()
-local targetGreedy=not targetCutGrass and isGreedyGrowers()
-local targetChicken=not targetCutGrass and not targetGreedy and isChickenFarm()
-local targetMonkey=not targetCutGrass and not targetGreedy and not targetChicken and isMonkeyEvolution()
-local targetSuperhero=not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and isSuperheroEvolution()
+local targetSellOres=isSellOres()
+local targetCutGrass=not targetSellOres and isCutGrassAdventure()
+local targetGreedy=not targetSellOres and not targetCutGrass and isGreedyGrowers()
+local targetChicken=not targetSellOres and not targetCutGrass and not targetGreedy and isChickenFarm()
+local targetMonkey=not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and isMonkeyEvolution()
+local targetSuperhero=not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and isSuperheroEvolution()
 
 local path
 local chunkName
-if targetCutGrass then
+if targetSellOres then
+    path="dist/access-v2/sell-ores.lua"
+    chunkName="@SerenityHub/AccessV2-SellOres"
+elseif targetCutGrass then
     path="dist/access-v2/cut-grass-v2.lua"
     chunkName="@SerenityHub/AccessV2-CutGrass-V2"
 elseif targetGreedy then
@@ -130,7 +144,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260828-cut-grass-provider-v2&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260829-sell-ores&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
