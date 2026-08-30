@@ -97,6 +97,12 @@ local function isCheatingDuringTesting()
     return name~=nil and string.find(name,"cheating during testing",1,true)~=nil
 end
 
+local function isRollAnimeToFight()
+    if game.PlaceId==107653945083776 or game.GameId==10298144467 then return true end
+    local name=marketplaceName()
+    return name~=nil and string.find(name,"roll anime to fight",1,true)~=nil
+end
+
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local targetDrain=isDrainWater()
 local targetSellOres=not targetDrain and isSellOres()
@@ -108,6 +114,7 @@ local targetSuperhero=not targetDrain and not targetSellOres and not targetCutGr
 local targetHeroesRNG=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and isHeroesRNG()
 local targetThrowCoin=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and isThrowCoin()
 local targetCDT=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and isCheatingDuringTesting()
+local targetRATF=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and isRollAnimeToFight()
 
 local path
 local chunkName
@@ -143,6 +150,10 @@ elseif targetCDT then
     -- CDT uses the standard guarded-entry -> protected-runtime chain.
     path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/games/Cheating_During_Testing.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-CDT" or "@SerenityHub/Game-CDT"
+elseif targetRATF then
+    -- Roll Anime to Fight uses the guarded-entry -> protected-runtime chain.
+    path=ACCESS_ENABLED and "dist/access-v2/roll-anime-to-fight.lua" or "dist/games/Rollanimetofight.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-RollAnimeToFight" or "@SerenityHub/Game-RollAnimeToFight"
 else
     path="dist/access-v2/core.lua"
     chunkName="@SerenityHub/AccessV2"
@@ -150,7 +161,7 @@ end
 
 if not ACCESS_ENABLED then
     local supported=targetDrain or targetSellOres or targetCutGrass or targetGreedy
-        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT
+        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT or targetRATF
     if supported then
         local env=(type(getgenv)=="function" and getgenv()) or _G
         env.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -160,7 +171,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260830-access-paused&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260831-roll-anime-to-fight&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
