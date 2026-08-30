@@ -22,6 +22,7 @@ Serenity Hub is made to stay simple to use and easy to come back to. Open it wit
 - **+1 Cut Grass Adventure 🌿**
 - **Sell Ores ⛏️**
 - **Heroes RNG**
+- **Cheating During Testing [BETA]**
 
 ---
 
