@@ -1,7 +1,7 @@
 -- SERENITY HUB // ACCESS V2 ENTRY
 
--- Temporary global switch. Set to true to restore the key system.
-local ACCESS_ENABLED=false
+-- Global Access V2 switch. Keep enabled for every supported game.
+local ACCESS_ENABLED=true
 
 -- One-time cleanup: only SerenityHub/.access is used by the current gate.
 pcall(function()
@@ -136,8 +136,7 @@ elseif targetHeroesRNG then
     path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/runtime/games/Heroes_RNG.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-HeroesRNG" or "@SerenityHub/Game-HeroesRNG"
 elseif targetThrowCoin then
-    -- Access is currently disabled. When Access V2 is restored, this falls through
-    -- the generic access gate until a dedicated Throw a Coin access route is added.
+    -- Uses the generic access gate until a dedicated Throw a Coin route is added.
     path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/games/Throw_a_coin.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-ThrowCoin" or "@SerenityHub/Game-ThrowCoin"
 elseif targetCDT then
@@ -161,7 +160,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260830-cdt&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260830-access-restored&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
