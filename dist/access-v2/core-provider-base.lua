@@ -391,6 +391,10 @@ uiPatch=string.sub(uiPatch,1,uiPos-1)..preamble..string.sub(uiPatch,uiPos)
 
 local legacySavedShortcut=[[local savedKey,savedProof=readReceipt() if savedKey and savedProof then applyCompat(savedKey,savedProof) return launch(savedKey,savedProof) end]]
 local legacyEnvShortcut=[[if type(ENV.__SERENITY_ACCESS_V2)=="string" and ENV.__SERENITY_ACCESS_V2==proofFor(LP.UserId) then return launch(nil,ENV.__SERENITY_ACCESS_V2) end]]
+local legacyRouteTail=[[elseif gid==10561352230 or pid==103883942725157 then return ID_DRAIN,"+1 Drain Water Per Click" end return nil,nil end]]
+local currentRouteTail=[[elseif gid==10561352230 or pid==103883942725157 then return ID_DRAIN,"+1 Drain Water Per Click" elseif gid==10153098880 or pid==108307565942574 then return "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/dist/games/Heroes_RNG.lua","Heroes RNG" elseif gid==10131390815 or pid==115681808123944 then return "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/dist/games/Throw_a_coin.lua","Throw a Coin" elseif gid==9780429221 or pid==98894876188248 then return "https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/dist/games/Cheating_During_Testing.lua","Cheating During Testing" end return nil,nil end]]
+local legacyLaunchFetch=[[local u=R(code) local ok,src=pcall(httpGet,u,true)]]
+local currentLaunchFetch=[[local u=type(code)=="string" and code or R(code) local ok,src=pcall(httpGet,u,true)]]
 
 local outerMarker='local FN,ER=L(SRC,"@SerenityShield/ACCESSV2-92C8406BEAB4-FINAL2")'
 local outerPos=string.find(outer,outerMarker,1,true)
@@ -404,6 +408,8 @@ local function __s2_replace(old,new,label)
 end
 __s2_replace(%q,"","legacy receipt shortcut mismatch")
 __s2_replace(%q,"","legacy session shortcut mismatch")
+__s2_replace(%q,%q,"supported game route patch mismatch")
+__s2_replace(%q,%q,"supported game URL patch mismatch")
 local __s2_ui_marker=%q
 local __s2_ui_pos=string.find(SRC,__s2_ui_marker,1,true)
 if not __s2_ui_pos then error("[SERENITY HUB] Access UI marker mismatch.",0) end
@@ -411,6 +417,10 @@ SRC=string.sub(SRC,1,__s2_ui_pos-1)..%q
 ]],
     legacySavedShortcut,
     legacyEnvShortcut,
+    legacyRouteTail,
+    currentRouteTail,
+    legacyLaunchFetch,
+    currentLaunchFetch,
     uiMarker,
     uiPatch
 )..outerMarker
