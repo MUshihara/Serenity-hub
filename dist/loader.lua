@@ -91,6 +91,12 @@ local function isThrowCoin()
     return name~=nil and string.find(name,"throw a coin",1,true)~=nil
 end
 
+local function isCheatingDuringTesting()
+    if game.PlaceId==98894876188248 or game.GameId==9780429221 then return true end
+    local name=marketplaceName()
+    return name~=nil and string.find(name,"cheating during testing",1,true)~=nil
+end
+
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local targetDrain=isDrainWater()
 local targetSellOres=not targetDrain and isSellOres()
@@ -101,6 +107,7 @@ local targetMonkey=not targetDrain and not targetSellOres and not targetCutGrass
 local targetSuperhero=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and isSuperheroEvolution()
 local targetHeroesRNG=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and isHeroesRNG()
 local targetThrowCoin=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and isThrowCoin()
+local targetCDT=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and isCheatingDuringTesting()
 
 local path
 local chunkName
@@ -133,6 +140,10 @@ elseif targetThrowCoin then
     -- the generic access gate until a dedicated Throw a Coin access route is added.
     path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/games/Throw_a_coin.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-ThrowCoin" or "@SerenityHub/Game-ThrowCoin"
+elseif targetCDT then
+    -- CDT uses the standard guarded-entry -> protected-runtime chain.
+    path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/games/Cheating_During_Testing.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-CDT" or "@SerenityHub/Game-CDT"
 else
     path="dist/access-v2/core.lua"
     chunkName="@SerenityHub/AccessV2"
@@ -140,7 +151,7 @@ end
 
 if not ACCESS_ENABLED then
     local supported=targetDrain or targetSellOres or targetCutGrass or targetGreedy
-        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin
+        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT
     if supported then
         local env=(type(getgenv)=="function" and getgenv()) or _G
         env.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -150,7 +161,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260830-throw-coin&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260830-cdt&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
