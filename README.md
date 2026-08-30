@@ -23,6 +23,7 @@ Serenity Hub is made to stay simple to use and easy to come back to. Open it wit
 - **Sell Ores ⛏️**
 - **Heroes RNG**
 - **Cheating During Testing [BETA]**
+- **Roll Anime to Fight!**
 
 ---
 
