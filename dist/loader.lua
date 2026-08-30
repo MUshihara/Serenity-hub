@@ -1,7 +1,7 @@
 -- SERENITY HUB // ACCESS V2 ENTRY
 
--- Global Access V2 switch. Keep enabled for every supported game.
-local ACCESS_ENABLED=true
+-- Temporary global switch. Set to true to restore the key system.
+local ACCESS_ENABLED=false
 
 -- One-time cleanup: only SerenityHub/.access is used by the current gate.
 pcall(function()
@@ -160,7 +160,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260830-access-restored&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260830-access-paused&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
