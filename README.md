@@ -18,6 +18,7 @@ Serenity Hub is made to stay simple to use and easy to come back to. Open it wit
 - **Greedy Growers**
 - **+1 Monkey Evolution**
 - **+1 Superhero Evolution**
+- **+1 Dino Evolution**
 - **Chicken Farm 🐣**
 - **+1 Cut Grass Adventure 🌿**
 - **Sell Ores ⛏️**
