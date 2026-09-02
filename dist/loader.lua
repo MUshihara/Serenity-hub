@@ -103,6 +103,12 @@ local function isRollAnimeToFight()
     return name~=nil and string.find(name,"roll anime to fight",1,true)~=nil
 end
 
+local function isDinoEvolution()
+    if game.PlaceId==103138601755519 or game.GameId==10664667515 then return true end
+    local name=marketplaceName()
+    return name~=nil and string.find(name,"dino",1,true)~=nil and string.find(name,"evolution",1,true)~=nil
+end
+
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local targetDrain=isDrainWater()
 local targetSellOres=not targetDrain and isSellOres()
@@ -115,6 +121,7 @@ local targetHeroesRNG=not targetDrain and not targetSellOres and not targetCutGr
 local targetThrowCoin=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and isThrowCoin()
 local targetCDT=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and isCheatingDuringTesting()
 local targetRATF=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and isRollAnimeToFight()
+local targetDino=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and isDinoEvolution()
 
 local path
 local chunkName
@@ -154,6 +161,9 @@ elseif targetRATF then
     -- Roll Anime to Fight uses the guarded-entry -> protected-runtime chain.
     path=ACCESS_ENABLED and "dist/access-v2/roll-anime-to-fight.lua" or "dist/games/Rollanimetofight.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-RollAnimeToFight" or "@SerenityHub/Game-RollAnimeToFight"
+elseif targetDino then
+    path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/runtime/games/DinoEvolution.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-DinoEvolution" or "@SerenityHub/Game-DinoEvolution"
 else
     path="dist/access-v2/core.lua"
     chunkName="@SerenityHub/AccessV2"
@@ -161,7 +171,7 @@ end
 
 if not ACCESS_ENABLED then
     local supported=targetDrain or targetSellOres or targetCutGrass or targetGreedy
-        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT or targetRATF
+        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT or targetRATF or targetDino
     if supported then
         local env=(type(getgenv)=="function" and getgenv()) or _G
         env.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -171,7 +181,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260831-roll-anime-to-fight&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260903-dino-evolution&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
