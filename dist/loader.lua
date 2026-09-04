@@ -109,6 +109,12 @@ local function isDinoEvolution()
     return name~=nil and string.find(name,"dino",1,true)~=nil and string.find(name,"evolution",1,true)~=nil
 end
 
+local function isPhonkEvolution()
+    if game.PlaceId==104809044319701 or game.GameId==10544327471 then return true end
+    local name=marketplaceName()
+    return name~=nil and string.find(name,"phonk",1,true)~=nil and string.find(name,"evolution",1,true)~=nil
+end
+
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local targetDrain=isDrainWater()
 local targetSellOres=not targetDrain and isSellOres()
@@ -122,6 +128,7 @@ local targetThrowCoin=not targetDrain and not targetSellOres and not targetCutGr
 local targetCDT=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and isCheatingDuringTesting()
 local targetRATF=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and isRollAnimeToFight()
 local targetDino=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and isDinoEvolution()
+local targetPhonk=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and not targetDino and isPhonkEvolution()
 
 local path
 local chunkName
@@ -164,6 +171,9 @@ elseif targetRATF then
 elseif targetDino then
     path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/runtime/games/DinoEvolution.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-DinoEvolution" or "@SerenityHub/Game-DinoEvolution"
+elseif targetPhonk then
+    path=ACCESS_ENABLED and "dist/access-v2/phonkevolution.lua" or "dist/games/phonkevolution.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-PhonkEvolution" or "@SerenityHub/Game-PhonkEvolution"
 else
     path="dist/access-v2/core.lua"
     chunkName="@SerenityHub/AccessV2"
@@ -171,7 +181,7 @@ end
 
 if not ACCESS_ENABLED then
     local supported=targetDrain or targetSellOres or targetCutGrass or targetGreedy
-        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT or targetRATF or targetDino
+        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT or targetRATF or targetDino or targetPhonk
     if supported then
         local env=(type(getgenv)=="function" and getgenv()) or _G
         env.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -181,7 +191,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260903-dino-evolution&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260904-phonk-evolution&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
