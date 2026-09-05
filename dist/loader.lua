@@ -115,6 +115,12 @@ local function isPhonkEvolution()
     return name~=nil and string.find(name,"phonk",1,true)~=nil and string.find(name,"evolution",1,true)~=nil
 end
 
+local function isUnscathedRNG()
+    if game.PlaceId==122951224417794 or game.GameId==8959257868 then return true end
+    local name=marketplaceName()
+    return name~=nil and string.find(name,"unscathed",1,true)~=nil and string.find(name,"rng",1,true)~=nil
+end
+
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local targetDrain=isDrainWater()
 local targetSellOres=not targetDrain and isSellOres()
@@ -129,6 +135,7 @@ local targetCDT=not targetDrain and not targetSellOres and not targetCutGrass an
 local targetRATF=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and isRollAnimeToFight()
 local targetDino=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and isDinoEvolution()
 local targetPhonk=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and not targetDino and isPhonkEvolution()
+local targetUnscathed=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and not targetDino and not targetPhonk and isUnscathedRNG()
 
 local path
 local chunkName
@@ -157,15 +164,12 @@ elseif targetHeroesRNG then
     path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/runtime/games/Heroes_RNG.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-HeroesRNG" or "@SerenityHub/Game-HeroesRNG"
 elseif targetThrowCoin then
-    -- Uses the generic access gate until a dedicated Throw a Coin route is added.
     path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/games/Throw_a_coin.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-ThrowCoin" or "@SerenityHub/Game-ThrowCoin"
 elseif targetCDT then
-    -- CDT uses the standard guarded-entry -> protected-runtime chain.
     path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/games/Cheating_During_Testing.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-CDT" or "@SerenityHub/Game-CDT"
 elseif targetRATF then
-    -- Roll Anime to Fight uses the guarded-entry -> protected-runtime chain.
     path=ACCESS_ENABLED and "dist/access-v2/roll-anime-to-fight.lua" or "dist/games/Rollanimetofight.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-RollAnimeToFight" or "@SerenityHub/Game-RollAnimeToFight"
 elseif targetDino then
@@ -174,6 +178,9 @@ elseif targetDino then
 elseif targetPhonk then
     path=ACCESS_ENABLED and "dist/access-v2/phonkevolution.lua" or "dist/games/phonkevolution.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-PhonkEvolution" or "@SerenityHub/Game-PhonkEvolution"
+elseif targetUnscathed then
+    path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/games/unscathedrng.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-UnscathedRNG" or "@SerenityHub/Game-UnscathedRNG"
 else
     path="dist/access-v2/core.lua"
     chunkName="@SerenityHub/AccessV2"
@@ -181,7 +188,7 @@ end
 
 if not ACCESS_ENABLED then
     local supported=targetDrain or targetSellOres or targetCutGrass or targetGreedy
-        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT or targetRATF or targetDino or targetPhonk
+        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT or targetRATF or targetDino or targetPhonk or targetUnscathed
     if supported then
         local env=(type(getgenv)=="function" and getgenv()) or _G
         env.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -191,7 +198,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260904-phonk-evolution&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260905-unscathed-loader-fix&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
