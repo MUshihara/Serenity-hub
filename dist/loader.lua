@@ -121,6 +121,12 @@ local function isUnscathedRNG()
     return name~=nil and string.find(name,"unscathed",1,true)~=nil and string.find(name,"rng",1,true)~=nil
 end
 
+local function isMineAMountain()
+    if game.PlaceId==125927821145949 or game.GameId==10187294555 then return true end
+    local name=marketplaceName()
+    return name~=nil and string.find(name,"mine a mountain",1,true)~=nil
+end
+
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local targetDrain=isDrainWater()
 local targetSellOres=not targetDrain and isSellOres()
@@ -136,6 +142,7 @@ local targetRATF=not targetDrain and not targetSellOres and not targetCutGrass a
 local targetDino=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and isDinoEvolution()
 local targetPhonk=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and not targetDino and isPhonkEvolution()
 local targetUnscathed=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and not targetDino and not targetPhonk and isUnscathedRNG()
+local targetMine=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and not targetDino and not targetPhonk and not targetUnscathed and isMineAMountain()
 
 local path
 local chunkName
@@ -181,6 +188,9 @@ elseif targetPhonk then
 elseif targetUnscathed then
     path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/games/unscathedrng.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-UnscathedRNG" or "@SerenityHub/Game-UnscathedRNG"
+elseif targetMine then
+    path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/runtime/games/mineamountain.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-MineAMountain" or "@SerenityHub/Game-MineAMountain"
 else
     path="dist/access-v2/core.lua"
     chunkName="@SerenityHub/AccessV2"
@@ -188,7 +198,7 @@ end
 
 if not ACCESS_ENABLED then
     local supported=targetDrain or targetSellOres or targetCutGrass or targetGreedy
-        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT or targetRATF or targetDino or targetPhonk or targetUnscathed
+        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT or targetRATF or targetDino or targetPhonk or targetUnscathed or targetMine
     if supported then
         local env=(type(getgenv)=="function" and getgenv()) or _G
         env.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -198,7 +208,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260905-unscathed-loader-fix&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260907-mine-a-mountain-route&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
