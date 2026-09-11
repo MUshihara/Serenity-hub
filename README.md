@@ -20,6 +20,7 @@ Serenity Hub is made to stay simple to use and easy to come back to. Open it wit
 - **+1 Superhero Evolution**
 - **+1 Dino Evolution**
 - **+1 Phonk Evolution**
+- **+1 Tongue Escape 😛**
 - **Chicken Farm 🐣**
 - **+1 Cut Grass Adventure 🌿**
 - **Sell Ores ⛏️**
