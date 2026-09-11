@@ -134,6 +134,12 @@ local function isSearchForTheNeedle()
     return name~=nil and string.find(name,"search for the needle",1,true)~=nil
 end
 
+local function isTongueEscape()
+    if game.PlaceId==122245938604556 or game.GameId==10681914462 then return true end
+    local name=marketplaceName()
+    return name~=nil and string.find(name,"tongue escape",1,true)~=nil
+end
+
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local targetDrain=isDrainWater()
 local targetSellOres=not targetDrain and isSellOres()
@@ -151,6 +157,7 @@ local targetPhonk=not targetDrain and not targetSellOres and not targetCutGrass 
 local targetUnscathed=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and not targetDino and not targetPhonk and isUnscathedRNG()
 local targetMine=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and not targetDino and not targetPhonk and not targetUnscathed and isMineAMountain()
 local targetNeedle=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and not targetDino and not targetPhonk and not targetUnscathed and not targetMine and isSearchForTheNeedle()
+local targetTongue=not targetDrain and not targetSellOres and not targetCutGrass and not targetGreedy and not targetChicken and not targetMonkey and not targetSuperhero and not targetHeroesRNG and not targetThrowCoin and not targetCDT and not targetRATF and not targetDino and not targetPhonk and not targetUnscathed and not targetMine and not targetNeedle and isTongueEscape()
 
 local path
 local chunkName
@@ -202,6 +209,9 @@ elseif targetMine then
 elseif targetNeedle then
     path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/runtime/games/SEARCH FOR THE NEEDLE.lua"
     chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-SearchForTheNeedle" or "@SerenityHub/Game-SearchForTheNeedle"
+elseif targetTongue then
+    path=ACCESS_ENABLED and "dist/access-v2/core.lua" or "dist/runtime/games/TongueEscape.lua"
+    chunkName=ACCESS_ENABLED and "@SerenityHub/AccessV2-TongueEscape" or "@SerenityHub/Game-TongueEscape"
 else
     path="dist/access-v2/core.lua"
     chunkName="@SerenityHub/AccessV2"
@@ -209,7 +219,7 @@ end
 
 if not ACCESS_ENABLED then
     local supported=targetDrain or targetSellOres or targetCutGrass or targetGreedy
-        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT or targetRATF or targetDino or targetPhonk or targetUnscathed or targetMine or targetNeedle
+        or targetChicken or targetMonkey or targetSuperhero or targetHeroesRNG or targetThrowCoin or targetCDT or targetRATF or targetDino or targetPhonk or targetUnscathed or targetMine or targetNeedle or targetTongue
     if supported then
         local env=(type(getgenv)=="function" and getgenv()) or _G
         env.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -219,7 +229,7 @@ end
 
 local U=BASE..path
 local source=game:HttpGet(
-    U.."?v=20260909-search-for-the-needle-route&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
+    U.."?v=20260912-tongue-escape-route&cb="..tostring(os.time())..tostring(math.random(100000,999999)),
     true
 )
 local fn,err=loadstring(source,chunkName)
