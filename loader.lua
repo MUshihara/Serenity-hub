@@ -8,6 +8,13 @@ end
 
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local isStealASeed=game.PlaceId==122216176958450 or game.GameId==10764328008
+
+if isStealASeed then
+    local env=(type(getgenv)=="function" and getgenv()) or _G
+    env.__SERENITY_PAYLOAD_AUTHORIZED=true
+    _G.__SERENITY_PAYLOAD_AUTHORIZED=true
+end
+
 local target=isStealASeed and "dist/runtime/games/stealaseed.lua" or "dist/loader.lua"
 local url=BASE..target.."?cb="..tostring(os.time())..tostring(math.random(100000,999999))
 
