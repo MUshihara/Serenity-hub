@@ -8,14 +8,28 @@ end
 
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local isStealASeed=game.PlaceId==122216176958450 or game.GameId==10764328008
+local isLiftACube=game.PlaceId==109530157755211 or game.GameId==10759860151
 
-if isStealASeed then
+if isStealASeed or isLiftACube then
     local env=(type(getgenv)=="function" and getgenv()) or _G
     env.__SERENITY_PAYLOAD_AUTHORIZED=true
     _G.__SERENITY_PAYLOAD_AUTHORIZED=true
 end
 
-local target=isStealASeed and "dist/runtime/games/stealaseed.lua" or "dist/loader.lua"
+local target
+local chunkName
+
+if isStealASeed then
+    target="dist/runtime/games/stealaseed.lua"
+    chunkName="@SerenityHub/Game-StealASeed"
+elseif isLiftACube then
+    target="dist/runtime/games/liftacube.lua"
+    chunkName="@SerenityHub/Game-LiftACube"
+else
+    target="dist/loader.lua"
+    chunkName="@SerenityHub/CurrentLoader"
+end
+
 local url=BASE..target.."?cb="..tostring(os.time())..tostring(math.random(100000,999999))
 
 local ok,source=pcall(function()
@@ -26,7 +40,7 @@ if not ok or type(source)~="string" or source=="" then
     error("[SERENITY HUB] Current loader is unavailable. Try again in a moment.",0)
 end
 
-local fn,err=loadstring(source,isStealASeed and "@SerenityHub/Game-StealASeed" or "@SerenityHub/CurrentLoader")
+local fn,err=loadstring(source,chunkName)
 source=nil
 
 if not fn then
