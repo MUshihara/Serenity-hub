@@ -3,7 +3,7 @@ local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local cache={}
 local function module(path)
     if cache[path] then return cache[path] end
-    local source=game:HttpGet(BASE..path.."?serenity=3.2.0",true)
+    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-presence2",true)
     local fn,err=loadstring(source,"@Serenity/"..path)
     if not fn then error("[SERENITY HUB] UI compile failed: "..tostring(err),0) end
     local result=fn()
@@ -28,6 +28,7 @@ local function startPresence(app)
     if type(id)~="string" or #id~=36 then id=http:GenerateGUID(false) end
     env.__SERENITY_PRESENCE_ID=id
     local body=http:JSONEncode({session=id})
+    local window=app.Window or app
     local state={Stopped=false}
     function state:Stop()
         if self.Stopped then return end
@@ -47,10 +48,28 @@ local function startPresence(app)
                 Body=body,
                 Timeout=10,
             })
+            -- Read the total only while About is visible, on the same slow task.
+            if not state.Stopped and not runtime.Destroyed and window.Visible and window.Current=="About"
+                and type(window.SetActiveCount)=="function" then
+                local ok,response=pcall(send,{
+                    Url="https://serenity-active.makimnaritn.workers.dev/active",
+                    Method="GET",
+                    Headers={["Cache-Control"]="no-cache"},
+                    Timeout=10,
+                })
+                local value
+                if ok and type(response)=="table" and tonumber(response.StatusCode)==200 then
+                    local decoded,data=pcall(http.JSONDecode,http,response.Body or "")
+                    if decoded and type(data)=="table" and type(data.active)=="number"
+                        and data.active>=0 and data.active<math.huge and data.active==math.floor(data.active) then
+                        value=data.active
+                    end
+                end
+                if not state.Stopped and not runtime.Destroyed then pcall(window.SetActiveCount,window,value) end
+            end
             task.wait(120)
         end
     end)
-    local window=app.Window or app
     if not env.__SERENITY_PRESENCE_NOTICE and type(window.Notify)=="function" then
         local ok=pcall(window.Notify,window,"Anonymous active-session counting is enabled. No username is sent.")
         if ok then env.__SERENITY_PRESENCE_NOTICE=true end

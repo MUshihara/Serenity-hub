@@ -1379,18 +1379,31 @@ return function(M,options)
             if page.Id=='Feedback' then
                 M.Feedback(ui,app,pageFrame,options,choice)
             elseif page.Id=='About' then
-                local scroll=scroller(pageFrame,104)
+                local scroll=scroller(pageFrame,128)
                 local player=game:GetService('Players').LocalPlayer
-                local profile=ui:Panel(pageFrame,{Size=UDim2.new(1,0,0,94),LayoutOrder=-2})
+                local profile=ui:Panel(pageFrame,{Size=UDim2.new(1,0,0,118),LayoutOrder=-2})
                 local avatar=ui:New('ImageLabel',profile,{BackgroundColor3=ui.T.Inset,BorderSizePixel=0,Image='rbxthumb://type=AvatarHeadShot&id='..tostring(player.UserId or 0)..'&w=150&h=150',Position=UDim2.fromOffset(12,14),Size=UDim2.fromOffset(52,52)})
                 ui:Round(avatar,26)
                 ui:Label(profile,player.DisplayName or 'Welcome',15,UDim2.fromOffset(76,12),UDim2.new(1,-88,0,24),nil,true)
                 ui:Label(profile,'@'..(player.Name or 'Player'),11,UDim2.fromOffset(76,36),UDim2.new(1,-88,0,18),ui.T.Muted)
                 local timer=ui:Label(profile,'Session · 00:00:00',11,UDim2.fromOffset(76,60),UDim2.new(1,-88,0,22),ui.T.Muted)
+                local active=ui:Label(profile,'Active now · —',12,UDim2.fromOffset(76,84),UDim2.new(1,-88,0,22),ui.T.Muted)
+                function app:SetActiveCount(value)
+                    if runtime.Destroyed then return end
+                    if type(value)=='number' and value>=0 and value==math.floor(value) then
+                        self.ActiveCount=value;self.ActiveCountAt=os.clock()
+                        active.Text='Active now · '..tostring(value)
+                    else
+                        self.ActiveCount=nil;self.ActiveCountAt=nil
+                        active.Text='Active now · —'
+                    end
+                end
                 local started=os.clock()
                 local function tick()
                     if runtime.Destroyed then return end
                     if app.Visible and app.Current=='About' then
+                        -- Count freshness uses the existing timer; no extra loop.
+                        if app.ActiveCountAt and os.clock()-app.ActiveCountAt>150 then app:SetActiveCount(nil) end
                         local seconds=math.floor(os.clock()-started)
                         timer.Text=string.format('Session · %02d:%02d:%02d',math.floor(seconds/3600),math.floor(seconds/60)%60,seconds%60)
                     end
