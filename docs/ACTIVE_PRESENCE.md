@@ -19,7 +19,7 @@ Validation: user confirmed live /heartbeat HTTP 200 and displayed count 1. Local
 
 ## In-hub display
 
-Both shared UI adapters display Active now beneath the About profile session timer. The card is 118 px high and the content scroller begins at 128 px, retaining a 10 px gap on PC/mobile. This is the global session total across participating games, not the current game's player count.
+Both shared UI adapters display Active now in a separate orange-accented 66 px card between the avatar profile and What's new. The profile is 94 px high and the content scroller begins at 104 px. The presence card is the first scrolling item (LayoutOrder=-1), with a 26 px count, static status dot and Across Serenity subtitle. No decorative animation or additional network traffic was added. This is the global session total across participating games, not the current game's player count.
 
 The existing heartbeat task makes one additional GET /active per cycle only while About is visible. Minimized windows and other pages skip that read. The two-minute interval begins after requests complete; returning to About may wait until the next cycle. Failed reads clear the value; the existing profile timer clears readings older than 150 seconds. No extra polling task, frame callback, or Cloudflare deployment is required.
 

@@ -1379,23 +1379,34 @@ return function(M,options)
             if page.Id=='Feedback' then
                 M.Feedback(ui,app,pageFrame,options,choice)
             elseif page.Id=='About' then
-                local scroll=scroller(pageFrame,128)
+                local scroll=scroller(pageFrame,104)
                 local player=game:GetService('Players').LocalPlayer
-                local profile=ui:Panel(pageFrame,{Size=UDim2.new(1,0,0,118),LayoutOrder=-2})
+                local profile=ui:Panel(pageFrame,{Size=UDim2.new(1,0,0,94),LayoutOrder=-2})
                 local avatar=ui:New('ImageLabel',profile,{BackgroundColor3=ui.T.Inset,BorderSizePixel=0,Image='rbxthumb://type=AvatarHeadShot&id='..tostring(player.UserId or 0)..'&w=150&h=150',Position=UDim2.fromOffset(12,14),Size=UDim2.fromOffset(52,52)})
                 ui:Round(avatar,26)
                 ui:Label(profile,player.DisplayName or 'Welcome',15,UDim2.fromOffset(76,12),UDim2.new(1,-88,0,24),nil,true)
                 ui:Label(profile,'@'..(player.Name or 'Player'),11,UDim2.fromOffset(76,36),UDim2.new(1,-88,0,18),ui.T.Muted)
                 local timer=ui:Label(profile,'Session · 00:00:00',11,UDim2.fromOffset(76,60),UDim2.new(1,-88,0,22),ui.T.Muted)
-                local active=ui:Label(profile,'Active now · —',12,UDim2.fromOffset(76,84),UDim2.new(1,-88,0,22),ui.T.Muted)
+                local orange=Color3.fromRGB(245,158,66)
+                local presence=ui:Panel(scroll,{Name='ActivePresence',Size=UDim2.new(1,0,0,66),LayoutOrder=-1,BackgroundColor3=Color3.fromRGB(30,23,18)})
+                local edge=ui:Frame(presence,{Position=UDim2.fromOffset(0,12),Size=UDim2.fromOffset(3,42),BackgroundColor3=orange,BackgroundTransparency=0})
+                ui:Round(edge,2)
+                local dot=ui:Frame(presence,{Position=UDim2.fromOffset(15,17),Size=UDim2.fromOffset(8,8),BackgroundColor3=orange,BackgroundTransparency=0.55})
+                ui:Round(dot,4)
+                ui:Label(presence,'Active now',14,UDim2.fromOffset(31,10),UDim2.new(1,-135,0,24),Color3.fromRGB(255,215,174),true)
+                ui:Label(presence,'Across Serenity',11,UDim2.fromOffset(15,36),UDim2.new(1,-119,0,19),ui.T.Muted)
+                local active=ui:Label(presence,'—',26,UDim2.new(1,-104,0,8),UDim2.fromOffset(88,48),orange,true)
+                active.TextXAlignment=Enum.TextXAlignment.Right
                 function app:SetActiveCount(value)
                     if runtime.Destroyed then return end
                     if type(value)=='number' and value>=0 and value==math.floor(value) then
                         self.ActiveCount=value;self.ActiveCountAt=os.clock()
-                        active.Text='Active now · '..tostring(value)
+                        active.Text=tostring(value)
+                        dot.BackgroundTransparency=0
                     else
                         self.ActiveCount=nil;self.ActiveCountAt=nil
-                        active.Text='Active now · —'
+                        active.Text='—'
+                        dot.BackgroundTransparency=0.55
                     end
                 end
                 local started=os.clock()
