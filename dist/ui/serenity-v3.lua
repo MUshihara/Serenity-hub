@@ -28,6 +28,8 @@ local function startPresence(app)
     if type(id)~="string" or #id~=36 then id=http:GenerateGUID(false) end
     env.__SERENITY_PRESENCE_ID=id
     local body=http:JSONEncode({session=id})
+    local executionBody=http:JSONEncode({session=id,execution=http:GenerateGUID(false)})
+    local executionRecorded=false
     local window=app.Window or app
     local state={Stopped=false}
     function state:Stop()
@@ -41,13 +43,17 @@ local function startPresence(app)
     state.Thread=task.defer(function()
         while not state.Stopped and not runtime.Destroyed do
             if env.SerenityPresenceEnabled==false then state:Stop();return end
-            pcall(send,{
+            local beatOK,beatResponse=pcall(send,{
                 Url="https://serenity-active.makimnaritn.workers.dev/heartbeat",
                 Method="POST",
                 Headers={["Content-Type"]="application/json"},
-                Body=body,
+                Body=executionRecorded and body or executionBody,
                 Timeout=10,
             })
+            if not executionRecorded and beatOK and type(beatResponse)=="table" and tonumber(beatResponse.StatusCode)==200 then
+                local decoded,data=pcall(http.JSONDecode,http,beatResponse.Body or "")
+                if decoded and type(data)=="table" and data.executionRecorded==true then executionRecorded=true end
+            end
             -- Read the total only while About is visible, on the same slow task.
             if not state.Stopped and not runtime.Destroyed and window.Visible and window.Current=="About"
                 and type(window.SetActiveCount)=="function" then
@@ -71,7 +77,7 @@ local function startPresence(app)
         end
     end)
     if not env.__SERENITY_PRESENCE_NOTICE and type(window.Notify)=="function" then
-        local ok=pcall(window.Notify,window,"Anonymous active-session counting is enabled. No username is sent.")
+        local ok=pcall(window.Notify,window,"Anonymous session and execution counts are enabled. No username is sent.")
         if ok then env.__SERENITY_PRESENCE_NOTICE=true end
     end
 end
