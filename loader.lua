@@ -9,8 +9,9 @@ end
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local isStealASeed=game.PlaceId==122216176958450 or game.GameId==10764328008
 local isLiftACube=game.PlaceId==109530157755211 or game.GameId==10759860151
+local isStealAnAnimeEgg=game.PlaceId==76377501906469 or game.GameId==10747748563
 
-if isStealASeed or isLiftACube then
+if isStealASeed or isLiftACube or isStealAnAnimeEgg then
     local env=(type(getgenv)=="function" and getgenv()) or _G
     env.__SERENITY_PAYLOAD_AUTHORIZED=true
     _G.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -25,6 +26,9 @@ if isStealASeed then
 elseif isLiftACube then
     target="dist/runtime/games/liftacube.lua"
     chunkName="@SerenityHub/Game-LiftACube"
+elseif isStealAnAnimeEgg then
+    target="dist/runtime/games/StealAnAnimeEgg.lua"
+    chunkName="@SerenityHub/Game-StealAnAnimeEgg"
 else
     target="dist/loader.lua"
     chunkName="@SerenityHub/CurrentLoader"
