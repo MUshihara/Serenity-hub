@@ -1403,7 +1403,7 @@ return function(M,options)
                     if runtime.Destroyed then return end
                     if app.Visible and app.Current=='About' then
                         -- Count freshness uses the existing timer; no extra loop.
-                        if app.ActiveCountAt and os.clock()-app.ActiveCountAt>150 then app:SetActiveCount(nil) end
+                        if app.ActiveCountAt and os.clock()-app.ActiveCountAt>360 then app:SetActiveCount(nil) end
                         local seconds=math.floor(os.clock()-started)
                         timer.Text=string.format('Session · %02d:%02d:%02d',math.floor(seconds/3600),math.floor(seconds/60)%60,seconds%60)
                     end

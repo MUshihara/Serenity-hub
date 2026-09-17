@@ -3,14 +3,14 @@ local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local cache={}
 local function module(path)
     if cache[path] then return cache[path] end
-    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-presence3",true)
+    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-presence5",true)
     local fn,err=loadstring(source,"@Serenity/"..path)
     if not fn then error("[SERENITY HUB] UI compile failed: "..tostring(err),0) end
     local result=fn()
     cache[path]=result
     return result
 end
--- Anonymous active-session estimate: one request per 120 seconds, no player identifiers.
+-- Anonymous active-session estimate: one combined request per 300 seconds after server negotiation, no player identifiers.
 -- Opt out before execution with getgenv().SerenityPresenceEnabled = false.
 local function startPresence(app)
     local runtime=app and app.Runtime
@@ -30,6 +30,7 @@ local function startPresence(app)
     local body=http:JSONEncode({session=id})
     local executionBody=http:JSONEncode({session=id,execution=http:GenerateGUID(false)})
     local executionRecorded=false
+    local interval=120 -- Keep the old expiry safe until the updated Worker is deployed.
     local window=app.Window or app
     local state={Stopped=false}
     function state:Stop()
@@ -50,30 +51,21 @@ local function startPresence(app)
                 Body=executionRecorded and body or executionBody,
                 Timeout=10,
             })
-            if not executionRecorded and beatOK and type(beatResponse)=="table" and tonumber(beatResponse.StatusCode)==200 then
+            local value
+            if beatOK and type(beatResponse)=="table" and tonumber(beatResponse.StatusCode)==200 then
                 local decoded,data=pcall(http.JSONDecode,http,beatResponse.Body or "")
-                if decoded and type(data)=="table" and data.executionRecorded==true then executionRecorded=true end
-            end
-            -- Read the total only while About is visible, on the same slow task.
-            if not state.Stopped and not runtime.Destroyed and window.Visible and window.Current=="About"
-                and type(window.SetActiveCount)=="function" then
-                local ok,response=pcall(send,{
-                    Url="https://serenity-active.makimnaritn.workers.dev/active",
-                    Method="GET",
-                    Headers={["Cache-Control"]="no-cache"},
-                    Timeout=10,
-                })
-                local value
-                if ok and type(response)=="table" and tonumber(response.StatusCode)==200 then
-                    local decoded,data=pcall(http.JSONDecode,http,response.Body or "")
-                    if decoded and type(data)=="table" and type(data.active)=="number"
-                        and data.active>=0 and data.active<math.huge and data.active==math.floor(data.active) then
-                        value=data.active
-                    end
+                if decoded and type(data)=="table" then
+                    if data.executionRecorded==true then executionRecorded=true end
+                    -- Never use a five-minute interval against the old five-minute expiry.
+                    if data.interval==300 and data.ttl==600 then interval=300 else interval=120 end
+                    if type(data.active)=="number" and data.active>=0 and data.active<math.huge
+                        and data.active==math.floor(data.active) then value=data.active end
                 end
-                if not state.Stopped and not runtime.Destroyed then pcall(window.SetActiveCount,window,value) end
             end
-            task.wait(120)
+            if not state.Stopped and not runtime.Destroyed and type(window.SetActiveCount)=="function" then
+                pcall(window.SetActiveCount,window,value)
+            end
+            task.wait(interval)
         end
     end)
     if not env.__SERENITY_PRESENCE_NOTICE and type(window.Notify)=="function" then

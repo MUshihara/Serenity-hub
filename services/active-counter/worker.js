@@ -48,7 +48,7 @@ const PAGE=`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <section><div class="tools"><h2>Executions over time</h2><select id="mode" aria-label="History interval"><option value="daily">Daily · last 30 days</option><option value="monthly">Monthly · last 12 months</option><option value="all">All time · cumulative by month</option></select></div>
 <div id="chart" class="chart" aria-hidden="true"></div><div class="axis"><span id="first"></span><span id="last"></span></div>
 <div id="rowsWrap"><table><thead><tr><th id="period">Day</th><th id="metric">Executions</th></tr></thead><tbody id="rows"></tbody></table></div></section>
-<footer><small>Calendar: Philippine time (UTC+8). A rerun counts as another execution; heartbeats do not. These are reported executions, not unique people. Active sessions expire after 5 minutes without a heartbeat.</small><p id="started"></p></footer>
+<footer><small>Calendar: Philippine time (UTC+8). A rerun counts as another execution; heartbeats do not. These are reported executions, not unique people. Active sessions expire after 10 minutes without a heartbeat.</small><p id="started"></p></footer>
 </main><script>
 const el=id=>document.getElementById(id),fmt=n=>Number(n).toLocaleString();let data,busy=false;
 function render(){
@@ -72,7 +72,7 @@ async function refresh(){if(busy)return;busy=true;el('refresh').disabled=true;co
  el('status').textContent='Updated '+new Date().toLocaleTimeString();el('started').textContent='Tracking began '+new Date(data.started).toLocaleString('en-PH',{timeZone:'Asia/Manila'})+' (Philippine time). Earlier executions are unavailable.';
  }catch{for(const k of ['active','today','month','total'])el(k).textContent='—';el('status').textContent='Update failed. Any chart shown is the previous reading. Try Refresh.';}
  finally{clearTimeout(timer);busy=false;el('refresh').disabled=false;}}
- el('refresh').onclick=refresh;el('mode').onchange=()=>{if(data)render();};setInterval(()=>{if(!document.hidden)refresh();},60000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});refresh();
+ el('refresh').onclick=refresh;el('mode').onchange=()=>{if(data)render();};setInterval(()=>{if(!document.hidden)refresh();},300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});refresh();
 </script></body></html>`;
 export default {async fetch(request,env){
  const path=new URL(request.url).pathname;
@@ -85,16 +85,19 @@ export default {async fetch(request,env){
  try{await init(env.DB);const now=Math.floor(Date.now()/1000),day=dayAt(Date.now());
   if(path==='/leave'){await env.DB.prepare('DELETE FROM presence WHERE session=?').bind(body.session).run();return json({ok:true});}
   if(path==='/heartbeat'){
-   const q=[env.DB.prepare('DELETE FROM presence WHERE expires<=?').bind(now),env.DB.prepare('INSERT INTO presence(session,expires) VALUES(?,?) ON CONFLICT(session) DO UPDATE SET expires=MAX(presence.expires,excluded.expires)').bind(body.session,now+300)];
+   const q=[env.DB.prepare('DELETE FROM presence WHERE expires<=?').bind(now),env.DB.prepare('INSERT INTO presence(session,expires) VALUES(?,?) ON CONFLICT(session) DO UPDATE SET expires=MAX(presence.expires,excluded.expires)').bind(body.session,now+600)];
    if(body.execution)q.push(env.DB.prepare('INSERT OR IGNORE INTO execution_events(id,day) VALUES(?,?)').bind(body.execution,day));
-   await env.DB.batch(q);return json({ok:true,interval:120,executionRecorded:!!body.execution});
+   q.push(env.DB.prepare('SELECT COUNT(*) AS active FROM presence WHERE expires>?').bind(now));
+   const results=await env.DB.batch(q);
+   return json({ok:true,interval:300,ttl:600,active:Number(results[results.length-1].results[0].active),executionRecorded:!!body.execution});
   }
-  const q=[env.DB.prepare('DELETE FROM presence WHERE expires<=?').bind(now),env.DB.prepare('SELECT COUNT(*) AS active FROM presence WHERE expires>?').bind(now)];
+  // Dashboard/count requests are read-only; heartbeat cleanup removes expired rows.
+  const q=[env.DB.prepare('SELECT COUNT(*) AS active FROM presence WHERE expires>?').bind(now)];
   if(path==='/stats'){q.push(env.DB.prepare('SELECT day,executions FROM execution_days ORDER BY day'));q.push(env.DB.prepare("SELECT value FROM analytics_meta WHERE key='started'"));}
-  const r=await env.DB.batch(q),active=Number(r[1].results[0].active);
+  const r=await env.DB.batch(q),active=Number(r[0].results[0].active);
   if(path==='/active')return json({active});
-  const daily=r[2].results;let today=0,month=0,total=0;
+  const daily=r[1].results;let today=0,month=0,total=0;
   for(const row of daily){const n=Number(row.executions);total+=n;if(row.day===day)today+=n;if(row.day.slice(0,7)===day.slice(0,7))month+=n;}
-  return json({active,today,month,total,day,daily,started:r[3].results[0].value});
+  return json({active,today,month,total,day,daily,started:r[2].results[0].value});
  }catch{return json({error:'Storage unavailable; retry shortly'},503);}
 }};
