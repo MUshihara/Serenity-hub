@@ -1,6 +1,6 @@
 local I18N={}
-I18N.Options={'Automatic (Roblox)','English','Filipino','Bahasa Indonesia','Tiếng Việt','ไทย','Español','Português (Brasil)','Français','Deutsch','Русский'}
-local codes={'auto','en','fil','id','vi','th','es','pt','fr','de','ru'}
+I18N.Options={'English','Filipino','Bahasa Indonesia','Tiếng Việt','ไทย','Español','Português (Brasil)','Français','Deutsch','Русский'}
+local codes={'en','fil','id','vi','th','es','pt','fr','de','ru'}
 local supported={en=true,fil=true,id=true,vi=true,th=true,es=true,pt=true,fr=true,de=true,ru=true}
 local aliases={tl='fil',['in']='id'}
 function I18N.Resolve(locale)
@@ -10,18 +10,20 @@ function I18N.Resolve(locale)
 end
 function I18N.Code(selection)
     for i,name in ipairs(I18N.Options) do if name==selection then return codes[i] end end
-    return 'auto'
+    return 'en'
 end
 function I18N.new(selection,detected)
     local self={Bindings={},Selection=selection,Detected=detected,Destroyed=false}
     function self:Language()
         local chosen=I18N.Code(self.Selection)
-        return chosen=='auto' and I18N.Resolve(self.Detected) or chosen
+        return chosen
     end
     function self:T(source)
         if type(source)~='string' or source=='' then return source end
         local pack=I18N.Packs[self:Language()] or {}
         if pack[source] then return pack[source] end
+        local selected=source:match('^Language changed: (.+)$')
+        if selected then return (pack['Language changed'] or 'Language changed')..': '..selected end
         -- Translate only known UI patterns; never edit a user's text or arbitrary values.
         local time=source:match('^Session · (%d+:%d%d:%d%d)$')
         if time then return (pack.Session or 'Session')..' · '..time end
@@ -37,18 +39,21 @@ function I18N.new(selection,detected)
         for _,binding in pairs(self.Bindings) do binding.Render() end
     end
     function self:Set(selection)
-        self.Selection=I18N.Code(selection)=='auto' and I18N.Options[1] or selection
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
         self:Refresh()
     end
     function self:Detect(locale)
         self.Detected=locale
-        if I18N.Code(self.Selection)=='auto' then self:Refresh() end
+        -- Explicit user choice; Roblox locale never changes the selected language.
     end
     function self:Bind(object,property)
         local binding={Source=object[property],Last=nil,Font=object.Font}
         local id={};self.Bindings[id]=binding
         function binding.Render()
             if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
             binding.Last=self:T(binding.Source)
             if object[property]~=binding.Last then object[property]=binding.Last end
             -- SourceSans provides Roblox's fallback glyph handling, including Thai.
@@ -190,6 +195,7 @@ I18N.Packs={
 ["characters"]="karakter",
 ["Connected"]="Nakakonekta",
 ["Preview"]="Preview",
+["English is the default. Choose another language anytime."]="English ang default. Maaari kang pumili ng ibang wika anumang oras.",
 },
 ["id"]={
 ["About"]="Tentang",
@@ -309,6 +315,7 @@ I18N.Packs={
 ["characters"]="karakter",
 ["Connected"]="Terhubung",
 ["Preview"]="Pratinjau",
+["English is the default. Choose another language anytime."]="Bahasa Inggris adalah bawaan. Pilih bahasa lain kapan saja.",
 },
 ["vi"]={
 ["About"]="Giới thiệu",
@@ -428,6 +435,7 @@ I18N.Packs={
 ["characters"]="ký tự",
 ["Connected"]="Đã kết nối",
 ["Preview"]="Xem thử",
+["English is the default. Choose another language anytime."]="Tiếng Anh là mặc định. Bạn có thể đổi ngôn ngữ bất cứ lúc nào.",
 },
 ["th"]={
 ["About"]="เกี่ยวกับ",
@@ -547,6 +555,7 @@ I18N.Packs={
 ["characters"]="ตัวอักษร",
 ["Connected"]="เชื่อมต่อแล้ว",
 ["Preview"]="ตัวอย่าง",
+["English is the default. Choose another language anytime."]="ภาษาอังกฤษเป็นค่าเริ่มต้น เปลี่ยนภาษาได้ทุกเมื่อ",
 },
 ["es"]={
 ["About"]="Acerca de",
@@ -666,6 +675,7 @@ I18N.Packs={
 ["characters"]="caracteres",
 ["Connected"]="Conectado",
 ["Preview"]="Vista previa",
+["English is the default. Choose another language anytime."]="El inglés es el idioma predeterminado. Puedes cambiarlo cuando quieras.",
 },
 ["pt"]={
 ["About"]="Sobre",
@@ -785,6 +795,7 @@ I18N.Packs={
 ["characters"]="caracteres",
 ["Connected"]="Conectado",
 ["Preview"]="Prévia",
+["English is the default. Choose another language anytime."]="O inglês é o padrão. Você pode mudar o idioma quando quiser.",
 },
 ["fr"]={
 ["About"]="À propos",
@@ -904,6 +915,7 @@ I18N.Packs={
 ["characters"]="caractères",
 ["Connected"]="Connecté",
 ["Preview"]="Aperçu",
+["English is the default. Choose another language anytime."]="L’anglais est la langue par défaut. Changez de langue à tout moment.",
 },
 ["de"]={
 ["About"]="Über",
@@ -1023,6 +1035,7 @@ I18N.Packs={
 ["characters"]="Zeichen",
 ["Connected"]="Verbunden",
 ["Preview"]="Vorschau",
+["English is the default. Choose another language anytime."]="Englisch ist die Standardsprache. Du kannst jederzeit eine andere wählen.",
 },
 ["ru"]={
 ["About"]="О программе",
@@ -1142,6 +1155,7 @@ I18N.Packs={
 ["characters"]="символов",
 ["Connected"]="Подключено",
 ["Preview"]="Предпросмотр",
+["English is the default. Choose another language anytime."]="По умолчанию используется английский. Язык можно изменить в любое время.",
 },
 }
 return I18N

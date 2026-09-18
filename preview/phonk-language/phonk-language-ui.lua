@@ -3,8 +3,8 @@
 local M = {}
 M.I18N=(function()
 local I18N={}
-I18N.Options={'Automatic (Roblox)','English','Filipino','Bahasa Indonesia','Tiếng Việt','ไทย','Español','Português (Brasil)','Français','Deutsch','Русский'}
-local codes={'auto','en','fil','id','vi','th','es','pt','fr','de','ru'}
+I18N.Options={'English','Filipino','Bahasa Indonesia','Tiếng Việt','ไทย','Español','Português (Brasil)','Français','Deutsch','Русский'}
+local codes={'en','fil','id','vi','th','es','pt','fr','de','ru'}
 local supported={en=true,fil=true,id=true,vi=true,th=true,es=true,pt=true,fr=true,de=true,ru=true}
 local aliases={tl='fil',['in']='id'}
 function I18N.Resolve(locale)
@@ -14,18 +14,20 @@ function I18N.Resolve(locale)
 end
 function I18N.Code(selection)
     for i,name in ipairs(I18N.Options) do if name==selection then return codes[i] end end
-    return 'auto'
+    return 'en'
 end
 function I18N.new(selection,detected)
     local self={Bindings={},Selection=selection,Detected=detected,Destroyed=false}
     function self:Language()
         local chosen=I18N.Code(self.Selection)
-        return chosen=='auto' and I18N.Resolve(self.Detected) or chosen
+        return chosen
     end
     function self:T(source)
         if type(source)~='string' or source=='' then return source end
         local pack=I18N.Packs[self:Language()] or {}
         if pack[source] then return pack[source] end
+        local selected=source:match('^Language changed: (.+)$')
+        if selected then return (pack['Language changed'] or 'Language changed')..': '..selected end
         -- Translate only known UI patterns; never edit a user's text or arbitrary values.
         local time=source:match('^Session · (%d+:%d%d:%d%d)$')
         if time then return (pack.Session or 'Session')..' · '..time end
@@ -41,18 +43,21 @@ function I18N.new(selection,detected)
         for _,binding in pairs(self.Bindings) do binding.Render() end
     end
     function self:Set(selection)
-        self.Selection=I18N.Code(selection)=='auto' and I18N.Options[1] or selection
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
         self:Refresh()
     end
     function self:Detect(locale)
         self.Detected=locale
-        if I18N.Code(self.Selection)=='auto' then self:Refresh() end
+        -- Explicit user choice; Roblox locale never changes the selected language.
     end
     function self:Bind(object,property)
         local binding={Source=object[property],Last=nil,Font=object.Font}
         local id={};self.Bindings[id]=binding
         function binding.Render()
             if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
             binding.Last=self:T(binding.Source)
             if object[property]~=binding.Last then object[property]=binding.Last end
             -- SourceSans provides Roblox's fallback glyph handling, including Thai.
@@ -194,6 +199,7 @@ I18N.Packs={
 ["characters"]="karakter",
 ["Connected"]="Nakakonekta",
 ["Preview"]="Preview",
+["English is the default. Choose another language anytime."]="English ang default. Maaari kang pumili ng ibang wika anumang oras.",
 },
 ["id"]={
 ["About"]="Tentang",
@@ -313,6 +319,7 @@ I18N.Packs={
 ["characters"]="karakter",
 ["Connected"]="Terhubung",
 ["Preview"]="Pratinjau",
+["English is the default. Choose another language anytime."]="Bahasa Inggris adalah bawaan. Pilih bahasa lain kapan saja.",
 },
 ["vi"]={
 ["About"]="Giới thiệu",
@@ -432,6 +439,7 @@ I18N.Packs={
 ["characters"]="ký tự",
 ["Connected"]="Đã kết nối",
 ["Preview"]="Xem thử",
+["English is the default. Choose another language anytime."]="Tiếng Anh là mặc định. Bạn có thể đổi ngôn ngữ bất cứ lúc nào.",
 },
 ["th"]={
 ["About"]="เกี่ยวกับ",
@@ -551,6 +559,7 @@ I18N.Packs={
 ["characters"]="ตัวอักษร",
 ["Connected"]="เชื่อมต่อแล้ว",
 ["Preview"]="ตัวอย่าง",
+["English is the default. Choose another language anytime."]="ภาษาอังกฤษเป็นค่าเริ่มต้น เปลี่ยนภาษาได้ทุกเมื่อ",
 },
 ["es"]={
 ["About"]="Acerca de",
@@ -670,6 +679,7 @@ I18N.Packs={
 ["characters"]="caracteres",
 ["Connected"]="Conectado",
 ["Preview"]="Vista previa",
+["English is the default. Choose another language anytime."]="El inglés es el idioma predeterminado. Puedes cambiarlo cuando quieras.",
 },
 ["pt"]={
 ["About"]="Sobre",
@@ -789,6 +799,7 @@ I18N.Packs={
 ["characters"]="caracteres",
 ["Connected"]="Conectado",
 ["Preview"]="Prévia",
+["English is the default. Choose another language anytime."]="O inglês é o padrão. Você pode mudar o idioma quando quiser.",
 },
 ["fr"]={
 ["About"]="À propos",
@@ -908,6 +919,7 @@ I18N.Packs={
 ["characters"]="caractères",
 ["Connected"]="Connecté",
 ["Preview"]="Aperçu",
+["English is the default. Choose another language anytime."]="L’anglais est la langue par défaut. Changez de langue à tout moment.",
 },
 ["de"]={
 ["About"]="Über",
@@ -1027,6 +1039,7 @@ I18N.Packs={
 ["characters"]="Zeichen",
 ["Connected"]="Verbunden",
 ["Preview"]="Vorschau",
+["English is the default. Choose another language anytime."]="Englisch ist die Standardsprache. Du kannst jederzeit eine andere wählen.",
 },
 ["ru"]={
 ["About"]="О программе",
@@ -1146,6 +1159,7 @@ I18N.Packs={
 ["characters"]="символов",
 ["Connected"]="Подключено",
 ["Preview"]="Предпросмотр",
+["English is the default. Choose another language anytime."]="По умолчанию используется английский. Язык можно изменить в любое время.",
 },
 }
 return I18N
@@ -1628,7 +1642,7 @@ return function(theme, runtime, icons)
     end
     function UI:Tween(object,time,props,completed) return runtime:Tween(object,time,props,self.Reduced or self.LowEffects,completed) end
     function UI:Row(parent,title,height)
-        local row=self:Frame(parent,{Size=UDim2.new(1,0,0,math.max(height or 64,64))})
+        local row=self:Frame(parent,{Size=UDim2.new(1,0,0,math.max(height or 44,self.Touch and 48 or 44))})
         local label=self:Label(row,title,13,UDim2.fromOffset(12,0),UDim2.new(0.5,-18,1,0))
         self:Frame(row,{Position=UDim2.new(0,12,1,-1),Size=UDim2.new(1,-24,0,1),BackgroundColor3=theme.Line,BackgroundTransparency=0.65})
         return row,label
@@ -1918,15 +1932,15 @@ return function(ui,input,popup)
         return control
     end
     function Controls.Slider(parent,props)
-        local row,label=ui:Row(parent,props.Title,80)
-        label.Size=UDim2.new(1,-110,0,48)
+        local row,label=ui:Row(parent,props.Title,62)
+        label.Size=UDim2.new(0.65,0,0,30)
         local box=ui:New('TextBox',row,{Position=UDim2.new(1,-81,0,2),Size=UDim2.fromOffset(69,27),Text='',ClearTextOnFocus=false,
             Font=ui.T.Medium,TextSize=12,TextColor3=ui.T.Accent,TextXAlignment=Enum.TextXAlignment.Right,BackgroundTransparency=1})
-        local bar=ui:Frame(row,{Position=UDim2.fromOffset(12,61),Size=UDim2.new(1,-24,0,5),BackgroundColor3=Color3.fromRGB(42,42,51),BackgroundTransparency=0})
+        local bar=ui:Frame(row,{Position=UDim2.fromOffset(12,43),Size=UDim2.new(1,-24,0,5),BackgroundColor3=Color3.fromRGB(42,42,51),BackgroundTransparency=0})
         ui:Round(bar,4)
         local fill=ui:Frame(bar,{Size=UDim2.fromScale(0,1),BackgroundTransparency=0}); ui:Round(fill,4)
         local dot=ui:Frame(bar,{AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.fromScale(0,0.5),Size=UDim2.fromOffset(14,14),BackgroundColor3=ui.T.Text,BackgroundTransparency=0}); ui:Round(dot,8)
-        local hit=ui:Button(row,'',{Position=UDim2.fromOffset(6,49),Size=UDim2.new(1,-12,0,28),BackgroundTransparency=1})
+        local hit=ui:Button(row,'',{Position=UDim2.fromOffset(6,31),Size=UDim2.new(1,-12,0,28),BackgroundTransparency=1})
         local min,max,step=props.Min or 0,props.Max or 100,props.Step or 1
         assert(max>min and step>0,'Invalid slider bounds')
         local control={Frame=row,Value=min,Enabled=props.Enabled~=false,Callback=props.Callback}
@@ -1990,11 +2004,11 @@ return function(ui,input,popup)
         return control
     end
     function Controls.Paragraph(parent,props)
-        local row=ui:Frame(parent,{Size=UDim2.new(1,0,0,math.max(props.Height or 116,116))})
+        local row=ui:Frame(parent,{Size=UDim2.new(1,0,0,props.Height or 76)})
         local panel=ui:Panel(row,{Position=UDim2.fromOffset(10,6),Size=UDim2.new(1,-20,1,-12),BackgroundColor3=Color3.fromRGB(22,40,52)})
         ui:Icon(panel,'info',16,UDim2.fromOffset(10,11),ui.T.Blue)
-        ui:Label(panel,props.Title or 'Information',13,UDim2.fromOffset(34,7),UDim2.new(1,-44,0,32))
-        local text=ui:Label(panel,props.Text or '',12,UDim2.fromOffset(34,42),UDim2.new(1,-44,1,-47),Color3.fromRGB(167,196,214))
+        ui:Label(panel,props.Title or 'Information',11,UDim2.fromOffset(34,7),UDim2.new(1,-44,0,20))
+        local text=ui:Label(panel,props.Text or '',10,UDim2.fromOffset(34,28),UDim2.new(1,-44,1,-31),Color3.fromRGB(167,196,214))
         text.TextWrapped=true; text.TextTruncate=Enum.TextTruncate.None; text.TextYAlignment=Enum.TextYAlignment.Top
         return {Frame=row}
     end
@@ -2025,7 +2039,7 @@ end)()
 M.Choice = (function()
 return function(ui,popup)
     return function(parent,props,multiple)
-        local row,label=ui:Row(parent,props.Title,76)
+        local row,label=ui:Row(parent,props.Title,42)
         local button=ui:Button(row,'',{Position=UDim2.new(0.5,0,0.5,-22),Size=UDim2.new(0.5,-12,0,44)})
         ui:Stroke(button,nil,0.65)
         local summary=ui:Label(button,'',13,UDim2.fromOffset(9,0),UDim2.new(1,-31,1,0),ui.T.Muted)
@@ -2090,7 +2104,7 @@ return function(ui,popup)
                     return false
                 end
                 local item=ui:Button(scroll,'',{Size=UDim2.new(1,-4,0,44)})
-                local tick=ui:Icon(item,'check',13,UDim2.fromOffset(9,9),ui.T.Accent)
+                local tick=ui:Icon(item,'check',16,UDim2.new(0,9,0.5,-8),ui.T.Accent)
                 ui:Label(item,option,13,UDim2.fromOffset(30,0),UDim2.new(1,-38,1,0))
                 local function render() tick.Visible=selected(); item.BackgroundTransparency=selected() and 0 or 0.65 end
                 render(); rows[#rows+1]={Button=item,Text=string.lower(option..' '..ui.Locale:T(option))}
@@ -2192,7 +2206,7 @@ return function(ui,input,state,options,mobileLayout)
         local compact=layout.Rail
         local width,height,sidebar=layout.Width,layout.Height,layout.Sidebar
         local topHeight=44
-        local headerHeight=80
+        local headerHeight=mobile and 44 or 54
         self.Mobile=mobile
         self.LayoutWidth=width; self.LayoutHeight=height; self.SidebarWidth=sidebar
         holder.Size=UDim2.fromOffset(width,height)
@@ -2208,8 +2222,8 @@ return function(ui,input,state,options,mobileLayout)
         for _,child in ipairs(gameCard:GetChildren()) do if child:IsA('TextLabel') then child.Visible=not compact end end
         header.Position=UDim2.fromOffset(sidebar+12,topHeight); header.Size=UDim2.new(1,-sidebar-24,0,headerHeight)
         badge.Visible=not mobile
-        title.Position=UDim2.fromOffset(0,mobile and 10 or 6); title.Size=UDim2.new(1,0,0,32); title.TextSize=18
-        description.Position=UDim2.fromOffset(0,42); description.Size=UDim2.new(1,0,0,34); description.TextSize=12
+        title.Position=UDim2.fromOffset(0,mobile and 10 or 6); title.Size=UDim2.new(1,0,0,23); title.TextSize=18
+        description.Position=UDim2.fromOffset(0,30); description.Size=UDim2.new(1,0,0,16); description.TextSize=11
         content.Position=UDim2.fromOffset(sidebar+12,topHeight+headerHeight+5); content.Size=UDim2.new(1,-sidebar-24,1,-topHeight-headerHeight-17)
         for _,entry in pairs(self.Pages) do
             entry.Row.Size=UDim2.new(1,0,0,compact and 56 or 44)
@@ -2379,8 +2393,7 @@ return {
         }},
         {Id='Settings',Title='Settings',Description='Make it comfortable',Icon='settings',Tabs={{Id='Appearance',Icon='sliders-horizontal'},{Id='Interface',Icon='monitor'},{Id='Profiles',Icon='save'}},Features={
             {Id='Appearance',Title='Appearance',Tab='Appearance',Expanded=true,Controls={
-                {Id='Language',Type='Select',Title='Language',Options=M.I18N.Options,Default='Automatic (Roblox)',Effect='Language'},
-                {Id='LanguageHelp',Type='Paragraph',Title='Language preview',Text='Choose a language, or match your Roblox language automatically.',Height=120},
+                {Id='Language',Type='Select',Title='Language',Options=M.I18N.Options,Default='English',Effect='Language'},
                 {Id='Accent',Type='Select',Title='Accent Color',Options={'Rose','Cyan','Lavender'},Default='Rose',Effect='Accent'},
                 {Id='Scale',Type='Slider',Title='UI Scale',Min=75,Max=115,Step=5,Default=100,Suffix='%',Effect='Scale'},
                 {Id='Transparency',Type='Slider',Title='Transparency',Min=0,Max=20,Step=1,Default=0,Suffix='%',Effect='Transparency'},
@@ -2438,12 +2451,8 @@ return function(M,options)
         end
     end
     if options.LowEffects~=nil then state:Set('Settings.Appearance.LowEffects',options.LowEffects==true) end
-    local localization=game:GetService('LocalizationService')
-    local detected='en'
-    pcall(function() detected=localization.RobloxLocaleId end)
-    local locale=M.I18N.new(state:Get('Settings.Appearance.Language','Automatic (Roblox)'),detected)
+    local locale=M.I18N.new(state:Get('Settings.Appearance.Language','English'))
     runtime:OnDestroy(function() locale:Destroy() end)
-    pcall(function() runtime:Connect(localization:GetPropertyChangedSignal('RobloxLocaleId'),function() locale:Detect(localization.RobloxLocaleId) end) end)
     local ui=M.UI(M.Theme,runtime,M.Icons)
     ui.Locale=locale
     local input=M.Input(runtime)
@@ -2462,7 +2471,7 @@ return function(M,options)
         function app:Destroy() runtime:Destroy() end
         function app:SetLive(key,value) if self.Controls[key] and self.Controls[key].Set then self.Controls[key]:Set(value,true) end end
         function app:ApplyEffect(effect,value)
-            if effect=='Language' then locale:Set(value); popup:Close(true); self:Fit(); self:Notify('Language changed')
+            if effect=='Language' then locale:Set(value); popup:Close(true); self:Fit(); self:Notify('Language changed: '..locale.Selection)
             elseif effect=='Accent' then
                 local colors={Rose=Color3.fromRGB(235,58,151),Cyan=Color3.fromRGB(62,193,216),Lavender=Color3.fromRGB(163,122,224)}
                 ui:SetAccent(colors[value] or colors.Rose)
@@ -2473,7 +2482,7 @@ return function(M,options)
         end
         function app:Notify(message)
             if self.Toast then self.Toast:Destroy() end
-            local toast=ui:Panel(self.Screen,{AnchorPoint=Vector2.new(0.5,1),Position=UDim2.new(0.5,0,1,-14),Size=UDim2.new(0,280,0,76),ZIndex=150})
+            local toast=ui:Panel(self.Screen,{AnchorPoint=Vector2.new(0.5,1),Position=UDim2.new(0.5,0,1,-14),Size=UDim2.new(0,280,0,52),ZIndex=150})
             ui:Icon(toast,'check',20,UDim2.fromOffset(12,12),ui.T.Accent)
             ui:Label(toast,message,12,UDim2.fromOffset(42,0),UDim2.new(1,-52,1,0))
             self.Toast=toast
@@ -2579,13 +2588,13 @@ return function(M,options)
                 end
                 task.delay(1,tick)
                 local section=M.Section(ui,scroll,'What’s new',false,function() popup:Close() end)
-                controls.Paragraph(section.Body,{Title='Language preview',Text='Choose a language, or match your Roblox language automatically.',Height=80})
+                controls.Paragraph(section.Body,{Title='Language preview',Text='English is the default. Choose another language anytime.',Height=80})
                 local cards=ui:Frame(scroll,{Size=UDim2.new(1,0,0,280)})
                 local community=card(cards,'Community',0,'Serenity Community','Meet the community','messages-square','Copy Discord Link',function() app:Copy(options.DiscordInvite,'Discord invite') end)
                 local discord=ui:New('ImageLabel',community,{BackgroundTransparency=1,Position=UDim2.new(1,-36,0,7),Size=UDim2.fromOffset(24,24),Image=''})
                 assets:Load('Discord',discord)
                 local updates=card(cards,'Updates',0.5,'Release Notes','See the latest changes','megaphone','View Changelog',function()
-                    popup:Message('Language preview','Choose a language, or match your Roblox language automatically.')
+                    popup:Message('Language preview','English is the default. Choose another language anytime.')
                 end)
                 app.AboutCards={Container=cards,Community=community,Updates=updates}
                 local function arrangeCards()
@@ -2616,11 +2625,12 @@ return function(M,options)
                     local scroll=scroller(pageFrame,tabBar and 52 or 0)
                     local tab={Scroll=scroll}; tabMap[spec.Id]=tab
                     if tabBar then
-                        local width=math.max(142,#spec.Id*8+42)
+                        local width=math.max(88,math.min(160,(utf8.len(ui.Locale:T(spec.Id)) or #spec.Id)*7+42))
                         tab.Button=ui:Button(tabBar,'',{Size=UDim2.fromOffset(width,42)},function() selectTab(spec.Id) end)
                         ui:Stroke(tab.Button,nil,0.5)
                         ui:Icon(tab.Button,spec.Icon or 'menu',18,UDim2.fromOffset(10,12),ui.T.Text)
                         ui:Label(tab.Button,spec.Id,12,UDim2.fromOffset(34,0),UDim2.new(1,-39,1,0))
+                        table.insert(ui.LayoutCallbacks,function() tab.Button.Size=UDim2.fromOffset(math.max(88,math.min(160,(utf8.len(ui.Locale:T(spec.Id)) or #spec.Id)*7+42)),42) end)
                     end
                 end
                 app.Tabs[page.Id]={Select=selectTab,Items=tabMap}
@@ -2695,7 +2705,7 @@ return function(M,options)
                 CanvasSize=UDim2.new(),AutomaticCanvasSize=Enum.AutomaticSize.Y,ScrollBarThickness=2,ScrollBarImageColor3=ui.T.Accent}); ui:List(list,4)
             local rows={}
             for _,entry in ipairs(self.SearchEntries) do
-                local button=ui:Button(list,'',{Size=UDim2.new(1,-4,0,70)},function()
+                local button=ui:Button(list,'',{Size=UDim2.new(1,-4,0,45)},function()
                     popup:Close(); self:SelectPage(entry.Page)
                     if entry.Tab then self.Tabs[entry.Page].Select(entry.Tab) end
                     if entry.Section then entry.Section:SetOpen(true,true) end
@@ -2710,8 +2720,8 @@ return function(M,options)
                         task.delay(0.7,function() if flash.Parent then flash:Destroy() end end)
                     end)
                 end)
-                ui:Label(button,entry.Title,13,UDim2.fromOffset(10,3),UDim2.new(1,-20,0,32))
-                ui:Label(button,entry.Path,11,UDim2.fromOffset(10,36),UDim2.new(1,-20,0,32),ui.T.Muted)
+                ui:Label(button,entry.Title,12,UDim2.fromOffset(10,3),UDim2.new(1,-20,0,21))
+                ui:Label(button,entry.Path,9,UDim2.fromOffset(10,24),UDim2.new(1,-20,0,16),ui.T.Muted)
                 rows[#rows+1]={Button=button,Text=string.lower(entry.Title..' '..entry.Path..' '..locale:T(entry.Title)..' '..locale:T(entry.Path))}
             end
             local empty=ui:Label(list,'No matching controls',12,nil,UDim2.new(1,0,0,32),ui.T.Muted)

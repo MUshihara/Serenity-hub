@@ -117,7 +117,7 @@ local function texts(object,out)
     for _,child in ipairs(object:GetChildren())do texts(child,out)end
     return out
 end
-assert(texts(app.Screen)['Configuración'],'automatic Spanish missing')
+assert(texts(app.Screen)['Settings'],'fresh preview must default to English even with Spanish Roblox locale')
 local language=assert(app.Controls['Settings.Appearance.Language'])
 local accent=app.Controls['Settings.Appearance.Accent'];accent:Set('Cyan')
 local count=activeConnections
@@ -133,14 +133,30 @@ assert(app.Config:Save(),'save failed')
 local nextApp=start();assert(app.Runtime.Destroyed,'preview runtime leaked');app=nextApp
 assert(app.Controls['Settings.Appearance.Language']:Get()=='Français','language did not persist')
 assert(texts(app.Screen)['Paramètres'])
-app.Controls['Settings.Appearance.Language']:Set('Automatic (Roblox)');assert(texts(app.Screen)['Configuración'])
-loc.RobloxLocaleId='ja-jp';assert(texts(app.Screen)['Settings'],'unsupported locale not English')
-loc.RobloxLocaleId='fil-ph';assert(texts(app.Screen)['Mga setting'])
-app.Controls['Settings.Appearance.Language']:Set('Deutsch');loc.RobloxLocaleId='es-es';assert(texts(app.Screen)['Einstellungen'],'auto overrides saved selection')
+app.Controls['Settings.Appearance.Language']:Set('Automatic (Roblox)');assert(texts(app.Screen)['Settings'],'old automatic choice must become English')
+loc.RobloxLocaleId='fil-ph';assert(texts(app.Screen)['Settings'],'Roblox locale must not change English')
+app.Controls['Settings.Appearance.Language']:Set('Deutsch');loc.RobloxLocaleId='es-es';assert(texts(app.Screen)['Einstellungen'],'manual language overwritten')
+-- Reproduce Roblox deferred property events: selection summary must survive Refresh.
+local originalNewIndex=mt.__newindex
+mt.__newindex=function(o,k,v)
+ if k=='Text' and o.Events['Changed:Text'] then
+   local old=o.Props[k];o.Props[k]=v
+   if old~=v then task.defer(function() if not o.Destroyed then o.Events['Changed:Text']:Fire() end end) end
+ else originalNewIndex(o,k,v) end
+end
+local language=app.Controls['Settings.Appearance.Language']
+for _,name in ipairs({'Filipino','Español','English','Deutsch','Filipino'})do
+ language:Set(name)
+ assert(texts(language.Frame)[name],'selection field is stale: '..name)
+ flushDeferred();assert(texts(language.Frame)[name],'deferred event reverted selected language')
+end
+assert(texts(app.Toast)['Napalitan ang wika: Filipino'],'confirmation must name Filipino')
+mt.__newindex=originalNewIndex
+local farm=app.Controls['Automation.Farm.AutoClick'];assert(farm.Frame.Size.Y.Offset==44,'desktop rows no longer original compact height')
 local baseline=activeConnections
 for i=1,10 do app:Search();flushDeferred();app.Popup:Close(true)end
 assert(activeConnections==baseline,'search leaked connections')
 for _,size in ipairs({{390,844},{844,390},{1280,720}})do viewport=Vector2.new(size[1],size[2]);app:Fit();assert(app.LayoutWidth>0);end
 app:Destroy();assert(_G.__SERENITY_PHONK_EVOLUTION_V3==productionPhonk)
 assert(activeConnections==0,'connections remain after destroy: '..activeConnections)
-print('PASS: full mocked Phonk UI, ten languages, auto detection, switching, unchanged values/drafts, persistence, fallback, popup cleanup, viewport sizing, live runtime isolation.')
+print('PASS: full mocked Phonk UI, ten languages, English default, deferred selection display, switching, unchanged values/drafts, persistence, fallback, popup cleanup, viewport sizing, live runtime isolation.')

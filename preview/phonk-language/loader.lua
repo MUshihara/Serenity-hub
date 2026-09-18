@@ -6,7 +6,7 @@ if game.PlaceId~=104809044319701 and game.GameId~=10544327471 then
 end
 local BASE='https://raw.githubusercontent.com/MUshihara/Serenity-hub/phonk-language-preview-v1/preview/phonk-language/'
 local function module(name)
-    local source=game:HttpGet(BASE..name..'?version=language-preview-1',true)
+    local source=game:HttpGet(BASE..name..'?version=language-preview-2',true)
     local run,err=loadstring(source,'@SerenityLanguagePreview/'..name)
     if not run then error(err,0) end
     return run()
