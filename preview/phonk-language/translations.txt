@@ -1,0 +1,115 @@
+About|Tungkol|Tentang|Giới thiệu|เกี่ยวกับ|Acerca de|Sobre|À propos|Über|О программе
+Game Info|Impormasyon ng laro|Info Game|Thông tin trò chơi|ข้อมูลเกม|Información del juego|Informações do jogo|Infos du jeu|Spielinfo|О игре
+Automation|Awtomasyon|Otomatisasi|Tự động hóa|ระบบอัตโนมัติ|Automatización|Automação|Automatisation|Automatisierung|Автоматизация
+Pets & Trails|Mga pet at trail|Pet & Jejak|Thú cưng & Vệt sáng|สัตว์เลี้ยงและเอฟเฟกต์ทางเดิน|Mascotas y estelas|Pets e rastros|Animaux et traînées|Begleiter & Spuren|Питомцы и следы
+Rewards|Mga gantimpala|Hadiah|Phần thưởng|รางวัล|Recompensas|Recompensas|Récompenses|Belohnungen|Награды
+Misc|Iba pa|Lainnya|Khác|อื่น ๆ|Varios|Diversos|Divers|Sonstiges|Разное
+Game Tuning|Pagsasaayos ng laro|Pengaturan Game|Tinh chỉnh trò chơi|ปรับแต่งเกม|Ajustes del juego|Ajustes do jogo|Réglages du jeu|Spieleinstellungen|Настройка игры
+Settings|Mga setting|Pengaturan|Cài đặt|การตั้งค่า|Configuración|Configurações|Paramètres|Einstellungen|Настройки
+Feedback|Puna|Masukan|Góp ý|ข้อเสนอแนะ|Comentarios|Comentários|Commentaires|Feedback|Обратная связь
+Appearance|Hitsura|Tampilan|Giao diện|รูปลักษณ์|Apariencia|Aparência|Apparence|Darstellung|Оформление
+Interface|Interface|Antarmuka|Giao diện điều khiển|ส่วนติดต่อ|Interfaz|Interface|Interface|Oberfläche|Интерфейс
+Profiles|Mga profile|Profil|Hồ sơ|โปรไฟล์|Perfiles|Perfis|Profils|Profile|Профили
+Language|Wika|Bahasa|Ngôn ngữ|ภาษา|Idioma|Idioma|Langue|Sprache|Язык
+Automatic (Roblox)|Awtomatiko (Roblox)|Otomatis (Roblox)|Tự động (Roblox)|อัตโนมัติ (Roblox)|Automático (Roblox)|Automático (Roblox)|Automatique (Roblox)|Automatisch (Roblox)|Автоматически (Roblox)
+Language preview|Preview ng wika|Pratinjau Bahasa|Xem thử ngôn ngữ|ตัวอย่างภาษา|Vista previa de idiomas|Prévia de idiomas|Aperçu des langues|Sprachvorschau|Предпросмотр языков
+Preview only — game actions are disabled.|Preview lang — hindi gagana ang mga aksiyon sa laro.|Hanya pratinjau — aksi game dinonaktifkan.|Chỉ xem thử — thao tác trong trò chơi đã tắt.|เป็นเพียงตัวอย่าง — ปิดการทำงานในเกม|Solo vista previa: las acciones del juego están desactivadas.|Apenas prévia: as ações do jogo estão desativadas.|Aperçu uniquement : les actions du jeu sont désactivées.|Nur Vorschau – Spielaktionen sind deaktiviert.|Только предпросмотр — игровые действия отключены.
+Choose a language, or match your Roblox language automatically.|Pumili ng wika o awtomatikong sundin ang wika ng Roblox.|Pilih bahasa atau ikuti bahasa Roblox secara otomatis.|Chọn ngôn ngữ hoặc tự động theo ngôn ngữ Roblox.|เลือกภาษาหรือใช้ภาษาของ Roblox โดยอัตโนมัติ|Elige un idioma o usa automáticamente el idioma de Roblox.|Escolha um idioma ou siga automaticamente o idioma do Roblox.|Choisissez une langue ou utilisez automatiquement celle de Roblox.|Sprache wählen oder automatisch die Roblox-Sprache verwenden.|Выберите язык или используйте язык Roblox автоматически.
+Language changed|Napalitan ang wika|Bahasa diubah|Đã đổi ngôn ngữ|เปลี่ยนภาษาแล้ว|Idioma cambiado|Idioma alterado|Langue modifiée|Sprache geändert|Язык изменён
+Welcome to Serenity|Maligayang pagdating sa Serenity|Selamat datang di Serenity|Chào mừng đến với Serenity|ยินดีต้อนรับสู่ Serenity|Bienvenido a Serenity|Boas-vindas ao Serenity|Bienvenue sur Serenity|Willkommen bei Serenity|Добро пожаловать в Serenity
+Active now|Aktibo ngayon|Aktif sekarang|Đang hoạt động|กำลังใช้งาน|Activos ahora|Ativos agora|Actifs maintenant|Jetzt aktiv|Сейчас активны
+Across Serenity|Sa buong Serenity|Di seluruh Serenity|Trên toàn Serenity|ทั่วทั้ง Serenity|En todo Serenity|Em todo o Serenity|Sur tout Serenity|In ganz Serenity|Во всём Serenity
+Session|Sesyon|Sesi|Phiên|เซสชัน|Sesión|Sessão|Session|Sitzung|Сеанс
+What’s new|Ano ang bago|Yang baru|Có gì mới|มีอะไรใหม่|Novedades|Novidades|Nouveautés|Neuigkeiten|Что нового
+Community|Komunidad|Komunitas|Cộng đồng|ชุมชน|Comunidad|Comunidade|Communauté|Community|Сообщество
+Updates|Mga update|Pembaruan|Cập nhật|อัปเดต|Actualizaciones|Atualizações|Mises à jour|Updates|Обновления
+Serenity Community|Komunidad ng Serenity|Komunitas Serenity|Cộng đồng Serenity|ชุมชน Serenity|Comunidad de Serenity|Comunidade Serenity|Communauté Serenity|Serenity-Community|Сообщество Serenity
+Meet the community|Kilalanin ang komunidad|Kenali komunitas|Gặp gỡ cộng đồng|พบกับชุมชน|Conoce a la comunidad|Conheça a comunidade|Découvrez la communauté|Lerne die Community kennen|Познакомьтесь с сообществом
+Copy Discord Link|Kopyahin ang link ng Discord|Salin Tautan Discord|Sao chép liên kết Discord|คัดลอกลิงก์ Discord|Copiar enlace de Discord|Copiar link do Discord|Copier le lien Discord|Discord-Link kopieren|Копировать ссылку Discord
+Release Notes|Mga tala ng update|Catatan Rilis|Ghi chú phát hành|บันทึกการอัปเดต|Notas de versión|Notas da versão|Notes de version|Versionshinweise|Список изменений
+See the latest changes|Tingnan ang pinakabagong pagbabago|Lihat perubahan terbaru|Xem thay đổi mới nhất|ดูการเปลี่ยนแปลงล่าสุด|Ver los últimos cambios|Veja as últimas alterações|Voir les derniers changements|Neueste Änderungen ansehen|Последние изменения
+View Changelog|Tingnan ang mga pagbabago|Lihat Riwayat Perubahan|Xem nhật ký thay đổi|ดูบันทึกการเปลี่ยนแปลง|Ver cambios|Ver alterações|Voir les changements|Änderungen anzeigen|Посмотреть изменения
+Farm|Pag-farm|Farming|Cày tài nguyên|ฟาร์ม|Farmeo|Farm|Farm|Farmen|Фарм
+Progression|Pag-unlad|Progres|Tiến trình|ความก้าวหน้า|Progreso|Progresso|Progression|Fortschritt|Прогресс
+Auto Click|Awtomatikong click|Klik Otomatis|Tự động nhấp|คลิกอัตโนมัติ|Clic automático|Clique automático|Clic automatique|Automatisch klicken|Автоклик
+Auto Wins|Awtomatikong panalo|Menang Otomatis|Tự động kiếm chiến thắng|รับชัยชนะอัตโนมัติ|Victorias automáticas|Vitórias automáticas|Victoires automatiques|Automatische Siege|Автопобеды
+Auto Treadmill|Awtomatikong treadmill|Treadmill Otomatis|Tự động chạy máy|ลู่วิ่งอัตโนมัติ|Cinta automática|Esteira automática|Tapis automatique|Automatisches Laufband|Автобеговая дорожка
+Auto Evolve|Awtomatikong evolve|Evolusi Otomatis|Tự động tiến hóa|วิวัฒนาการอัตโนมัติ|Evolución automática|Evolução automática|Évolution automatique|Automatisch entwickeln|Автоэволюция
+Auto Rebirth|Awtomatikong rebirth|Rebirth Otomatis|Tự động tái sinh|เกิดใหม่อัตโนมัติ|Renacimiento automático|Renascimento automático|Renaissance automatique|Automatische Wiedergeburt|Автоперерождение
+Equip Best Body|Gamitin ang pinakamahusay na katawan|Pakai Tubuh Terbaik|Trang bị cơ thể tốt nhất|ใช้ร่างที่ดีที่สุด|Equipar mejor cuerpo|Equipar melhor corpo|Équiper le meilleur corps|Besten Körper ausrüsten|Надеть лучшее тело
+Equip Best Aura|Gamitin ang pinakamahusay na aura|Pakai Aura Terbaik|Trang bị hào quang tốt nhất|ใช้ออร่าที่ดีที่สุด|Equipar mejor aura|Equipar melhor aura|Équiper la meilleure aura|Beste Aura ausrüsten|Надеть лучшую ауру
+Auto Buy Aura / Phonk|Awtomatikong bili ng Aura / Phonk|Beli Aura / Phonk Otomatis|Tự động mua Aura / Phonk|ซื้อ Aura / Phonk อัตโนมัติ|Comprar Aura / Phonk automáticamente|Comprar Aura / Phonk automaticamente|Achat automatique Aura / Phonk|Aura / Phonk automatisch kaufen|Автопокупка Aura / Phonk
+Pets|Mga pet|Pet|Thú cưng|สัตว์เลี้ยง|Mascotas|Pets|Animaux|Begleiter|Питомцы
+Trails|Mga trail|Jejak|Vệt sáng|เอฟเฟกต์ทางเดิน|Estelas|Rastros|Traînées|Spuren|Следы
+Auto Hatch|Awtomatikong pagpisa|Tetas Otomatis|Tự động ấp trứng|ฟักอัตโนมัติ|Eclosión automática|Chocar automaticamente|Éclosion automatique|Automatisch ausbrüten|Автовылупление
+Equip Best Pet|Gamitin ang pinakamahusay na pet|Pakai Pet Terbaik|Trang bị thú cưng tốt nhất|ใช้สัตว์เลี้ยงที่ดีที่สุด|Equipar mejor mascota|Equipar melhor pet|Équiper le meilleur animal|Besten Begleiter ausrüsten|Надеть лучшего питомца
+Hatch Delay|Pagitan ng pagpisa|Jeda Penetasan|Độ trễ ấp trứng|ระยะห่างการฟัก|Intervalo de eclosión|Intervalo de eclosão|Délai d’éclosion|Schlüpfintervall|Интервал вылупления
+Wins Reserve|Nakalaang panalo|Cadangan Kemenangan|Chiến thắng dự trữ|ชัยชนะสำรอง|Reserva de victorias|Reserva de vitórias|Réserve de victoires|Siegereserve|Запас побед
+Auto Buy Trail|Awtomatikong bili ng trail|Beli Jejak Otomatis|Tự động mua vệt sáng|ซื้อเอฟเฟกต์ทางเดินอัตโนมัติ|Comprar estela automáticamente|Comprar rastro automaticamente|Achat automatique de traînée|Spur automatisch kaufen|Автопокупка следа
+Equip Best Trail|Gamitin ang pinakamahusay na trail|Pakai Jejak Terbaik|Trang bị vệt sáng tốt nhất|ใช้เอฟเฟกต์ทางเดินที่ดีที่สุด|Equipar mejor estela|Equipar melhor rastro|Équiper la meilleure traînée|Beste Spur ausrüsten|Надеть лучший след
+Claims|Pagkuha ng gantimpala|Klaim|Nhận thưởng|รับรางวัล|Reclamaciones|Resgates|Récupération|Abholen|Получение
+Daily Reward|Araw-araw na gantimpala|Hadiah Harian|Thưởng hằng ngày|รางวัลรายวัน|Recompensa diaria|Recompensa diária|Récompense quotidienne|Tägliche Belohnung|Ежедневная награда
+Offline Reward|Gantimpala habang offline|Hadiah Offline|Thưởng ngoại tuyến|รางวัลออฟไลน์|Recompensa sin conexión|Recompensa offline|Récompense hors ligne|Offline-Belohnung|Награда офлайн
+Group Reward|Gantimpala ng grupo|Hadiah Grup|Thưởng nhóm|รางวัลกลุ่ม|Recompensa de grupo|Recompensa de grupo|Récompense de groupe|Gruppenbelohnung|Награда группы
+FPS Improver|Pampataas ng FPS|Peningkat FPS|Cải thiện FPS|เพิ่ม FPS|Mejorar FPS|Melhorar FPS|Améliorer les FPS|FPS verbessern|Улучшение FPS
+Very Potato Mode|Napakababang graphics|Mode Grafis Sangat Rendah|Chế độ đồ họa cực thấp|โหมดกราฟิกต่ำสุด|Gráficos mínimos|Gráficos mínimos|Graphismes minimaux|Minimale Grafik|Минимальная графика
+Disable 3D Rendering|I-off ang 3D rendering|Nonaktifkan Rendering 3D|Tắt hiển thị 3D|ปิดการแสดงผล 3D|Desactivar renderizado 3D|Desativar renderização 3D|Désactiver le rendu 3D|3D-Darstellung deaktivieren|Отключить 3D
+Anti-Ragdoll|Iwas-ragdoll|Anti-Ragdoll|Chống ragdoll|ป้องกันตัวละครล้ม|Antiragdoll|Antiragdoll|Anti-ragdoll|Anti-Ragdoll|Анти-рэгдолл
+Auto Wins Movement|Paggalaw para sa awtomatikong panalo|Gerakan Menang Otomatis|Di chuyển tự động kiếm chiến thắng|การเคลื่อนที่รับชัยชนะอัตโนมัติ|Movimiento de victorias automáticas|Movimento de vitórias automáticas|Déplacement des victoires auto|Bewegung für automatische Siege|Движение для автопобед
+Walk Speed|Bilis ng paglakad|Kecepatan Jalan|Tốc độ di chuyển|ความเร็วเดิน|Velocidad al caminar|Velocidade de caminhada|Vitesse de marche|Gehgeschwindigkeit|Скорость ходьбы
+Reach Distance|Layo ng pag-abot|Jarak Jangkauan|Khoảng cách tiếp cận|ระยะเข้าถึง|Distancia de alcance|Distância de alcance|Distance d’arrivée|Reichweite|Дистанция достижения
+Timing|Mga pagitan|Waktu|Thời gian|ช่วงเวลา|Intervalos|Intervalos|Temporisation|Zeitabstände|Интервалы
+Click Delay|Pagitan ng click|Jeda Klik|Độ trễ nhấp|ระยะห่างการคลิก|Intervalo de clic|Intervalo de clique|Délai des clics|Klickintervall|Интервал кликов
+Treadmill Duration|Tagal sa treadmill|Durasi Treadmill|Thời gian chạy máy|ระยะเวลาบนลู่วิ่ง|Duración en cinta|Duração na esteira|Durée sur tapis|Laufbanddauer|Время на дорожке
+Aura Pad Retries|Mga muling pagsubok sa aura pad|Percobaan Ulang Pad Aura|Số lần thử lại bệ Aura|จำนวนครั้งลองแผ่นออร่าใหม่|Reintentos de plataforma Aura|Tentativas na plataforma Aura|Essais de plateforme Aura|Wiederholungen am Aura-Pad|Повторы на платформе ауры
+Status|Katayuan|Status|Trạng thái|สถานะ|Estado|Status|État|Status|Состояние
+Movement|Paggalaw|Gerakan|Di chuyển|การเคลื่อนที่|Movimiento|Movimento|Déplacement|Bewegung|Движение
+Main farming and progression automation.|Awtomasyon sa pag-farm at pag-unlad.|Otomatisasi farming dan progres utama.|Tự động cày tài nguyên và tiến trình.|ระบบฟาร์มและความก้าวหน้าอัตโนมัติ|Automatización de farmeo y progreso.|Automação de farm e progresso.|Automatisation du farm et de la progression.|Automatisches Farmen und Fortschritt.|Автоматизация фарма и прогресса.
+Pet hatching, pet equip and trails.|Pagpisa, paggamit ng pet at mga trail.|Penetasan, pemakaian pet, dan jejak.|Ấp trứng, trang bị thú cưng và vệt sáng.|ฟักไข่ ใช้สัตว์เลี้ยง และเอฟเฟกต์ทางเดิน|Eclosión, mascotas y estelas.|Eclosão, pets e rastros.|Éclosion, animaux et traînées.|Ausbrüten, Begleiter und Spuren.|Вылупление, питомцы и следы.
+Free server-validated rewards.|Mga libreng gantimpalang sinuri ng server.|Hadiah gratis yang divalidasi server.|Phần thưởng miễn phí do máy chủ xác nhận.|รางวัลฟรีที่เซิร์ฟเวอร์ตรวจสอบ|Recompensas gratuitas validadas por el servidor.|Recompensas grátis validadas pelo servidor.|Récompenses gratuites validées par le serveur.|Vom Server bestätigte kostenlose Belohnungen.|Бесплатные награды, проверенные сервером.
+Aggressive client-side FPS and GPU optimizations.|Pagpapahusay sa FPS at paggamit ng GPU.|Optimasi FPS dan GPU pada klien.|Tối ưu FPS và GPU trên máy.|ปรับปรุง FPS และการใช้ GPU|Optimizaciones de FPS y GPU.|Otimizações de FPS e GPU.|Optimisations des FPS et du GPU.|Optimierungen für FPS und GPU.|Оптимизация FPS и GPU.
+Automation timing and movement settings.|Mga setting ng pagitan at paggalaw.|Pengaturan waktu dan gerakan otomatis.|Cài đặt thời gian và di chuyển tự động.|ตั้งค่าเวลาและการเคลื่อนที่อัตโนมัติ|Ajustes de intervalos y movimiento.|Ajustes de intervalos e movimento.|Réglages des délais et déplacements.|Zeit- und Bewegungseinstellungen.|Настройки интервалов и движения.
+Make it comfortable|Iayon sa gusto mo|Sesuaikan kenyamanan|Tùy chỉnh theo ý bạn|ปรับให้ใช้งานสะดวก|Ajústalo a tu gusto|Ajuste ao seu gosto|Adaptez à vos préférences|Passe es an dich an|Настройте под себя
+Accent Color|Kulay ng accent|Warna Aksen|Màu nhấn|สีเน้น|Color de acento|Cor de destaque|Couleur d’accent|Akzentfarbe|Цвет акцента
+UI Scale|Laki ng UI|Skala UI|Tỷ lệ giao diện|ขนาด UI|Escala de interfaz|Escala da interface|Échelle de l’interface|Oberflächengröße|Масштаб интерфейса
+Transparency|Transparency|Transparansi|Độ trong suốt|ความโปร่งใส|Transparencia|Transparência|Transparence|Transparenz|Прозрачность
+Low Effects|Kaunting epekto|Efek Rendah|Ít hiệu ứng|ลดเอฟเฟกต์|Efectos reducidos|Efeitos reduzidos|Effets réduits|Weniger Effekte|Меньше эффектов
+Reduce Motion|Bawasan ang galaw|Kurangi Animasi|Giảm chuyển động|ลดการเคลื่อนไหว|Reducir movimiento|Reduzir movimento|Réduire les animations|Bewegung reduzieren|Уменьшить анимацию
+Start Minimized|Magsimula nang naka-minimize|Mulai Diminimalkan|Khởi động thu nhỏ|เริ่มแบบย่อหน้าต่าง|Iniciar minimizado|Iniciar minimizado|Démarrer réduit|Minimiert starten|Запускать свёрнутым
+Remember your layout|Tandaan ang ayos|Ingat Tata Letak|Ghi nhớ bố cục|จดจำรูปแบบ|Recordar disposición|Lembrar disposição|Mémoriser la disposition|Layout merken|Запоминать расположение
+Page, tab, section and control settings are saved when local file access is available.|Nase-save ang pahina, tab, seksiyon at mga setting kung may lokal na file access.|Halaman, tab, bagian, dan pengaturan disimpan jika akses file tersedia.|Trang, thẻ, mục và cài đặt được lưu khi có quyền truy cập tệp cục bộ.|บันทึกหน้า แท็บ ส่วน และการตั้งค่าเมื่อเข้าถึงไฟล์ในเครื่องได้|Las páginas, pestañas, secciones y ajustes se guardan si hay acceso a archivos locales.|Páginas, abas, seções e ajustes são salvos quando há acesso a arquivos locais.|Les pages, onglets, sections et réglages sont enregistrés si les fichiers locaux sont accessibles.|Seiten, Tabs, Bereiche und Einstellungen werden bei lokalem Dateizugriff gespeichert.|Страницы, вкладки, разделы и настройки сохраняются при доступе к локальным файлам.
+Center Window|Igitna ang window|Pusatkan Jendela|Căn giữa cửa sổ|จัดหน้าต่างไว้กึ่งกลาง|Centrar ventana|Centralizar janela|Centrer la fenêtre|Fenster zentrieren|Окно по центру
+Save Settings|I-save ang mga setting|Simpan Pengaturan|Lưu cài đặt|บันทึกการตั้งค่า|Guardar ajustes|Salvar configurações|Enregistrer les paramètres|Einstellungen speichern|Сохранить настройки
+Reset Saved Config|I-reset ang naka-save na config|Reset Konfigurasi Tersimpan|Đặt lại cấu hình đã lưu|รีเซ็ตการตั้งค่าที่บันทึก|Restablecer configuración guardada|Redefinir configuração salva|Réinitialiser la configuration|Gespeicherte Einstellungen zurücksetzen|Сбросить настройки
+Close Serenity|Isara ang Serenity|Tutup Serenity|Đóng Serenity|ปิด Serenity|Cerrar Serenity|Fechar Serenity|Fermer Serenity|Serenity schließen|Закрыть Serenity
+Rose|Rosas|Merah Muda|Hồng|ชมพู|Rosa|Rosa|Rose|Rosa|Розовый
+Cyan|Cyan|Sian|Xanh lơ|ฟ้า|Cian|Ciano|Cyan|Cyan|Голубой
+Lavender|Lavender|Lavender|Tím nhạt|ม่วงอ่อน|Lavanda|Lavanda|Lavande|Lavendel|Лавандовый
+Search controls|Maghanap ng kontrol|Cari Kontrol|Tìm điều khiển|ค้นหาตัวควบคุม|Buscar controles|Buscar controles|Rechercher des contrôles|Steuerungen suchen|Поиск элементов
+Search options...|Maghanap ng opsiyon...|Cari opsi...|Tìm tùy chọn...|ค้นหาตัวเลือก...|Buscar opciones...|Buscar opções...|Rechercher une option...|Optionen suchen...|Поиск вариантов...
+Page, tab or control...|Pahina, tab o kontrol...|Halaman, tab, atau kontrol...|Trang, thẻ hoặc điều khiển...|หน้า แท็บ หรือตัวควบคุม...|Página, pestaña o control...|Página, aba ou controle...|Page, onglet ou contrôle...|Seite, Tab oder Steuerung...|Страница, вкладка или элемент...
+No matching controls|Walang tumugmang kontrol|Tidak ada kontrol yang cocok|Không có điều khiển phù hợp|ไม่พบตัวควบคุม|No hay controles coincidentes|Nenhum controle encontrado|Aucun contrôle correspondant|Keine passenden Steuerungen|Ничего не найдено
+No matching options|Walang tumugmang opsiyon|Tidak ada opsi yang cocok|Không có tùy chọn phù hợp|ไม่พบตัวเลือก|No hay opciones coincidentes|Nenhuma opção encontrada|Aucune option correspondante|Keine passenden Optionen|Варианты не найдены
+None selected|Walang napili|Belum dipilih|Chưa chọn|ยังไม่ได้เลือก|Ninguno seleccionado|Nenhum selecionado|Aucune sélection|Nichts ausgewählt|Ничего не выбрано
+No options|Walang opsiyon|Tidak ada opsi|Không có tùy chọn|ไม่มีตัวเลือก|Sin opciones|Sem opções|Aucune option|Keine Optionen|Нет вариантов
+Select all|Piliin lahat|Pilih Semua|Chọn tất cả|เลือกทั้งหมด|Seleccionar todo|Selecionar tudo|Tout sélectionner|Alle auswählen|Выбрать всё
+Clear|Alisin lahat|Hapus|Xóa|ล้าง|Limpiar|Limpar|Effacer|Leeren|Очистить
+Settings saved|Na-save ang mga setting|Pengaturan disimpan|Đã lưu cài đặt|บันทึกการตั้งค่าแล้ว|Ajustes guardados|Configurações salvas|Paramètres enregistrés|Einstellungen gespeichert|Настройки сохранены
+Session settings only|Para lang sa sesyong ito|Hanya untuk sesi ini|Chỉ lưu trong phiên này|บันทึกเฉพาะเซสชันนี้|Solo para esta sesión|Apenas nesta sessão|Pour cette session uniquement|Nur für diese Sitzung|Только на этот сеанс
+Reset UI settings?|I-reset ang mga setting ng UI?|Reset pengaturan UI?|Đặt lại cài đặt giao diện?|รีเซ็ตการตั้งค่า UI?|¿Restablecer ajustes de interfaz?|Redefinir configurações da interface?|Réinitialiser l’interface ?|Oberfläche zurücksetzen?|Сбросить настройки интерфейса?
+Only this prototype’s settings will reset.|Mga setting lang ng preview ang mare-reset.|Hanya pengaturan pratinjau yang direset.|Chỉ đặt lại cài đặt bản xem thử.|รีเซ็ตเฉพาะการตั้งค่าตัวอย่างนี้|Solo se restablecerán los ajustes de esta vista previa.|Somente os ajustes desta prévia serão redefinidos.|Seuls les réglages de cet aperçu seront réinitialisés.|Nur die Vorschau-Einstellungen werden zurückgesetzt.|Сбросятся только настройки предпросмотра.
+Cancel|Kanselahin|Batal|Hủy|ยกเลิก|Cancelar|Cancelar|Annuler|Abbrechen|Отмена
+Reset|I-reset|Reset|Đặt lại|รีเซ็ต|Restablecer|Redefinir|Réinitialiser|Zurücksetzen|Сбросить
+Report a bug or share an idea|Mag-ulat ng bug o magbahagi ng ideya|Laporkan bug atau bagikan ide|Báo lỗi hoặc chia sẻ ý tưởng|รายงานบั๊กหรือแบ่งปันไอเดีย|Informa de un error o comparte una idea|Relate um erro ou compartilhe uma ideia|Signalez un bug ou partagez une idée|Fehler melden oder Idee teilen|Сообщите об ошибке или предложите идею
+Report type|Uri ng ulat|Jenis Laporan|Loại báo cáo|ประเภทรายงาน|Tipo de informe|Tipo de relato|Type de rapport|Berichtsart|Тип обращения
+Bug Report|Ulat ng bug|Laporan Bug|Báo lỗi|รายงานบั๊ก|Informe de error|Relato de erro|Rapport de bug|Fehlerbericht|Сообщение об ошибке
+New Feature|Bagong feature|Fitur Baru|Tính năng mới|ฟีเจอร์ใหม่|Nueva función|Novo recurso|Nouvelle fonctionnalité|Neue Funktion|Новая функция
+New Game Request|Hiling na bagong laro|Permintaan Game Baru|Yêu cầu trò chơi mới|ขอเกมใหม่|Solicitud de nuevo juego|Pedido de novo jogo|Demande de nouveau jeu|Neues Spiel vorschlagen|Запрос новой игры
+Bug report or feedback|Ulat ng bug o puna|Laporan bug atau masukan|Báo lỗi hoặc góp ý|รายงานบั๊กหรือข้อเสนอแนะ|Informe de error o comentarios|Relato de erro ou comentário|Rapport de bug ou commentaire|Fehlerbericht oder Feedback|Ошибка или отзыв
+What happened? What did you expect? Include steps to reproduce.|Ano ang nangyari? Ano ang inaasahan mo? Isama ang mga hakbang.|Apa yang terjadi? Apa harapanmu? Sertakan langkah untuk mengulanginya.|Điều gì đã xảy ra? Bạn mong đợi gì? Nêu các bước tái hiện.|เกิดอะไรขึ้น? คาดหวังอะไร? ระบุขั้นตอนที่ทำให้เกิดปัญหา|¿Qué ocurrió? ¿Qué esperabas? Incluye los pasos para reproducirlo.|O que aconteceu? O que você esperava? Inclua os passos para reproduzir.|Que s’est-il passé ? Qu’attendiez-vous ? Indiquez les étapes.|Was ist passiert? Was hast du erwartet? Nenne die Schritte.|Что случилось? Что ожидалось? Укажите шаги для повторения.
+Included with your report|Kasama sa iyong ulat|Disertakan dalam Laporan|Kèm theo báo cáo|ข้อมูลที่แนบในรายงาน|Incluido en tu informe|Incluído no relato|Inclus dans le rapport|Im Bericht enthalten|Включено в обращение
+Submit report|Ipadala ang ulat|Kirim Laporan|Gửi báo cáo|ส่งรายงาน|Enviar informe|Enviar relato|Envoyer le rapport|Bericht senden|Отправить обращение
+Preview: reports are not sent.|Preview: hindi ipapadala ang mga ulat.|Pratinjau: laporan tidak dikirim.|Xem thử: báo cáo không được gửi.|ตัวอย่าง: จะไม่ส่งรายงาน|Vista previa: no se envían informes.|Prévia: os relatos não são enviados.|Aperçu : les rapports ne sont pas envoyés.|Vorschau: Berichte werden nicht gesendet.|Предпросмотр: обращения не отправляются.
+characters|karakter|karakter|ký tự|ตัวอักษร|caracteres|caracteres|caractères|Zeichen|символов
+Connected|Nakakonekta|Terhubung|Đã kết nối|เชื่อมต่อแล้ว|Conectado|Conectado|Connecté|Verbunden|Подключено
+Preview|Preview|Pratinjau|Xem thử|ตัวอย่าง|Vista previa|Prévia|Aperçu|Vorschau|Предпросмотр
