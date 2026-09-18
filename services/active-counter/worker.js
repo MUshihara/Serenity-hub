@@ -3,12 +3,17 @@
 // Calendar days/months use Philippine time (UTC+8). No historical backfill.
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 let ready;
+async function accountKey(userId,secret){
+ const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
+ const signature=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode('serenity-account-v1:'+userId));
+ return Array.from(new Uint8Array(signature),b=>b.toString(16).padStart(2,'0')).join('');
+}
 const json=(v,status=200)=>Response.json(v,{status,headers:{'Cache-Control':'no-store'}});
 const dayAt=ms=>new Date(ms+28800000).toISOString().slice(0,10);
 async function init(db){
   if(!ready)ready=db.batch([
-    db.prepare('CREATE TABLE IF NOT EXISTS presence(session TEXT PRIMARY KEY, expires INTEGER NOT NULL)'),
-    db.prepare('CREATE INDEX IF NOT EXISTS presence_expiry ON presence(expires)'),
+    db.prepare('CREATE TABLE IF NOT EXISTS account_presence(account TEXT PRIMARY KEY, expires INTEGER NOT NULL)'),
+    db.prepare('CREATE INDEX IF NOT EXISTS account_presence_expiry ON account_presence(expires)'),
     db.prepare('CREATE TABLE IF NOT EXISTS execution_events(id TEXT PRIMARY KEY, day TEXT NOT NULL)'),
     db.prepare('CREATE TABLE IF NOT EXISTS execution_days(day TEXT PRIMARY KEY, executions INTEGER NOT NULL)'),
     db.prepare(`CREATE TRIGGER IF NOT EXISTS execution_day_insert AFTER INSERT ON execution_events BEGIN
@@ -38,7 +43,7 @@ const PAGE=`<!doctype html><html lang="en"><head><meta charset="utf-8">
 *{box-sizing:border-box}body{margin:0;background:#09090d;color:#f3f3fa;font:15px system-ui}main{max-width:1000px;margin:auto;padding:44px 22px}header{display:flex;justify-content:space-between;align-items:center;gap:12px}h1{font-size:18px;letter-spacing:2px;color:#b7a0ef}p,small{color:#aaa8b8;line-height:1.6}.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:28px 0}.card,section{background:#121218;border:1px solid #292832;border-radius:14px;padding:20px}.card:first-child{background:#211911;border-color:#654021}.card p{margin:0 0 10px}.value{font-size:36px;font-weight:700;font-variant-numeric:tabular-nums}.card:first-child .value{color:#f5a34e}button,select{font:inherit;color:#eee;background:#24222e;border:1px solid #464151;border-radius:9px;padding:10px 14px}button{cursor:pointer}button:disabled{opacity:.5}.tools{display:flex;justify-content:space-between;gap:12px;align-items:center}h2{font-size:17px}.chart{height:180px;display:flex;align-items:stretch;gap:4px;margin:24px 0 6px;overflow-x:auto}.column{flex:1;min-width:10px;display:flex;align-items:flex-end}.bar{width:100%;background:#ba94ec;border-radius:3px 3px 0 0;min-height:0}.axis{display:flex;justify-content:space-between;color:#aaa;font-size:12px}table{width:100%;border-collapse:collapse;margin-top:22px}td,th{text-align:left;padding:11px 4px;border-bottom:1px solid #292832}td:last-child,th:last-child{text-align:right}#rowsWrap{max-height:320px;overflow:auto}#status{min-height:24px}footer{margin-top:20px}@media(max-width:650px){.metrics{grid-template-columns:repeat(2,1fr)}main{padding:24px 14px}.value{font-size:30px}.tools{align-items:flex-start;flex-direction:column}}
 </style></head><body><main>
 <header><h1>SERENITY HUB</h1><button id="refresh">Refresh</button></header>
-<p>Live sessions and script executions</p>
+<p>Active accounts and script executions</p>
 <div class="metrics">
 <div class="card"><p>Active now</p><div class="value" id="active">—</div></div>
 <div class="card"><p>Executions today</p><div class="value" id="today">—</div></div>
@@ -48,7 +53,7 @@ const PAGE=`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <section><div class="tools"><h2>Executions over time</h2><select id="mode" aria-label="History interval"><option value="daily">Daily · last 30 days</option><option value="monthly">Monthly · last 12 months</option><option value="all">All time · cumulative by month</option></select></div>
 <div id="chart" class="chart" aria-hidden="true"></div><div class="axis"><span id="first"></span><span id="last"></span></div>
 <div id="rowsWrap"><table><thead><tr><th id="period">Day</th><th id="metric">Executions</th></tr></thead><tbody id="rows"></tbody></table></div></section>
-<footer><small>Calendar: Philippine time (UTC+8). A rerun counts as another execution; heartbeats do not. These are reported executions, not unique people. Active sessions expire after 10 minutes without a heartbeat.</small><p id="started"></p></footer>
+<footer><small>Calendar: Philippine time (UTC+8). A rerun counts as another execution; heartbeats do not. These are reported executions, not unique people. Active now estimates unique Roblox accounts seen within 10 minutes. Rejoins and multiple devices using the same account count once.</small><p id="started"></p></footer>
 </main><script>
 const el=id=>document.getElementById(id),fmt=n=>Number(n).toLocaleString();let data,busy=false;
 function render(){
@@ -81,18 +86,22 @@ export default {async fetch(request,env){
  if(!method)return json({error:'Not found'},404);
  if(request.method!==method)return json({error:'Method not allowed'},405);
  let body;if(method==='POST'){body=await bodyOf(request);if(!body)return json({error:'Invalid session or execution UUID; body limit 128 bytes'},400);}
+ const userId=request.headers.get('X-Serenity-Account');
+ if(userId!==null&&(!/^[1-9][0-9]{0,15}$/.test(userId)||!Number.isSafeInteger(Number(userId))))return json({error:'Invalid account identifier'},400);
+ if(typeof env.PRESENCE_HMAC_SECRET!=='string'||env.PRESENCE_HMAC_SECRET.length<32)return json({error:'Configure PRESENCE_HMAC_SECRET with at least 32 random characters'},503);
  if(!env.DB)return json({error:'D1 binding DB is missing'},503);
  try{await init(env.DB);const now=Math.floor(Date.now()/1000),day=dayAt(Date.now());
-  if(path==='/leave'){await env.DB.prepare('DELETE FROM presence WHERE session=?').bind(body.session).run();return json({ok:true});}
+  if(path==='/leave')return json({ok:true}); // Expiry protects newer sessions and other devices on the same account.
   if(path==='/heartbeat'){
-   const q=[env.DB.prepare('DELETE FROM presence WHERE expires<=?').bind(now),env.DB.prepare('INSERT INTO presence(session,expires) VALUES(?,?) ON CONFLICT(session) DO UPDATE SET expires=MAX(presence.expires,excluded.expires)').bind(body.session,now+600)];
+   const q=[env.DB.prepare('DELETE FROM account_presence WHERE expires<=?').bind(now)];
+   if(userId!==null){const account=await accountKey(userId,env.PRESENCE_HMAC_SECRET);q.push(env.DB.prepare('INSERT INTO account_presence(account,expires) VALUES(?,?) ON CONFLICT(account) DO UPDATE SET expires=MAX(account_presence.expires,excluded.expires)').bind(account,now+600));}
    if(body.execution)q.push(env.DB.prepare('INSERT OR IGNORE INTO execution_events(id,day) VALUES(?,?)').bind(body.execution,day));
-   q.push(env.DB.prepare('SELECT COUNT(*) AS active FROM presence WHERE expires>?').bind(now));
+   q.push(env.DB.prepare('SELECT COUNT(*) AS active FROM account_presence WHERE expires>?').bind(now));
    const results=await env.DB.batch(q);
-   return json({ok:true,interval:300,ttl:600,active:Number(results[results.length-1].results[0].active),executionRecorded:!!body.execution});
+   return json({ok:true,interval:300,ttl:600,active:Number(results[results.length-1].results[0].active),executionRecorded:!!body.execution,presenceMode:"accounts",presenceRecorded:userId!==null});
   }
   // Dashboard/count requests are read-only; heartbeat cleanup removes expired rows.
-  const q=[env.DB.prepare('SELECT COUNT(*) AS active FROM presence WHERE expires>?').bind(now)];
+  const q=[env.DB.prepare('SELECT COUNT(*) AS active FROM account_presence WHERE expires>?').bind(now)];
   if(path==='/stats'){q.push(env.DB.prepare('SELECT day,executions FROM execution_days ORDER BY day'));q.push(env.DB.prepare("SELECT value FROM analytics_meta WHERE key='started'"));}
   const r=await env.DB.batch(q),active=Number(r[0].results[0].active);
   if(path==='/active')return json({active});
@@ -101,3 +110,4 @@ export default {async fetch(request,env){
   return json({active,today,month,total,day,daily,started:r[2].results[0].value});
  }catch{return json({error:'Storage unavailable; retry shortly'},503);}
 }};
+
