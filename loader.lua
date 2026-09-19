@@ -59,4 +59,29 @@ if not fn then
     error("[SERENITY HUB] Loader compile failed: "..tostring(err),0)
 end
 
-return fn()
+-- Copy the community invite silently after successful loader execution.
+-- The marker is shared by games in this executor's filesystem.
+local results=table.pack(fn())
+pcall(function()
+    local invite="https://discord.gg/s4yCvv4Uv"
+    local env=(type(getgenv)=="function" and getgenv()) or _G
+    local key="__SERENITY_DISCORD_COPIED"
+    if env[key] then return end
+    local marker="SerenityHub/discord-invite-copied.txt"
+    if type(readfile)=="function" then
+        local ok,value=pcall(readfile,marker)
+        if ok and value==invite then env[key]=true; return end
+    end
+    local copy=type(setclipboard)=="function" and setclipboard
+        or type(toclipboard)=="function" and toclipboard
+        or (type(syn)=="table" and type(syn.write_clipboard)=="function" and syn.write_clipboard)
+    if not copy then return end
+    local ok,result=pcall(copy,invite)
+    if not ok or result==false then return end
+    env[key]=true
+    if type(writefile)=="function" and type(readfile)=="function" then
+        if type(makefolder)=="function" then pcall(makefolder,"SerenityHub") end
+        pcall(writefile,marker,invite)
+    end
+end)
+return table.unpack(results,1,results.n)
