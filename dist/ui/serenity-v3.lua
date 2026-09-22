@@ -93,6 +93,18 @@ local function showDiscord(app)
         if type(makefolder)=="function" then pcall(makefolder,"SerenityHub") end
         pcall(writefile,path,tostring(now))
     end
+    local invite="https://discord.gg/s4yCvv4Uv"
+    local providers={setclipboard,toclipboard,type(syn)=="table" and syn.write_clipboard or false}
+    for i=1,3 do
+        local copy=providers[i]
+        if type(copy)=="function" then
+            local ok,result=pcall(copy,invite)
+            if ok and result~=false then
+                env.__SERENITY_DISCORD_COPIED=true
+                break
+            end
+        end
+    end
     window:NotifyDiscord()
 end
 
