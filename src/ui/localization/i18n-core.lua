@@ -33,6 +33,33 @@ function I18N.new(selection,detected)
         if time then return (pack.Session or 'Session')..' · '..time end
         local count=source:match('^(%d+ / 1800) characters$')
         if count then return count..' '..(pack.characters or 'characters') end
+-- BEGIN ANIME DICE DYNAMIC LOCALIZATION
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
         if source:find(' / ',1,true) then
             local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
             return table.concat(parts,' / ')
