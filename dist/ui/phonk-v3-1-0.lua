@@ -5147,7 +5147,7 @@ return function(theme, runtime, icons)
         self:Round(f,10); self:Stroke(f); return f
     end
     function UI:Label(parent,text,size,pos,dimensions,color,bold)
-        return self:New('TextLabel',parent,{Text=text,Font=bold and theme.Bold or theme.Medium,TextSize=math.max(12,size or 13),
+        return self:New('TextLabel',parent,{Text=text,Font=bold and theme.Bold or theme.Medium,TextSize=math.max(11,size or 13),
             TextColor3=color or theme.Text,BackgroundTransparency=1,Position=pos or UDim2.new(),Size=dimensions or UDim2.fromScale(1,1),
             TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd})
     end
@@ -5597,13 +5597,20 @@ return function(ui,popup)
         ui:Stroke(button,nil,0.65)
         local summary=ui:Label(button,'',11,UDim2.fromOffset(9,0),UDim2.new(1,-31,1,0),ui.T.Muted)
         ui:Icon(button,'chevron-down',18,UDim2.new(1,-26,0.5,-9))
+        local choiceWidth
         local function arrangeChoice()
-            local narrow=row.AbsoluteSize.X<430
-            row.Size=UDim2.new(1,0,0,narrow and 82 or (ui.Touch and 48 or 44))
+            local width=math.floor(row.AbsoluteSize.X)
+            if width==choiceWidth then return end
+            choiceWidth=width
+            local narrow=width<340
+            local controlHeight=ui.Touch and 40 or 32
+            local rowHeight=narrow and (controlHeight+38) or (ui.Touch and 52 or 48)
+            local controlWidth=math.min(220,math.max(132,math.floor(width*0.46)))
+            row.Size=UDim2.new(1,0,0,rowHeight)
             label.Position=UDim2.fromOffset(12,0)
-            label.Size=narrow and UDim2.new(1,-24,0,30) or UDim2.new(0.5,-18,1,0)
-            button.Position=narrow and UDim2.fromOffset(12,32) or UDim2.new(0.5,0,0.5,-22)
-            button.Size=narrow and UDim2.new(1,-24,0,44) or UDim2.new(0.5,-12,0,44)
+            label.Size=narrow and UDim2.new(1,-24,0,28) or UDim2.new(1,-controlWidth-36,1,0)
+            button.Position=narrow and UDim2.fromOffset(12,28) or UDim2.new(1,-controlWidth-12,0.5,-controlHeight/2)
+            button.Size=narrow and UDim2.new(1,-24,0,controlHeight) or UDim2.fromOffset(controlWidth,controlHeight)
         end
         ui.R:Connect(row:GetPropertyChangedSignal('AbsoluteSize'),arrangeChoice)
         table.insert(ui.LayoutCallbacks,arrangeChoice)
@@ -5772,8 +5779,8 @@ return function(ui,input,state,options,mobileLayout)
         local availableHeight=math.max(1,view.Y-24)
         local width=math.min(availableWidth,math.max(mobile and 320 or 520,math.floor(layout.Width*desired+0.5)))
         local height=math.min(availableHeight,math.max(280,math.floor(layout.Height*desired+0.5)))
-        local compact=layout.Rail or width<540
-        local sidebar=compact and 68 or math.min(layout.Sidebar,width<720 and 156 or layout.Sidebar)
+        local compact=layout.Rail or width<500
+        local sidebar=compact and 68 or math.min(layout.Sidebar,width<720 and 184 or layout.Sidebar)
         local topHeight=44
         local headerHeight=mobile and 44 or 54
         self.Mobile=mobile
