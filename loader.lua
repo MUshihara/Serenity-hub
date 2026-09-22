@@ -12,8 +12,9 @@ local isLiftACube=game.PlaceId==109530157755211 or game.GameId==10759860151
 local isStealAnAnimeEgg=game.PlaceId==76377501906469 or game.GameId==10747748563
 local isRideAPet=game.PlaceId==124216119978534 or game.GameId==10035204815
 local isStrengthGrowArm=game.PlaceId==86259628805375 or game.GameId==10310999762
+local isAnimeDice=game.PlaceId==113290951185459 or game.GameId==10708913337
 
-if isStealASeed or isLiftACube or isStealAnAnimeEgg or isRideAPet or isStrengthGrowArm then
+if isStealASeed or isLiftACube or isStealAnAnimeEgg or isRideAPet or isStrengthGrowArm or isAnimeDice then
     local env=(type(getgenv)=="function" and getgenv()) or _G
     env.__SERENITY_PAYLOAD_AUTHORIZED=true
     _G.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -37,6 +38,9 @@ elseif isRideAPet then
 elseif isStrengthGrowArm then
     target="dist/runtime/games/+1strengthgrowarm.lua"
     chunkName="@SerenityHub/Game-StrengthGrowArm"
+elseif isAnimeDice then
+    target="dist/runtime/games/animedice.lua"
+    chunkName="@SerenityHub/Game-AnimeDice"
 else
     target="dist/loader.lua"
     chunkName="@SerenityHub/CurrentLoader"
