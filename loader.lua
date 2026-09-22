@@ -59,7 +59,7 @@ if not fn then
     error("[SERENITY HUB] Loader compile failed: "..tostring(err),0)
 end
 
--- Copy the community invite silently after successful loader execution.
+-- Copy the community invite once after successful loader execution.
 -- The marker is shared by games in this executor's filesystem.
 local results=table.pack(fn())
 pcall(function()
@@ -83,5 +83,19 @@ pcall(function()
         if type(makefolder)=="function" then pcall(makefolder,"SerenityHub") end
         pcall(writefile,marker,invite)
     end
+    -- Only the first successful copy reaches this notification.
+    task.spawn(function()
+        for attempt=1,3 do
+            local shown=pcall(function()
+                game:GetService("StarterGui"):SetCore("SendNotification",{
+                    Title="Join the Serenity Discord",
+                    Text="Get news, new releases and updates! Invite copied to your clipboard.",
+                    Duration=5,
+                })
+            end)
+            if shown then return end
+            task.wait(1)
+        end
+    end)
 end)
 return table.unpack(results,1,results.n)
