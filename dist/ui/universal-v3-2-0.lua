@@ -28,6 +28,10 @@ function I18N.new(selection,detected)
         if type(source)~='string' or source=='' then return source end
         local pack=I18N.Packs[self:Language()] or {}
         if pack[source] then return pack[source] end
+        -- Only translate dictionary-backed labels with numeric values. Never rewrite names.
+        local label,separator,value=source:match('^(.-)(: )([%d][%d,%.]*)$')
+        if not label then label,separator,value=source:match('^(.-)( · )([%d][%d,%.]*)$') end
+        if label and pack[label] then return pack[label]..separator..value end
         local selected=source:match('^Language changed: (.+)$')
         if selected then return (pack['Language changed'] or 'Language changed')..': '..selected end
         -- Translate only known UI patterns; never edit a user's text or arbitrary values.
@@ -113,9 +117,7 @@ I18N.Packs={
 ["Session"]="Sesyon",
 ["What’s new"]="Ano ang bago",
 ["Community"]="Komunidad",
-["COMMUNITY"]="Komunidad",
 ["Updates"]="Mga update",
-["UPDATES"]="Mga update",
 ["Serenity Community"]="Komunidad ng Serenity",
 ["Meet the community"]="Kilalanin ang komunidad",
 ["Copy Discord Link"]="Kopyahin ang link ng Discord",
@@ -458,6 +460,8 @@ I18N.Packs={
 ["Report destination unavailable. Please tell Serenity staff."]="Hindi maabot ang padadalhan ng ulat. Ipaalam sa Serenity staff.",
 ["Serenity’s report server is not connected yet. Your draft is safe."]="Hindi pa konektado ang server ng ulat ng Serenity. Nananatili ang iyong draft.",
 ["Right Ctrl hides or shows the hub. Ctrl+K opens search. Escape closes a popup."]="Itinatago o ipinapakita ng Right Ctrl ang hub. Binubuksan ng Ctrl+K ang paghahanap. Isinasara ng Escape ang popup.",
+["COMMUNITY"]="Komunidad",
+["UPDATES"]="Mga update",
 },
 ["id"]={
 ["About"]="Tentang",
@@ -484,9 +488,7 @@ I18N.Packs={
 ["Session"]="Sesi",
 ["What’s new"]="Yang baru",
 ["Community"]="Komunitas",
-["COMMUNITY"]="Komunitas",
 ["Updates"]="Pembaruan",
-["UPDATES"]="Pembaruan",
 ["Serenity Community"]="Komunitas Serenity",
 ["Meet the community"]="Kenali komunitas",
 ["Copy Discord Link"]="Salin Tautan Discord",
@@ -829,6 +831,8 @@ I18N.Packs={
 ["Report destination unavailable. Please tell Serenity staff."]="Tujuan laporan tidak tersedia. Beri tahu staf Serenity.",
 ["Serenity’s report server is not connected yet. Your draft is safe."]="Server laporan Serenity belum terhubung. Draf Anda tetap tersimpan.",
 ["Right Ctrl hides or shows the hub. Ctrl+K opens search. Escape closes a popup."]="Right Ctrl menyembunyikan atau menampilkan hub. Ctrl+K membuka pencarian. Escape menutup popup.",
+["COMMUNITY"]="Komunitas",
+["UPDATES"]="Pembaruan",
 },
 ["vi"]={
 ["About"]="Giới thiệu",
@@ -855,9 +859,7 @@ I18N.Packs={
 ["Session"]="Phiên",
 ["What’s new"]="Có gì mới",
 ["Community"]="Cộng đồng",
-["COMMUNITY"]="Cộng đồng",
 ["Updates"]="Cập nhật",
-["UPDATES"]="Cập nhật",
 ["Serenity Community"]="Cộng đồng Serenity",
 ["Meet the community"]="Gặp gỡ cộng đồng",
 ["Copy Discord Link"]="Sao chép liên kết Discord",
@@ -1200,6 +1202,8 @@ I18N.Packs={
 ["Report destination unavailable. Please tell Serenity staff."]="Không thể gửi báo cáo đến nơi nhận. Hãy báo cho nhân viên Serenity.",
 ["Serenity’s report server is not connected yet. Your draft is safe."]="Máy chủ báo cáo Serenity chưa được kết nối. Bản nháp của bạn vẫn được giữ lại.",
 ["Right Ctrl hides or shows the hub. Ctrl+K opens search. Escape closes a popup."]="Right Ctrl ẩn hoặc hiện hub. Ctrl+K mở tìm kiếm. Escape đóng cửa sổ bật lên.",
+["COMMUNITY"]="Cộng đồng",
+["UPDATES"]="Cập nhật",
 },
 ["th"]={
 ["About"]="เกี่ยวกับ",
@@ -1226,9 +1230,7 @@ I18N.Packs={
 ["Session"]="เซสชัน",
 ["What’s new"]="มีอะไรใหม่",
 ["Community"]="ชุมชน",
-["COMMUNITY"]="ชุมชน",
 ["Updates"]="อัปเดต",
-["UPDATES"]="อัปเดต",
 ["Serenity Community"]="ชุมชน Serenity",
 ["Meet the community"]="พบกับชุมชน",
 ["Copy Discord Link"]="คัดลอกลิงก์ Discord",
@@ -1571,6 +1573,8 @@ I18N.Packs={
 ["Report destination unavailable. Please tell Serenity staff."]="ปลายทางรับรายงานไม่พร้อมใช้งาน โปรดแจ้งทีมงาน Serenity",
 ["Serenity’s report server is not connected yet. Your draft is safe."]="เซิร์ฟเวอร์รายงานของ Serenity ยังไม่ได้เชื่อมต่อ ฉบับร่างของคุณยังอยู่",
 ["Right Ctrl hides or shows the hub. Ctrl+K opens search. Escape closes a popup."]="Right Ctrl ซ่อนหรือแสดงฮับ Ctrl+K เปิดการค้นหา Escape ปิดป๊อปอัป",
+["COMMUNITY"]="ชุมชน",
+["UPDATES"]="อัปเดต",
 },
 ["es"]={
 ["About"]="Acerca de",
@@ -1597,9 +1601,7 @@ I18N.Packs={
 ["Session"]="Sesión",
 ["What’s new"]="Novedades",
 ["Community"]="Comunidad",
-["COMMUNITY"]="Comunidad",
 ["Updates"]="Actualizaciones",
-["UPDATES"]="Actualizaciones",
 ["Serenity Community"]="Comunidad de Serenity",
 ["Meet the community"]="Conoce a la comunidad",
 ["Copy Discord Link"]="Copiar enlace de Discord",
@@ -1942,6 +1944,8 @@ I18N.Packs={
 ["Report destination unavailable. Please tell Serenity staff."]="El destino del informe no está disponible. Avisa al equipo de Serenity.",
 ["Serenity’s report server is not connected yet. Your draft is safe."]="El servidor de informes de Serenity aún no está conectado. Tu borrador se conserva.",
 ["Right Ctrl hides or shows the hub. Ctrl+K opens search. Escape closes a popup."]="Right Ctrl oculta o muestra el hub. Ctrl+K abre la búsqueda. Escape cierra una ventana emergente.",
+["COMMUNITY"]="Comunidad",
+["UPDATES"]="Actualizaciones",
 },
 ["pt"]={
 ["About"]="Sobre",
@@ -1968,9 +1972,7 @@ I18N.Packs={
 ["Session"]="Sessão",
 ["What’s new"]="Novidades",
 ["Community"]="Comunidade",
-["COMMUNITY"]="Comunidade",
 ["Updates"]="Atualizações",
-["UPDATES"]="Atualizações",
 ["Serenity Community"]="Comunidade Serenity",
 ["Meet the community"]="Conheça a comunidade",
 ["Copy Discord Link"]="Copiar link do Discord",
@@ -2313,6 +2315,8 @@ I18N.Packs={
 ["Report destination unavailable. Please tell Serenity staff."]="O destino do relatório está indisponível. Avise a equipe Serenity.",
 ["Serenity’s report server is not connected yet. Your draft is safe."]="O servidor de relatórios da Serenity ainda não está conectado. Seu rascunho foi preservado.",
 ["Right Ctrl hides or shows the hub. Ctrl+K opens search. Escape closes a popup."]="Right Ctrl oculta ou mostra o hub. Ctrl+K abre a busca. Escape fecha uma janela pop-up.",
+["COMMUNITY"]="Comunidade",
+["UPDATES"]="Atualizações",
 },
 ["fr"]={
 ["About"]="À propos",
@@ -2339,9 +2343,7 @@ I18N.Packs={
 ["Session"]="Session",
 ["What’s new"]="Nouveautés",
 ["Community"]="Communauté",
-["COMMUNITY"]="Communauté",
 ["Updates"]="Mises à jour",
-["UPDATES"]="Mises à jour",
 ["Serenity Community"]="Communauté Serenity",
 ["Meet the community"]="Découvrez la communauté",
 ["Copy Discord Link"]="Copier le lien Discord",
@@ -2684,6 +2686,8 @@ I18N.Packs={
 ["Report destination unavailable. Please tell Serenity staff."]="La destination du rapport est indisponible. Prévenez l’équipe Serenity.",
 ["Serenity’s report server is not connected yet. Your draft is safe."]="Le serveur de rapports Serenity n’est pas encore connecté. Votre brouillon est conservé.",
 ["Right Ctrl hides or shows the hub. Ctrl+K opens search. Escape closes a popup."]="Right Ctrl masque ou affiche le hub. Ctrl+K ouvre la recherche. Escape ferme une fenêtre contextuelle.",
+["COMMUNITY"]="Communauté",
+["UPDATES"]="Mises à jour",
 },
 ["de"]={
 ["About"]="Über",
@@ -2710,9 +2714,7 @@ I18N.Packs={
 ["Session"]="Sitzung",
 ["What’s new"]="Neuigkeiten",
 ["Community"]="Community",
-["COMMUNITY"]="Community",
 ["Updates"]="Updates",
-["UPDATES"]="Updates",
 ["Serenity Community"]="Serenity-Community",
 ["Meet the community"]="Lerne die Community kennen",
 ["Copy Discord Link"]="Discord-Link kopieren",
@@ -3055,6 +3057,8 @@ I18N.Packs={
 ["Report destination unavailable. Please tell Serenity staff."]="Das Berichtsziel ist nicht verfügbar. Informiere das Serenity-Team.",
 ["Serenity’s report server is not connected yet. Your draft is safe."]="Der Serenity-Berichtsserver ist noch nicht verbunden. Dein Entwurf bleibt erhalten.",
 ["Right Ctrl hides or shows the hub. Ctrl+K opens search. Escape closes a popup."]="Right Ctrl blendet den Hub ein oder aus. Ctrl+K öffnet die Suche. Escape schließt ein Popup.",
+["COMMUNITY"]="Community",
+["UPDATES"]="Updates",
 },
 ["ru"]={
 ["About"]="О программе",
@@ -3081,9 +3085,7 @@ I18N.Packs={
 ["Session"]="Сеанс",
 ["What’s new"]="Что нового",
 ["Community"]="Сообщество",
-["COMMUNITY"]="Сообщество",
 ["Updates"]="Обновления",
-["UPDATES"]="Обновления",
 ["Serenity Community"]="Сообщество Serenity",
 ["Meet the community"]="Познакомьтесь с сообществом",
 ["Copy Discord Link"]="Копировать ссылку Discord",
@@ -3426,10 +3428,11 @@ I18N.Packs={
 ["Report destination unavailable. Please tell Serenity staff."]="Получатель отчётов недоступен. Сообщите команде Serenity.",
 ["Serenity’s report server is not connected yet. Your draft is safe."]="Сервер отчётов Serenity ещё не подключён. Ваш черновик сохранён.",
 ["Right Ctrl hides or shows the hub. Ctrl+K opens search. Escape closes a popup."]="Right Ctrl скрывает или показывает хаб. Ctrl+K открывает поиск. Escape закрывает всплывающее окно.",
+["COMMUNITY"]="Сообщество",
+["UPDATES"]="Обновления",
 },
 }
 return I18N
-
 
 end)()
 -- END SERENITY LOCALIZATION
@@ -5152,5 +5155,6 @@ return {Version='3.2.0',APIVersion=3,Build=function(source,options)
     function app:Destroy()runtime:Destroy('manual')end
     return app
 end}
+
 
 

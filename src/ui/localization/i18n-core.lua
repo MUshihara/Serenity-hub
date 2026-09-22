@@ -22,6 +22,10 @@ function I18N.new(selection,detected)
         if type(source)~='string' or source=='' then return source end
         local pack=I18N.Packs[self:Language()] or {}
         if pack[source] then return pack[source] end
+        -- Only translate dictionary-backed labels with numeric values. Never rewrite names.
+        local label,separator,value=source:match('^(.-)(: )([%d][%d,%.]*)$')
+        if not label then label,separator,value=source:match('^(.-)( · )([%d][%d,%.]*)$') end
+        if label and pack[label] then return pack[label]..separator..value end
         local selected=source:match('^Language changed: (.+)$')
         if selected then return (pack['Language changed'] or 'Language changed')..': '..selected end
         -- Translate only known UI patterns; never edit a user's text or arbitrary values.
