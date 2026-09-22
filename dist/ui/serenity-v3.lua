@@ -3,7 +3,7 @@ local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local cache={}
 local function module(path)
     if cache[path] then return cache[path] end
-    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-discord1",true)
+    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-readable1",true)
     local fn,err=loadstring(source,"@Serenity/"..path)
     if not fn then error("[SERENITY HUB] UI compile failed: "..tostring(err),0) end
     local result=fn()
@@ -127,6 +127,7 @@ function Serenity.Build(manifest,options)
     return app
 end
 return Serenity
+
 
 
 
