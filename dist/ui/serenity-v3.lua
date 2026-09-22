@@ -3,7 +3,7 @@ local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local cache={}
 local function module(path)
     if cache[path] then return cache[path] end
-    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-readable2",true)
+    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-layout-restored1",true)
     local fn,err=loadstring(source,"@Serenity/"..path)
     if not fn then error("[SERENITY HUB] UI compile failed: "..tostring(err),0) end
     local result=fn()

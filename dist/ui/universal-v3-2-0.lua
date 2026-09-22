@@ -5147,7 +5147,7 @@ return function(theme, runtime, icons)
         self:Round(f,10); self:Stroke(f); return f
     end
     function UI:Label(parent,text,size,pos,dimensions,color,bold)
-        return self:New('TextLabel',parent,{Text=text,Font=bold and theme.Bold or theme.Medium,TextSize=math.max(11,size or 13),
+        return self:New('TextLabel',parent,{Text=text,Font=bold and theme.Bold or theme.Medium,TextSize=size or 13,
             TextColor3=color or theme.Text,BackgroundTransparency=1,Position=pos or UDim2.new(),Size=dimensions or UDim2.fromScale(1,1),
             TextXAlignment=Enum.TextXAlignment.Left,TextTruncate=Enum.TextTruncate.AtEnd})
     end
@@ -5198,7 +5198,6 @@ return function(theme, runtime, icons)
     function UI:Row(parent,title,height)
         local row=self:Frame(parent,{Size=UDim2.new(1,0,0,math.max(height or 44,self.Touch and 48 or 44))})
         local label=self:Label(row,title,13,UDim2.fromOffset(12,0),UDim2.new(0.5,-18,1,0))
-        label.TextWrapped=true
         self:Frame(row,{Position=UDim2.new(0,12,1,-1),Size=UDim2.new(1,-24,0,1),BackgroundColor3=theme.Line,BackgroundTransparency=0.65})
         return row,label
     end
@@ -5608,24 +5607,6 @@ return function(ui,popup)
         ui:Stroke(button,nil,0.65)
         local summary=ui:Label(button,'',11,UDim2.fromOffset(9,0),UDim2.new(1,-31,1,0),ui.T.Muted)
         ui:Icon(button,'chevron-down',18,UDim2.new(1,-26,0.5,-9))
-        local choiceWidth
-        local function arrangeChoice()
-            local width=math.floor(row.AbsoluteSize.X)
-            if width==choiceWidth then return end
-            choiceWidth=width
-            local narrow=width<340
-            local controlHeight=ui.Touch and 40 or 32
-            local rowHeight=narrow and (controlHeight+38) or (ui.Touch and 52 or 48)
-            local controlWidth=math.min(220,math.max(132,math.floor(width*0.46)))
-            row.Size=UDim2.new(1,0,0,rowHeight)
-            label.Position=UDim2.fromOffset(12,0)
-            label.Size=narrow and UDim2.new(1,-24,0,28) or UDim2.new(1,-controlWidth-36,1,0)
-            button.Position=narrow and UDim2.fromOffset(12,28) or UDim2.new(1,-controlWidth-12,0.5,-controlHeight/2)
-            button.Size=narrow and UDim2.new(1,-24,0,controlHeight) or UDim2.fromOffset(controlWidth,controlHeight)
-        end
-        ui.R:Connect(row:GetPropertyChangedSignal('AbsoluteSize'),arrangeChoice)
-        table.insert(ui.LayoutCallbacks,arrangeChoice)
-        arrangeChoice()
         local self={Frame=row,Enabled=props.Enabled~=false,Options=props.Options or {},Value=multiple and {} or nil,Callback=props.Callback}
         local function same(a,b)
             if type(a)~='table' then return a==b end
@@ -5782,25 +5763,20 @@ return function(ui,input,state,options,mobileLayout)
     function app:Fit()
         local view=screen.AbsoluteSize
         if view.X<10 or view.Y<10 then return end
-        local desired=math.clamp(tonumber(state:Get('Settings.Appearance.Scale',100)) or 100,75,115)/100
+        local desired=tonumber(state:Get('Settings.Appearance.Scale',100)) or 100
         local mobile=ui.Touch or view.X<700
         local layout=mobile and mobileLayout(view) or {Width=T.Width,Height=T.Height,Sidebar=T.Sidebar,Header=T.Header,Rail=false}
-        -- Resize the available workspace, not the glyphs or hit targets.
-        local availableWidth=math.max(1,view.X-24)
-        local availableHeight=math.max(1,view.Y-24)
-        local width=math.min(availableWidth,math.max(mobile and 320 or 520,math.floor(layout.Width*desired+0.5)))
-        local height=math.min(availableHeight,math.max(280,math.floor(layout.Height*desired+0.5)))
-        local compact=layout.Rail or width<500
-        local sidebar=compact and 68 or math.min(layout.Sidebar,width<720 and 184 or layout.Sidebar)
+        local compact=layout.Rail
+        local width,height,sidebar=layout.Width,layout.Height,layout.Sidebar
         local topHeight=44
         local headerHeight=mobile and 44 or 54
         self.Mobile=mobile
         self.LayoutWidth=width; self.LayoutHeight=height; self.SidebarWidth=sidebar
         holder.Size=UDim2.fromOffset(width,height)
-        scale.Scale=1
-        ui.ScaleFactor=1
+        scale.Scale=math.max(0.2,math.min(desired/100,(view.X-24)/width,(view.Y-24)/height))
+        ui.ScaleFactor=scale.Scale
         divider.Position=UDim2.fromOffset(sidebar,topHeight+10); divider.Size=UDim2.new(0,1,1,-topHeight-22)
-        brand.Size=UDim2.new(1,0,0,topHeight); brandTitle.Visible=true; subtitle.Visible=not mobile and width>=720
+        brand.Size=UDim2.new(1,0,0,topHeight); brandTitle.Visible=true; subtitle.Visible=not mobile
         navigation.Size=UDim2.new(0,sidebar-20,1,compact and -137 or -149)
         navigation.Position=UDim2.fromOffset(10,topHeight+10)
         navigation.Size=UDim2.new(0,sidebar-20,1,-topHeight-80)
@@ -5808,21 +5784,20 @@ return function(ui,input,state,options,mobileLayout)
         gameTitle.Visible=not compact; dot.Visible=not compact
         for _,child in ipairs(gameCard:GetChildren()) do if child:IsA('TextLabel') then child.Visible=not compact end end
         header.Position=UDim2.fromOffset(sidebar+12,topHeight); header.Size=UDim2.new(1,-sidebar-24,0,headerHeight)
-        badge.Visible=not mobile and width>=600
+        badge.Visible=not mobile
         title.Position=UDim2.fromOffset(0,mobile and 10 or 6); title.Size=UDim2.new(1,0,0,23); title.TextSize=18
         description.Position=UDim2.fromOffset(0,30); description.Size=UDim2.new(1,0,0,16); description.TextSize=11
         content.Position=UDim2.fromOffset(sidebar+12,topHeight+headerHeight+5); content.Size=UDim2.new(1,-sidebar-24,1,-topHeight-headerHeight-17)
         for _,entry in pairs(self.Pages) do
-            entry.Row.Size=UDim2.new(1,0,0,compact and 66 or 44)
+            entry.Row.Size=UDim2.new(1,0,0,compact and 56 or 44)
             entry.Tile.Position=UDim2.fromOffset(compact and 7 or 0,compact and 0 or 5)
-            entry.Label.TextSize=compact and 11 or 13
-            entry.Label.TextWrapped=compact
+            entry.Label.TextSize=compact and 9 or 13
             entry.Label.TextXAlignment=compact and Enum.TextXAlignment.Center or Enum.TextXAlignment.Left
             entry.Label.Position=compact and UDim2.fromOffset(-3,35) or UDim2.fromOffset(44,0)
-            entry.Label.Size=compact and UDim2.new(1,6,0,28) or UDim2.new(1,-48,1,0)
+            entry.Label.Size=compact and UDim2.new(1,6,0,18) or UDim2.new(1,-48,1,0)
         end
         description.Visible=not mobile
-        subtitle.Visible=not mobile and width>=720
+        subtitle.Visible=not mobile
         shadow.Visible=not ui.LowEffects
         local x=math.clamp(holder.AbsolutePosition.X+holder.AbsoluteSize.X/2,width*scale.Scale/2+12,math.max(width*scale.Scale/2+12,view.X-width*scale.Scale/2-12))
         local y=math.clamp(holder.AbsolutePosition.Y+holder.AbsoluteSize.Y/2,height*scale.Scale/2+12,math.max(height*scale.Scale/2+12,view.Y-height*scale.Scale/2-12))
@@ -6471,7 +6446,6 @@ return {Version='3.2.0',APIVersion=3,Build=function(source,options)
     function app:Destroy()runtime:Destroy('manual')end
     return app
 end}
-
 
 
 
