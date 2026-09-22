@@ -4764,6 +4764,19 @@ return function(M,options)
                 if not runtime.Destroyed and self.Toast==toast then toast:Destroy(); self.Toast=nil end
             end)
         end
+        function app:NotifyDiscord()
+            if self.DiscordToast then self.DiscordToast:Destroy() end
+            local camera=workspace.CurrentCamera
+            local width=math.max(120,math.min(280,(camera and camera.ViewportSize.X or 304)-24))
+            local toast=ui:Panel(self.Screen,{AnchorPoint=Vector2.new(1,1),Position=UDim2.new(1,-12,1,-14),Size=UDim2.new(0,width,0,60),ZIndex=150})
+            ui:Icon(toast,'check',20,UDim2.fromOffset(12,20),ui.T.Accent)
+            ui:Label(toast,'Join Discord · News & updates',12,UDim2.fromOffset(42,4),UDim2.new(1,-52,0,26))
+            ui:Label(toast,'discord.gg/s4yCvv4Uv',12,UDim2.fromOffset(42,30),UDim2.new(1,-52,0,24))
+            self.DiscordToast=toast
+            task.delay(5,function()
+                if not runtime.Destroyed and self.DiscordToast==toast then toast:Destroy();self.DiscordToast=nil end
+            end)
+        end
         function app:Copy(text,title)
             if type(setclipboard)=='function' then
                 local good=pcall(setclipboard,text)

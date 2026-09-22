@@ -3,7 +3,7 @@ local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local cache={}
 local function module(path)
     if cache[path] then return cache[path] end
-    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-languages4",true)
+    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-discord1",true)
     local fn,err=loadstring(source,"@Serenity/"..path)
     if not fn then error("[SERENITY HUB] UI compile failed: "..tostring(err),0) end
     local result=fn()
@@ -44,10 +44,6 @@ local function startPresence(app)
     end
     cleanup(runtime,function() state:Stop() end)
     env.__SERENITY_PRESENCE=state
-    if not env.__SERENITY_PRESENCE_ACCOUNT_NOTICE and type(window.Notify)=="function" then
-        local ok=pcall(window.Notify,window,"Active counting sends your Roblox UserId over HTTPS for server-side hashing. No username is sent. Rejoins count once; executions count separately.")
-        if ok then env.__SERENITY_PRESENCE_ACCOUNT_NOTICE=true end
-    end
     state.Thread=task.defer(function()
         while not state.Stopped and not runtime.Destroyed do
             if env.SerenityPresenceEnabled==false then state:Stop();return end
@@ -78,6 +74,28 @@ local function startPresence(app)
 
 end
 
+-- A startup-only invite: at least 30 seconds between notices, shared across games.
+local function showDiscord(app)
+    local window=app and (app.Window or app)
+    if not window or type(window.NotifyDiscord)~="function" then return end
+    local env=(type(getgenv)=="function" and getgenv()) or _G
+    local now=os.time()
+    local last=tonumber(env.__SERENITY_DISCORD_NOTICE_AT) or 0
+    local path="SerenityHub/discord-notice-at.txt"
+    if type(readfile)=="function" then
+        local ok,value=pcall(readfile,path)
+        if ok then last=math.max(last,tonumber(value) or 0) end
+    end
+    if last>now then last=now end
+    if now-last<30 then return end
+    env.__SERENITY_DISCORD_NOTICE_AT=now
+    if type(writefile)=="function" then
+        if type(makefolder)=="function" then pcall(makefolder,"SerenityHub") end
+        pcall(writefile,path,tostring(now))
+    end
+    window:NotifyDiscord()
+end
+
 local Serenity={Version="3.2.0",APIVersion=3}
 function Serenity.Detect()
     return module("dist/ui/serenity-v3-legacy.lua").Detect()
@@ -93,6 +111,7 @@ function Serenity.Build(manifest,options)
         app=module("dist/ui/serenity-v3-legacy.lua").Build(manifest,options)
     end
     pcall(startPresence,app)
+    pcall(showDiscord,app)
     return app
 end
 return Serenity
