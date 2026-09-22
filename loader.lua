@@ -62,6 +62,24 @@ end
 -- Copy the community invite once after successful loader execution.
 -- The marker is shared by games in this executor's filesystem.
 local results=table.pack(fn())
+-- Shared idle protection: one connection per session, no polling or notifications.
+pcall(function()
+    local env=(type(getgenv)=="function" and getgenv()) or _G
+    local key="__SERENITY_IDLE_CONNECTION"
+    local old=env[key]
+    if old then pcall(function() old:Disconnect() end) end
+    env[key]=nil
+    local player=game:GetService("Players").LocalPlayer
+    if not player then return end
+    local virtualUser=game:GetService("VirtualUser")
+    env[key]=player.Idled:Connect(function()
+        pcall(function()
+            virtualUser:CaptureController()
+            virtualUser:ClickButton2(Vector2.new(0,0))
+        end)
+    end)
+end)
+
 pcall(function()
     local invite="https://discord.gg/s4yCvv4Uv"
     local env=(type(getgenv)=="function" and getgenv()) or _G
