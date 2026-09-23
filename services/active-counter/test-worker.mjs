@@ -4,15 +4,18 @@ import {DatabaseSync} from 'node:sqlite';
 import {webcrypto} from 'node:crypto';
 const sql=new DatabaseSync(':memory:');
 sql.exec("CREATE TABLE presence(session TEXT PRIMARY KEY,expires INTEGER NOT NULL); INSERT INTO presence VALUES('old',9999999999); CREATE TABLE execution_days(day TEXT PRIMARY KEY,executions INTEGER NOT NULL); INSERT INTO execution_days VALUES('2026-01-01',7)");
+sql.exec("CREATE TABLE account_presence(account TEXT PRIMARY KEY,expires INTEGER NOT NULL); INSERT INTO account_presence VALUES('pre-migration',1800000600)");
 let clock=1800000000; Date.now=()=>clock*1000;let queries=[];
-function execute(s){queries.push(s.query);let p=sql.prepare(s.query);if(s.query.startsWith('SELECT'))return {results:p.all(...s.args)};p.run(...s.args);return {results:[]}}
-const DB={prepare(query){return {query,args:[],bind(...a){this.args=a;return this},async run(){return execute(this)}}},async batch(q){sql.exec('BEGIN');try{let r=q.map(execute);sql.exec('COMMIT');return r}catch(e){sql.exec('ROLLBACK');throw e}}};
+function execute(s){queries.push(s.query);let p=sql.prepare(s.query);if(s.query.startsWith('SELECT')||s.query.startsWith('PRAGMA'))return {results:p.all(...s.args)};p.run(...s.args);return {results:[]}}
+const DB={prepare(query){return {query,args:[],bind(...a){this.args=a;return this},async run(){return execute(this)},async all(){return execute(this)}}},async batch(q){sql.exec('BEGIN');try{let r=q.map(execute);sql.exec('COMMIT');return r}catch(e){sql.exec('ROLLBACK');throw e}}};
 const env={DB,PRESENCE_HMAC_SECRET:'test-secret-not-for-production-123456789'};
 const src=fs.readFileSync(new URL('./worker.js',import.meta.url),'utf8');
 const {default:w}=await import('data:text/javascript;base64,'+Buffer.from(src).toString('base64'));
 const id=n=>`${String(n).padStart(8,'0')}-1111-4111-8111-111111111111`;
 async function call(path,body,userId,config=env,status=200){let r=await w.fetch(new Request('https://example.com'+path,{method:body?'POST':'GET',headers:userId===undefined?{}:{'X-Serenity-Account':userId},...(body?{body:JSON.stringify(body)}:{})}),config);assert.equal(r.status,status);return r.json()}
 const beat=(session,event)=>({session:id(session),...(event?{execution:id(event)}:{})});
+assert.equal((await call('/stats')).games[0].name,'Unknown / older client');
+sql.exec("DELETE FROM account_presence WHERE account='pre-migration'");
 assert.equal((await call('/heartbeat',beat(1,10),'12345')).active,1);
 for(let n=2;n<22;n++)assert.equal((await call('/heartbeat',beat(n,n+100),'12345')).active,1);
 assert.equal((await call('/stats')).total,28);
@@ -29,3 +32,31 @@ await call('/heartbeat',beat(26),'12345',{DB},503);
 assert.equal(sql.prepare('SELECT executions FROM execution_days WHERE day=?').get('2026-01-01').executions,7);
 let html=await (await w.fetch(new Request('https://example.com/'),env)).text();new Function(html.match(/<script>([\s\S]*?)<\/script>/)[1]);
 console.log('PASS: 20 rejoins, two accounts, event deduplication, legacy migration, leave race, expiry, HMAC-only storage, missing secret, validation, history, read-only counts, dashboard syntax.');
+
+
+async function gameBeat(userId,gameId,name,expected=200){
+ const headers={'X-Serenity-Account':userId};
+ if(gameId!==null)headers['X-Serenity-Game']=gameId;
+ if(name!==null)headers['X-Serenity-Game-Name']=name;
+ const response=await w.fetch(new Request('https://example.com/heartbeat',{method:'POST',headers,body:JSON.stringify(beat(90))}),env);
+ assert.equal(response.status,expected);return response.json();
+}
+sql.exec('DELETE FROM account_presence');
+await gameBeat('101','100','Ride%20A%20Pet');
+await gameBeat('102','100','Ride%20A%20Pet');
+await gameBeat('103','200','Anime%20Dice');
+let stats=await call('/stats');assert.equal(stats.active,3);
+assert.deepEqual(stats.games,[{id:'100',name:'Ride A Pet',active:2},{id:'200',name:'Anime Dice',active:1}]);
+for(let n=0;n<20;n++)await gameBeat('101','100','Ride%20A%20Pet');
+assert.equal((await call('/stats')).active,3);
+await gameBeat('101','200','Anime%20Dice');
+stats=await call('/stats');assert.equal(stats.games[0].id,'200');assert.equal(stats.games[0].active,2);assert.equal(stats.active,3);
+// A legacy report carries no usable current-game information.
+await gameBeat('101',null,null);stats=await call('/stats');assert.equal(stats.games.find(g=>g.id==='unknown').active,1);
+await gameBeat('104','300',encodeURIComponent('เกม 🎵'));assert.equal((await call('/stats')).games.find(g=>g.id==='300').name,'เกม 🎵');
+for(const bad of ['0','-1','abc','9007199254740992'])await gameBeat('105',bad,'Name',400);
+await gameBeat('105','400','%broken',400);await gameBeat('105','400','a'.repeat(97),400);
+queries=[];stats=await call('/stats');assert(queries.every(q=>q.startsWith('SELECT')));assert.equal(queries.length,3);
+assert.equal(stats.active,stats.games.reduce((n,g)=>n+g.active,0));assert.equal(stats.gameWindowSeconds,600);
+clock+=600;stats=await call('/stats');assert.equal(stats.active,0);assert.deepEqual(stats.games,[]);
+console.log('PASS: additive existing-table migration, UTF-8 names, sorting, rejoin deduplication, game switching, legacy unknown bucket, validation, expiry, and read-only grouped stats.');

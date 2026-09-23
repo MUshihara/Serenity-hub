@@ -12,7 +12,7 @@ local function module(path)
 end
 -- Account presence: UserId is sent over HTTPS and HMAC-hashed by the Worker; one combined heartbeat.
 -- Opt out before execution with getgenv().SerenityPresenceEnabled = false.
-local function startPresence(app)
+local function startPresence(app,manifest)
     local runtime=app and app.Runtime
     if not runtime or runtime.Destroyed then return end
     local cleanup=runtime.TrackCleanup or runtime.OnDestroy
@@ -30,6 +30,17 @@ local function startPresence(app)
     local id=env.__SERENITY_PRESENCE_ID or env.SerenityPresenceTestID
     if type(id)~="string" or #id~=36 then id=http:GenerateGUID(false) end
     env.__SERENITY_PRESENCE_ID=id
+    local headers={["Content-Type"]="application/json",["X-Serenity-Account"]=account}
+    local universe=tonumber(game.GameId)
+    if universe and universe>0 and universe==math.floor(universe) then
+        headers["X-Serenity-Game"]=tostring(universe)
+        local name=type(manifest)=="table" and manifest.GameName or nil
+        -- Bounded UTF-8 name; URL encoding keeps HTTP headers ASCII-only.
+        if type(name)=="string" and #name>0 and #name<=96 then
+            local ok,encoded=pcall(http.UrlEncode,http,name)
+            if ok and type(encoded)=="string" then headers["X-Serenity-Game-Name"]=encoded end
+        end
+    end
     local body=http:JSONEncode({session=id})
     local executionBody=http:JSONEncode({session=id,execution=http:GenerateGUID(false)})
     local executionRecorded=false
@@ -50,7 +61,7 @@ local function startPresence(app)
             local beatOK,beatResponse=pcall(send,{
                 Url="https://serenity-active.makimnaritn.workers.dev/heartbeat",
                 Method="POST",
-                Headers={["Content-Type"]="application/json",["X-Serenity-Account"]=account},
+                Headers=headers,
                 Body=executionRecorded and body or executionBody,
                 Timeout=10,
             })
@@ -122,11 +133,12 @@ function Serenity.Build(manifest,options)
     else
         app=module("dist/ui/serenity-v3-legacy.lua").Build(manifest,options)
     end
-    pcall(startPresence,app)
+    pcall(startPresence,app,manifest)
     pcall(showDiscord,app)
     return app
 end
 return Serenity
+
 
 
 

@@ -3,6 +3,35 @@
 // Calendar days/months use Philippine time (UTC+8). No historical backfill.
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 let ready;
+const UNKNOWN_GAME='Unknown / older client';
+function gameInfo(request){
+ const id=request.headers.get('X-Serenity-Game');
+ if(id===null)return {id:'unknown',name:UNKNOWN_GAME};
+ if(!/^[1-9][0-9]{0,15}$/.test(id)||!Number.isSafeInteger(Number(id)))return null;
+ const raw=request.headers.get('X-Serenity-Game-Name');
+ if(raw!==null&&raw.length>1200)return null;
+ let name='';
+ try{name=raw===null?'':decodeURIComponent(raw);}catch{return null;}
+ name=name.replace(/[\u0000-\u001f\u007f]/g,' ').trim();
+ if([...name].length>96)return null;
+ return {id,name:name||'Game '+id};
+}
+async function ensureGameColumns(db){
+ // Additive migration: old accounts and all execution history stay intact.
+ // Other Worker isolates may run this simultaneously; recheck after a race.
+ for(const [name,definition] of [
+  ['game_id',"TEXT NOT NULL DEFAULT 'unknown'"],
+  ['game_name',"TEXT NOT NULL DEFAULT 'Unknown / older client'"]
+ ]){
+  let columns=(await db.prepare('PRAGMA table_info(account_presence)').all()).results;
+  if(columns.some(c=>c.name===name))continue;
+  try{await db.prepare('ALTER TABLE account_presence ADD COLUMN '+name+' '+definition).run();}
+  catch(error){
+   columns=(await db.prepare('PRAGMA table_info(account_presence)').all()).results;
+   if(!columns.some(c=>c.name===name))throw error;
+  }
+ }
+}
 async function accountKey(userId,secret){
  const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);
  const signature=await crypto.subtle.sign('HMAC',key,new TextEncoder().encode('serenity-account-v1:'+userId));
@@ -21,7 +50,7 @@ async function init(db){
       ON CONFLICT(day) DO UPDATE SET executions=executions+1; END`),
     db.prepare('CREATE TABLE IF NOT EXISTS analytics_meta(key TEXT PRIMARY KEY, value TEXT NOT NULL)'),
     db.prepare("INSERT OR IGNORE INTO analytics_meta(key,value) VALUES('started',?)").bind(new Date().toISOString())
-  ]).catch(e=>{ready=undefined;throw e;});
+  ]).then(()=>ensureGameColumns(db)).catch(e=>{ready=undefined;throw e;});
   await ready;
 }
 async function bodyOf(request){
@@ -50,6 +79,10 @@ const PAGE=`<!doctype html><html lang="en"><head><meta charset="utf-8">
 <div class="card"><p>This month</p><div class="value" id="month">—</div></div>
 <div class="card"><p>All-time executions</p><div class="value" id="total">—</div></div>
 </div><p id="status" role="status">Loading…</p>
+<section style="margin-bottom:20px"><h2>Active users by game</h2>
+<p>Highest to lowest · one account per latest reported game · last 10 minutes</p>
+<div style="max-height:360px;overflow:auto"><table><thead><tr><th>Game</th><th>Active now</th></tr></thead><tbody id="games"></tbody></table></div>
+<p id="gamesEmpty">Loading…</p></section>
 <section><div class="tools"><h2>Executions over time</h2><select id="mode" aria-label="History interval"><option value="daily">Daily · last 30 days</option><option value="monthly">Monthly · last 12 months</option><option value="all">All time · cumulative by month</option></select></div>
 <div id="chart" class="chart" aria-hidden="true"></div><div class="axis"><span id="first"></span><span id="last"></span></div>
 <div id="rowsWrap"><table><thead><tr><th id="period">Day</th><th id="metric">Executions</th></tr></thead><tbody id="rows"></tbody></table></div></section>
@@ -71,11 +104,20 @@ function render(){
  for(const [k,n]of [...series].reverse()){const row=document.createElement('tr');for(const text of [k,fmt(n)]){const cell=document.createElement('td');cell.textContent=text;row.append(cell);}el('rows').append(row);}
  el('first').textContent=series[0]?.[0]||'';el('last').textContent=series.at(-1)?.[0]||'';
 }
+function renderGames(){
+ el('games').replaceChildren();
+ const games=Array.isArray(data.games)?data.games:[];
+ el('gamesEmpty').textContent=games.length?'':'No active accounts in the last 10 minutes.';
+ for(const game of games){
+  const row=document.createElement('tr'),name=document.createElement('td'),count=document.createElement('td');
+  name.textContent=game.name;count.textContent=fmt(game.active);row.append(name,count);el('games').append(row);
+ }
+}
 async function refresh(){if(busy)return;busy=true;el('refresh').disabled=true;const c=new AbortController(),timer=setTimeout(()=>c.abort(),10000);
  try{const r=await fetch('/stats',{cache:'no-store',signal:c.signal});if(!r.ok)throw Error();const next=await r.json();if(!Array.isArray(next.daily))throw Error();data=next;
- for(const key of ['active','today','month','total'])el(key).textContent=fmt(data[key]);render();
+ for(const key of ['active','today','month','total'])el(key).textContent=fmt(data[key]);render();renderGames();
  el('status').textContent='Updated '+new Date().toLocaleTimeString();el('started').textContent='Tracking began '+new Date(data.started).toLocaleString('en-PH',{timeZone:'Asia/Manila'})+' (Philippine time). Earlier executions are unavailable.';
- }catch{for(const k of ['active','today','month','total'])el(k).textContent='—';el('status').textContent='Update failed. Any chart shown is the previous reading. Try Refresh.';}
+ }catch{el('games').replaceChildren();el('gamesEmpty').textContent='Game ranking unavailable. Try Refresh.';for(const k of ['active','today','month','total'])el(k).textContent='—';el('status').textContent='Update failed. Any chart shown is the previous reading. Try Refresh.';}
  finally{clearTimeout(timer);busy=false;el('refresh').disabled=false;}}
  el('refresh').onclick=refresh;el('mode').onchange=()=>{if(data)render();};setInterval(()=>{if(!document.hidden)refresh();},300000);document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});refresh();
 </script></body></html>`;
@@ -89,25 +131,32 @@ export default {async fetch(request,env){
  const userId=request.headers.get('X-Serenity-Account');
  if(userId!==null&&(!/^[1-9][0-9]{0,15}$/.test(userId)||!Number.isSafeInteger(Number(userId))))return json({error:'Invalid account identifier'},400);
  if(typeof env.PRESENCE_HMAC_SECRET!=='string'||env.PRESENCE_HMAC_SECRET.length<32)return json({error:'Configure PRESENCE_HMAC_SECRET with at least 32 random characters'},503);
+ const reportedGame=path==='/heartbeat'?gameInfo(request):null;
+ if(path==='/heartbeat'&&!reportedGame)return json({error:'Invalid game metadata'},400);
  if(!env.DB)return json({error:'D1 binding DB is missing'},503);
  try{await init(env.DB);const now=Math.floor(Date.now()/1000),day=dayAt(Date.now());
   if(path==='/leave')return json({ok:true}); // Expiry protects newer sessions and other devices on the same account.
   if(path==='/heartbeat'){
    const q=[env.DB.prepare('DELETE FROM account_presence WHERE expires<=?').bind(now)];
-   if(userId!==null){const account=await accountKey(userId,env.PRESENCE_HMAC_SECRET);q.push(env.DB.prepare('INSERT INTO account_presence(account,expires) VALUES(?,?) ON CONFLICT(account) DO UPDATE SET expires=MAX(account_presence.expires,excluded.expires)').bind(account,now+600));}
+   if(userId!==null){const account=await accountKey(userId,env.PRESENCE_HMAC_SECRET);q.push(env.DB.prepare('INSERT INTO account_presence(account,expires,game_id,game_name) VALUES(?,?,?,?) ON CONFLICT(account) DO UPDATE SET expires=MAX(account_presence.expires,excluded.expires),game_id=CASE WHEN excluded.expires>=account_presence.expires THEN excluded.game_id ELSE account_presence.game_id END,game_name=CASE WHEN excluded.expires>=account_presence.expires THEN excluded.game_name ELSE account_presence.game_name END').bind(account,now+600,reportedGame.id,reportedGame.name));}
    if(body.execution)q.push(env.DB.prepare('INSERT OR IGNORE INTO execution_events(id,day) VALUES(?,?)').bind(body.execution,day));
    q.push(env.DB.prepare('SELECT COUNT(*) AS active FROM account_presence WHERE expires>?').bind(now));
    const results=await env.DB.batch(q);
    return json({ok:true,interval:300,ttl:600,active:Number(results[results.length-1].results[0].active),executionRecorded:!!body.execution,presenceMode:"accounts",presenceRecorded:userId!==null});
   }
   // Dashboard/count requests are read-only; heartbeat cleanup removes expired rows.
-  const q=[env.DB.prepare('SELECT COUNT(*) AS active FROM account_presence WHERE expires>?').bind(now)];
+  const q=[env.DB.prepare(path==='/stats'
+   ? 'SELECT game_id AS id, MAX(game_name) AS name, COUNT(*) AS active FROM account_presence WHERE expires>? GROUP BY game_id ORDER BY active DESC, game_id ASC'
+   : 'SELECT COUNT(*) AS active FROM account_presence WHERE expires>?').bind(now)];
   if(path==='/stats'){q.push(env.DB.prepare('SELECT day,executions FROM execution_days ORDER BY day'));q.push(env.DB.prepare("SELECT value FROM analytics_meta WHERE key='started'"));}
-  const r=await env.DB.batch(q),active=Number(r[0].results[0].active);
-  if(path==='/active')return json({active});
+  const r=await env.DB.batch(q);
+  if(path==='/active')return json({active:Number(r[0].results[0].active)});
+  const games=r[0].results.map(row=>({id:row.id,name:row.name,active:Number(row.active)}));
+  const active=games.reduce((sum,row)=>sum+row.active,0);
   const daily=r[1].results;let today=0,month=0,total=0;
   for(const row of daily){const n=Number(row.executions);total+=n;if(row.day===day)today+=n;if(row.day.slice(0,7)===day.slice(0,7))month+=n;}
-  return json({active,today,month,total,day,daily,started:r[2].results[0].value});
+  return json({active,today,month,total,day,daily,games,gameWindowSeconds:600,started:r[2].results[0].value});
  }catch{return json({error:'Storage unavailable; retry shortly'},503);}
 }};
+
 
