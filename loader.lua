@@ -85,7 +85,7 @@ pcall(function()
 end)
 
 pcall(function()
-    local invite="https://discord.gg/s4yCvv4Uv"
+    local invite="https://discord.gg/pWPs7428wE"
     local env=(type(getgenv)=="function" and getgenv()) or _G
     local key="__SERENITY_DISCORD_COPIED"
     if env[key] then return end

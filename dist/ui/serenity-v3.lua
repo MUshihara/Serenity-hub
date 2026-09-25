@@ -3,7 +3,7 @@ local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local cache={}
 local function module(path)
     if cache[path] then return cache[path] end
-    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-layout-restored1",true)
+    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-discord-invite2",true)
     local fn,err=loadstring(source,"@Serenity/"..path)
     if not fn then error("[SERENITY HUB] UI compile failed: "..tostring(err),0) end
     local result=fn()
@@ -104,7 +104,7 @@ local function showDiscord(app)
         if type(makefolder)=="function" then pcall(makefolder,"SerenityHub") end
         pcall(writefile,path,tostring(now))
     end
-    local invite="https://discord.gg/s4yCvv4Uv"
+    local invite="https://discord.gg/pWPs7428wE"
     local providers={setclipboard,toclipboard,type(syn)=="table" and syn.write_clipboard or false}
     for i=1,3 do
         local copy=providers[i]

@@ -5972,7 +5972,7 @@ M.App = (function()
 return function(M,options)
     options=options or {}
     options.AssetBase=options.AssetBase or 'https://raw.githubusercontent.com/MUshihara/SerenityNewUi/77e5a1d2a4bc5e662bf52258a22b2976aedba1f8/prototype/assets/'
-    options.DiscordInvite=options.DiscordInvite or 'https://discord.gg/ccsvkN7Pp'
+    options.DiscordInvite='https://discord.gg/pWPs7428wE'
     local sourceManifest=options.Manifest or M.Manifest
     local manifest={};for k,v in pairs(sourceManifest)do manifest[k]=v end
     manifest.Pages={};for _,page in ipairs(sourceManifest.Pages)do manifest.Pages[#manifest.Pages+1]=page end
@@ -6049,7 +6049,7 @@ return function(M,options)
             local toast=ui:Panel(self.Screen,{AnchorPoint=Vector2.new(1,1),Position=UDim2.new(1,-12,1,-14),Size=UDim2.new(0,width,0,60),ZIndex=150})
             ui:Icon(toast,'check',20,UDim2.fromOffset(12,20),ui.T.Accent)
             ui:Label(toast,'Join Discord · News & updates',12,UDim2.fromOffset(42,4),UDim2.new(1,-52,0,26))
-            ui:Label(toast,'discord.gg/s4yCvv4Uv',12,UDim2.fromOffset(42,30),UDim2.new(1,-52,0,24))
+            ui:Label(toast,'discord.gg/pWPs7428wE',12,UDim2.fromOffset(42,30),UDim2.new(1,-52,0,24))
             self.DiscordToast=toast
             task.delay(5,function()
                 if not runtime.Destroyed and self.DiscordToast==toast then toast:Destroy();self.DiscordToast=nil end
