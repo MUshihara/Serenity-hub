@@ -39,7 +39,14 @@ function I18N.new(selection,detected)
         if time then return (pack.Session or 'Session')..' · '..time end
         local count=source:match('^(%d+ / 1800) characters$')
         if count then return count..' '..(pack.characters or 'characters') end
--- BEGIN ANIME DICE DYNAMIC LOCALIZATION
+-- BEGIN LOOT TO FORGE DYNAMIC LOCALIZATION
+        local function ltfFormat(key,...)
+            local template=pack[key]
+            if not template then return nil end
+            local ok,result=pcall(string.format,template,...)
+            return ok and result or nil
+        end
+        local equipType,equipName=source:match('^(.-) → (.+)
         -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
         if source:find(' • ',1,true) then
             local parts={}
@@ -626,6 +633,159 @@ I18N.Packs={
 ["Recovering"]="Nire-recover",
 ["All selected units reached an accepted Trait."]="Naabot ng lahat ng napiling unit ang katanggap-tanggap na Trait.",
 ["All selected units reached an accepted Grade."]="Naabot ng lahat ng napiling unit ang katanggap-tanggap na Grade.",
+["Independent progression workers."]="Mga magkakahiwalay na progression worker.",
+["Auto Train"]="Awtomatikong Train",
+["Uses the strongest free train area currently unlocked. No scripted movement."]="Ginagamit ang pinakamalakas na libreng train area na kasalukuyang unlocked. Walang scripted movement.",
+["Buys the cheapest affordable normal Ore Pack, Luck, or Train upgrade."]="Bumibili ng pinakamurang kayang normal na Ore Pack, Luck, o Train upgrade.",
+["Equipment"]="Kagamitan",
+["Automatically keep the strongest equipment equipped."]="Awtomatikong panatilihing naka-equip ang pinakamalakas na kagamitan.",
+["Auto Equip Best Sword"]="Awtomatikong Equip Pinakamahusay na Sword",
+["Auto Equip Best Armor"]="Awtomatikong Equip Pinakamahusay na Armor",
+["Auto Equip Best Hat"]="Awtomatikong Equip Pinakamahusay na Hat",
+["Equip Status"]="Katayuan ng Equip",
+["Best Equipment"]="Pinakamahusay na Kagamitan",
+["Ranks owned gear by Design Power, then Use Power, and equips it through the game's exact Backpack Equip-button callback."]="Niraranggo ang pag-aari mong gear ayon sa Design Power, saka Use Power, at ini-equip gamit ang eksaktong Backpack Equip-button callback ng laro.",
+["Free claimable rewards."]="Libreng mga gantimpalang puwedeng i-claim.",
+["Auto Index Rewards"]="Awtomatikong Index Rewards",
+["Auto Online Rewards"]="Awtomatikong Online Rewards",
+["Forge"]="Forge",
+["Normal filtered forging or strongest-ore forging."]="Normal na filtered forging o forging gamit ang pinakamalakas na ore.",
+["Auto Forge"]="Awtomatikong Forge",
+["Filtered normal forging."]="Normal na forging na may filter.",
+["Forge Types"]="Mga Uri ng Forge",
+["Ore Rarities"]="Mga Rarity ng Ore",
+["Only selected ore rarities are allowed."]="Tanging mga napiling ore rarity ang pinapayagan.",
+["Specific Ores"]="Mga Partikular na Ore",
+["Shows currently owned ore types. Empty means every owned ore that passes Ore Rarities."]="Ipinapakita ang mga uri ng ore na kasalukuyang pag-aari. Kapag walang pinili, lahat ng pag-aaring ore na pasado sa Ore Rarities ang puwede.",
+["Refresh Ores"]="I-refresh ang Ores",
+["Ore Reserve Per Type"]="Ore Reserve Bawat Uri",
+["Auto Forge Best Ore"]="Awtomatikong Forge ng Pinakamahusay na Ore",
+["Strongest possible legal four-ore recipe."]="Pinakamalakas na valid na recipe gamit ang apat na ore.",
+["Overrides normal Auto Forge while enabled."]="Kapag naka-enable, inu-override nito ang normal na Auto Forge.",
+["Best Ore Rule"]="Patakaran sa Pinakamahusay na Ore",
+["Ignores Ore Rarities, Specific Ores, and Ore Reserve. Uses the strongest available four ore units by Power, then Quality."]="Hindi pinapansin ang Ore Rarities, Specific Ores, at Ore Reserve. Ginagamit ang apat na pinakamalakas na available na ore ayon sa Power, saka Quality.",
+["Selling"]="Pagbebenta",
+["Equipment and ore selling are fully separate."]="Ganap na magkahiwalay ang pagbebenta ng equipment at ore.",
+["Auto Sell Equipment"]="Awtomatikong Benta ng Equipment",
+["Equipment-only selling."]="Equipment lang ang ibinebenta.",
+["Equipment Rarities"]="Mga Rarity ng Equipment",
+["Empty means sell no equipment. Equipped gear is always protected."]="Kapag walang pinili, walang equipment na ibebenta. Laging protektado ang naka-equip na gear.",
+["Sell Order"]="Ayos ng Pagbebenta",
+["Auto Sell Ores"]="Awtomatikong Benta ng Ores",
+["Ore-only selling."]="Ore lang ang ibinebenta.",
+["Empty means sell no ores. Sells one ore unit per confirmed request."]="Kapag walang pinili, walang ore na ibebenta. Isang ore unit ang ibinebenta sa bawat kumpirmadong request.",
+["Enchant"]="Enchant",
+["Filtered enchanting or automatic best-equipment enchanting."]="Filtered enchanting o awtomatikong enchant sa pinakamahusay na equipment.",
+["Auto Enchant"]="Awtomatikong Enchant",
+["Enchant allowed equipment with allowed owned runes."]="I-enchant ang pinapayagang equipment gamit ang pinapayagang pag-aaring runes.",
+["Rune Rarities"]="Mga Rarity ng Rune",
+["Specific Runes"]="Mga Partikular na Rune",
+["Shows currently owned runes. Empty means every owned rune that passes Rune Rarities."]="Ipinapakita ang kasalukuyang pag-aaring runes. Kapag walang pinili, lahat ng pag-aaring rune na pasado sa Rune Rarities ang puwede.",
+["Refresh Runes"]="I-refresh ang Runes",
+["Auto Enchant Best Equipment"]="Awtomatikong Enchant ng Pinakamahusay na Equipment",
+["Always targets the strongest equipment that still has an empty rune slot."]="Laging tina-target ang pinakamalakas na equipment na may bakanteng rune slot pa.",
+["Overrides filtered Auto Enchant while enabled."]="Kapag naka-enable, inu-override nito ang filtered Auto Enchant.",
+["Best Equipment Rule"]="Patakaran sa Pinakamahusay na Equipment",
+["Chooses the highest Design Power equipment with an empty enchant slot, then uses the strongest owned rune that can be afforded. When that item is full, it moves to the next strongest eligible item."]="Pinipili ang equipment na may pinakamataas na Design Power at bakanteng enchant slot, saka ginagamit ang pinakamalakas na pag-aaring rune na kayang bayaran. Kapag puno na ang item, lilipat sa susunod na pinakamalakas na eligible na item.",
+["Dungeon"]="Dungeon",
+["Original many-stage progression farm."]="Orihinal na many-stage progression farm.",
+["Auto Dungeon"]="Awtomatikong Dungeon",
+["Automatically farms the strongest stage that can actually clear fast, then collects and banks the ore."]="Awtomatikong fina-farm ang pinakamalakas na stage na kayang matapos nang mabilis, saka kinokolekta at bina-bank ang ore.",
+["Stage Selection"]="Pagpili ng Stage",
+["Specific Stages"]="Mga Partikular na Stage",
+["Used only when Stage Selection is Specific Stages. Serenity tries the highest selected stage first and falls back if it proves too slow."]="Ginagamit lang kapag Specific Stages ang Stage Selection. Susubukan muna ng Serenity ang pinakamataas na napiling stage at bababa kung masyadong mabagal.",
+["Current Stage"]="Kasalukuyang Stage",
+["Dungeon Status"]="Katayuan ng Dungeon",
+["Last Reward Delta"]="Huling Pagbabago sa Reward",
+["Automatic Stage Selection"]="Awtomatikong Pagpili ng Stage",
+["Uses real combat damage, proves the frontier with actual clears, and demotes stages that take over 10 seconds. No scripted movement."]="Ginagamit ang tunay na combat damage, pinatutunayan ang frontier sa aktwal na clears, at ibinababa ang mga stage na lampas 10 segundo. Walang scripted movement.",
+["Automatic normal five-floor Tower blocks."]="Awtomatikong normal na limang-floor Tower blocks.",
+["Allowed Stages"]="Mga Pinapayagang Stage",
+["Last Result"]="Huling Resulta",
+["Tickets"]="Mga Ticket",
+["Automatic Safety"]="Awtomatikong Safety",
+["Serenity always uses the highest selected stage that is currently unlocked. After a successful run it re-checks progression and automatically promotes to the next selected unlocked stage. A post-entry failure pauses retries without turning the switch off or draining more tickets."]="Palaging ginagamit ng Serenity ang pinakamataas na napiling stage na kasalukuyang unlocked. Pagkatapos ng matagumpay na run, muling sinusuri ang progression at awtomatikong lilipat sa susunod na napili at unlocked na stage. Kapag nag-fail pagkatapos pumasok, ipo-pause ang retry nang hindi pinapatay ang switch o umuubos ng dagdag na ticket.",
+["Weapon"]="Sandata",
+["Armor"]="Armor",
+["Hat"]="Sombrero",
+["Common"]="Karaniwan",
+["UnCommon"]="Hindi Karaniwan",
+["Rare"]="Bihira",
+["Epic"]="Epiko",
+["Legendary"]="Maalamat",
+["Mythic"]="Mitiko",
+["Eternal"]="Walang Hanggan",
+["Secret"]="Lihim",
+["Lowest Power First"]="Pinakamababang Power Muna",
+["Highest Power First"]="Pinakamataas na Power Muna",
+["Automatic"]="Awtomatiko",
+["Auto Highest Unlocked"]="Awtomatikong Pinakamataas na Unlocked",
+["Lowest Allowed"]="Pinakamababang Pinapayagan",
+["Highest Allowed"]="Pinakamataas na Pinapayagan",
+["Auto"]="Auto",
+["No confirmed reward yet"]="Wala pang kumpirmadong reward",
+["No run yet"]="Wala pang run",
+["Ready"]="Handa",
+["Stopped"]="Huminto",
+["Selected stages are currently too slow"]="Masyadong mabagal sa ngayon ang mga napiling stage",
+["No selected stage currently unlocked"]="Walang napiling stage na kasalukuyang unlocked",
+["Select at least one stage"]="Pumili ng kahit isang stage",
+["No usable selected stage"]="Walang magagamit na napiling stage",
+["Engine unavailable"]="Hindi available ang engine",
+["Combat damage unavailable"]="Hindi available ang combat damage",
+["Claim not confirmed"]="Hindi nakumpirma ang claim",
+["Checking selected stages..."]="Sinusuri ang mga napiling stage...",
+["No Tower tickets"]="Walang Tower tickets",
+["Already inside Tower"]="Nasa loob na ng Tower",
+["Tower manager unavailable"]="Hindi available ang Tower manager",
+["Tower entry listener unavailable"]="Hindi available ang Tower entry listener",
+["Tower entry rejected"]="Tinanggihan ang pagpasok sa Tower",
+["Tower entry not confirmed"]="Hindi nakumpirma ang pagpasok sa Tower",
+["Stopped: start round failed"]="Huminto: nabigo ang pagsisimula ng round",
+["Stopped: unsupported weapon"]="Huminto: hindi suportadong sandata",
+["Stopped: combat timeout"]="Huminto: nag-timeout ang combat",
+["Stopped: floor became too slow"]="Huminto: naging masyadong mabagal ang floor",
+["Stopped: no result confirmed"]="Huminto: walang nakumpirmang resulta",
+["Waiting for Tower combat"]="Naghihintay sa Tower combat",
+["Dungeon worker busy"]="Busy ang Dungeon worker",
+["Waiting for Dungeon combat"]="Naghihintay sa Dungeon combat",
+["Tower worker busy"]="Busy ang Tower worker",
+["Open info failed"]="Nabigong buksan ang info",
+["Equip callback missing"]="Walang Equip callback",
+["Equip callback error"]="Error sa Equip callback",
+["Equip not confirmed"]="Hindi nakumpirma ang equip",
+["Coin"]="Coin",
+["Ore"]="Ore",
+["Rune"]="Rune",
+["Reward"]="Reward",
+["Stage"]="Stage",
+["ore"]="ore",
+["ticket"]="ticket",
+["max"]="max",
+["No rewards replicated"]="Walang na-replicate na reward",
+["Paused"]="Naka-pause",
+["Start round failed"]="Nabigong simulan ang round",
+["Attack payload unavailable"]="Hindi available ang attack payload",
+["State refresh failed after ticket entry"]="Nabigo ang state refresh pagkatapos gumamit ng ticket",
+["Combat timeout after ticket entry"]="Nag-timeout ang combat pagkatapos gumamit ng ticket",
+["Actual floor clear became too slow"]="Naging masyadong mabagal ang aktwal na floor clear",
+["No authoritative result after one ticket"]="Walang authoritative na resulta pagkatapos ng isang ticket",
+["%s already best"]="%s na ang pinakamahusay",
+["No %s owned"]="Walang pag-aaring %s",
+["Equipping %s"]="Ini-equip ang %s",
+["Starting Stage_%s"]="Sinisimulan ang Stage_%s",
+["Fighting Stage_%s"]="Lumalaban sa Stage_%s",
+["Collecting Stage_%s"]="Kinokolekta ang Stage_%s",
+["Completed Stage_%s • %s ore"]="Natapos ang Stage_%s • %s ore",
+["Stage_%s too slow; demoted"]="Masyadong mabagal ang Stage_%s; ibinaba",
+["Start failed: %s"]="Nabigo ang pagsisimula: %s",
+["Collect failed: %s"]="Nabigo ang pag-collect: %s",
+["Stopped: %s"]="Huminto: %s",
+["Paused: %s • toggle OFF/ON to retry"]="Naka-pause: %s • i-OFF/ON ang toggle para subukan muli",
+["Using %s"]="Ginagamit ang %s",
+["Floor %s/%s"]="Floor %s/%s",
+["Complete • ticket %s • max %s"]="Kumpleto • ticket %s • max %s",
+["Round %s transition failed"]="Nabigo ang transition ng Round %s",
 ["COMMUNITY"]="Komunidad",
 ["UPDATES"]="Mga update",
 },
@@ -1136,6 +1296,159 @@ I18N.Packs={
 ["Recovering"]="Memulihkan",
 ["All selected units reached an accepted Trait."]="Semua unit terpilih sudah mendapat Trait yang diterima.",
 ["All selected units reached an accepted Grade."]="Semua unit terpilih sudah mendapat Grade yang diterima.",
+["Independent progression workers."]="Worker progres yang berjalan terpisah.",
+["Auto Train"]="Latihan Otomatis",
+["Uses the strongest free train area currently unlocked. No scripted movement."]="Menggunakan area latihan gratis terkuat yang sudah terbuka. Tanpa gerakan skrip.",
+["Buys the cheapest affordable normal Ore Pack, Luck, or Train upgrade."]="Membeli upgrade Ore Pack, Luck, atau Train normal termurah yang mampu dibeli.",
+["Equipment"]="Peralatan",
+["Automatically keep the strongest equipment equipped."]="Selalu memakai perlengkapan terkuat secara otomatis.",
+["Auto Equip Best Sword"]="Pakai Pedang Terbaik Otomatis",
+["Auto Equip Best Armor"]="Pakai Armor Terbaik Otomatis",
+["Auto Equip Best Hat"]="Pakai Topi Terbaik Otomatis",
+["Equip Status"]="Status Perlengkapan",
+["Best Equipment"]="Perlengkapan Terbaik",
+["Ranks owned gear by Design Power, then Use Power, and equips it through the game's exact Backpack Equip-button callback."]="Mengurutkan perlengkapan milikmu berdasarkan Design Power lalu Use Power, dan memasangnya melalui callback tombol Equip Backpack milik game.",
+["Free claimable rewards."]="Hadiah gratis yang bisa diklaim.",
+["Auto Index Rewards"]="Hadiah Indeks Otomatis",
+["Auto Online Rewards"]="Hadiah Online Otomatis",
+["Forge"]="Tempa",
+["Normal filtered forging or strongest-ore forging."]="Penempaan normal dengan filter atau penempaan memakai ore terkuat.",
+["Auto Forge"]="Tempa Otomatis",
+["Filtered normal forging."]="Penempaan normal dengan filter.",
+["Forge Types"]="Jenis Tempa",
+["Ore Rarities"]="Kelangkaan Ore",
+["Only selected ore rarities are allowed."]="Hanya kelangkaan ore yang dipilih yang diizinkan.",
+["Specific Ores"]="Ore Tertentu",
+["Shows currently owned ore types. Empty means every owned ore that passes Ore Rarities."]="Menampilkan jenis ore yang dimiliki saat ini. Kosong berarti semua ore milikmu yang lolos Ore Rarities.",
+["Refresh Ores"]="Segarkan Ore",
+["Ore Reserve Per Type"]="Cadangan Ore per Jenis",
+["Auto Forge Best Ore"]="Tempa Ore Terbaik Otomatis",
+["Strongest possible legal four-ore recipe."]="Resep empat ore terkuat yang valid.",
+["Overrides normal Auto Forge while enabled."]="Saat aktif, ini menggantikan Auto Forge normal.",
+["Best Ore Rule"]="Aturan Ore Terbaik",
+["Ignores Ore Rarities, Specific Ores, and Ore Reserve. Uses the strongest available four ore units by Power, then Quality."]="Mengabaikan Ore Rarities, Specific Ores, dan Ore Reserve. Menggunakan empat unit ore terkuat yang tersedia berdasarkan Power lalu Quality.",
+["Selling"]="Penjualan",
+["Equipment and ore selling are fully separate."]="Penjualan equipment dan ore sepenuhnya terpisah.",
+["Auto Sell Equipment"]="Jual Equipment Otomatis",
+["Equipment-only selling."]="Hanya menjual equipment.",
+["Equipment Rarities"]="Kelangkaan Equipment",
+["Empty means sell no equipment. Equipped gear is always protected."]="Kosong berarti tidak menjual equipment. Perlengkapan yang sedang dipakai selalu dilindungi.",
+["Sell Order"]="Urutan Penjualan",
+["Auto Sell Ores"]="Jual Ore Otomatis",
+["Ore-only selling."]="Hanya menjual ore.",
+["Empty means sell no ores. Sells one ore unit per confirmed request."]="Kosong berarti tidak menjual ore. Menjual satu unit ore per permintaan yang terkonfirmasi.",
+["Enchant"]="Enchant",
+["Filtered enchanting or automatic best-equipment enchanting."]="Enchant dengan filter atau enchant otomatis pada equipment terbaik.",
+["Auto Enchant"]="Enchant Otomatis",
+["Enchant allowed equipment with allowed owned runes."]="Enchant equipment yang diizinkan dengan rune milikmu yang diizinkan.",
+["Rune Rarities"]="Kelangkaan Rune",
+["Specific Runes"]="Rune Tertentu",
+["Shows currently owned runes. Empty means every owned rune that passes Rune Rarities."]="Menampilkan rune yang dimiliki saat ini. Kosong berarti semua rune milikmu yang lolos Rune Rarities.",
+["Refresh Runes"]="Segarkan Rune",
+["Auto Enchant Best Equipment"]="Enchant Equipment Terbaik Otomatis",
+["Always targets the strongest equipment that still has an empty rune slot."]="Selalu memilih equipment terkuat yang masih memiliki slot rune kosong.",
+["Overrides filtered Auto Enchant while enabled."]="Saat aktif, ini menggantikan Auto Enchant berfilter.",
+["Best Equipment Rule"]="Aturan Equipment Terbaik",
+["Chooses the highest Design Power equipment with an empty enchant slot, then uses the strongest owned rune that can be afforded. When that item is full, it moves to the next strongest eligible item."]="Memilih equipment dengan Design Power tertinggi yang memiliki slot enchant kosong, lalu memakai rune terkuat yang dimiliki dan mampu dibayar. Jika item itu penuh, berpindah ke item terkuat berikutnya yang memenuhi syarat.",
+["Dungeon"]="Dungeon",
+["Original many-stage progression farm."]="Farm progres multi-stage asli.",
+["Auto Dungeon"]="Dungeon Otomatis",
+["Automatically farms the strongest stage that can actually clear fast, then collects and banks the ore."]="Secara otomatis farming stage terkuat yang benar-benar bisa diselesaikan cepat, lalu mengumpulkan dan menyimpan ore.",
+["Stage Selection"]="Pilihan Stage",
+["Specific Stages"]="Stage Tertentu",
+["Used only when Stage Selection is Specific Stages. Serenity tries the highest selected stage first and falls back if it proves too slow."]="Hanya digunakan saat Stage Selection adalah Specific Stages. Serenity mencoba stage terpilih tertinggi terlebih dahulu dan turun jika terbukti terlalu lambat.",
+["Current Stage"]="Stage Saat Ini",
+["Dungeon Status"]="Status Dungeon",
+["Last Reward Delta"]="Perubahan Hadiah Terakhir",
+["Automatic Stage Selection"]="Pemilihan Stage Otomatis",
+["Uses real combat damage, proves the frontier with actual clears, and demotes stages that take over 10 seconds. No scripted movement."]="Menggunakan damage tempur asli, membuktikan frontier lewat clear nyata, dan menurunkan stage yang memakan lebih dari 10 detik. Tanpa gerakan skrip.",
+["Automatic normal five-floor Tower blocks."]="Blok Tower normal lima lantai otomatis.",
+["Allowed Stages"]="Stage yang Diizinkan",
+["Last Result"]="Hasil Terakhir",
+["Tickets"]="Tiket",
+["Automatic Safety"]="Keamanan Otomatis",
+["Serenity always uses the highest selected stage that is currently unlocked. After a successful run it re-checks progression and automatically promotes to the next selected unlocked stage. A post-entry failure pauses retries without turning the switch off or draining more tickets."]="Serenity selalu memakai stage terpilih tertinggi yang saat ini terbuka. Setelah run berhasil, progres diperiksa ulang dan otomatis naik ke stage terpilih berikutnya yang terbuka. Kegagalan setelah masuk akan menjeda percobaan ulang tanpa mematikan switch atau menghabiskan tiket tambahan.",
+["Weapon"]="Senjata",
+["Armor"]="Armor",
+["Hat"]="Topi",
+["Common"]="Umum",
+["UnCommon"]="Tidak Umum",
+["Rare"]="Langka",
+["Epic"]="Epik",
+["Legendary"]="Legendaris",
+["Mythic"]="Mitos",
+["Eternal"]="Abadi",
+["Secret"]="Rahasia",
+["Lowest Power First"]="Power Terendah Dulu",
+["Highest Power First"]="Power Tertinggi Dulu",
+["Automatic"]="Otomatis",
+["Auto Highest Unlocked"]="Otomatis Tertinggi yang Terbuka",
+["Lowest Allowed"]="Terendah yang Diizinkan",
+["Highest Allowed"]="Tertinggi yang Diizinkan",
+["Auto"]="Auto",
+["No confirmed reward yet"]="Belum ada hadiah terkonfirmasi",
+["No run yet"]="Belum ada run",
+["Ready"]="Siap",
+["Stopped"]="Berhenti",
+["Selected stages are currently too slow"]="Stage yang dipilih saat ini terlalu lambat",
+["No selected stage currently unlocked"]="Belum ada stage terpilih yang terbuka",
+["Select at least one stage"]="Pilih setidaknya satu stage",
+["No usable selected stage"]="Tidak ada stage terpilih yang bisa digunakan",
+["Engine unavailable"]="Engine tidak tersedia",
+["Combat damage unavailable"]="Damage tempur tidak tersedia",
+["Claim not confirmed"]="Klaim tidak terkonfirmasi",
+["Checking selected stages..."]="Memeriksa stage yang dipilih...",
+["No Tower tickets"]="Tidak ada tiket Tower",
+["Already inside Tower"]="Sudah berada di dalam Tower",
+["Tower manager unavailable"]="Tower manager tidak tersedia",
+["Tower entry listener unavailable"]="Listener masuk Tower tidak tersedia",
+["Tower entry rejected"]="Masuk Tower ditolak",
+["Tower entry not confirmed"]="Masuk Tower tidak terkonfirmasi",
+["Stopped: start round failed"]="Berhenti: gagal memulai round",
+["Stopped: unsupported weapon"]="Berhenti: senjata tidak didukung",
+["Stopped: combat timeout"]="Berhenti: waktu tempur habis",
+["Stopped: floor became too slow"]="Berhenti: lantai menjadi terlalu lambat",
+["Stopped: no result confirmed"]="Berhenti: tidak ada hasil terkonfirmasi",
+["Waiting for Tower combat"]="Menunggu combat Tower",
+["Dungeon worker busy"]="Worker Dungeon sibuk",
+["Waiting for Dungeon combat"]="Menunggu combat Dungeon",
+["Tower worker busy"]="Worker Tower sibuk",
+["Open info failed"]="Gagal membuka info",
+["Equip callback missing"]="Callback Equip tidak ditemukan",
+["Equip callback error"]="Error callback Equip",
+["Equip not confirmed"]="Equip tidak terkonfirmasi",
+["Coin"]="Koin",
+["Ore"]="Ore",
+["Rune"]="Rune",
+["Reward"]="Hadiah",
+["Stage"]="Stage",
+["ore"]="ore",
+["ticket"]="tiket",
+["max"]="max",
+["No rewards replicated"]="Tidak ada hadiah yang direplikasi",
+["Paused"]="Dijeda",
+["Start round failed"]="Gagal memulai round",
+["Attack payload unavailable"]="Payload serangan tidak tersedia",
+["State refresh failed after ticket entry"]="Gagal memperbarui state setelah masuk dengan tiket",
+["Combat timeout after ticket entry"]="Waktu combat habis setelah masuk dengan tiket",
+["Actual floor clear became too slow"]="Clear lantai aktual menjadi terlalu lambat",
+["No authoritative result after one ticket"]="Tidak ada hasil otoritatif setelah satu tiket",
+["%s already best"]="%s sudah terbaik",
+["No %s owned"]="Tidak memiliki %s",
+["Equipping %s"]="Memasang %s",
+["Starting Stage_%s"]="Memulai Stage_%s",
+["Fighting Stage_%s"]="Bertarung di Stage_%s",
+["Collecting Stage_%s"]="Mengumpulkan hasil Stage_%s",
+["Completed Stage_%s • %s ore"]="Stage_%s selesai • %s ore",
+["Stage_%s too slow; demoted"]="Stage_%s terlalu lambat; diturunkan",
+["Start failed: %s"]="Gagal memulai: %s",
+["Collect failed: %s"]="Gagal mengumpulkan: %s",
+["Stopped: %s"]="Berhenti: %s",
+["Paused: %s • toggle OFF/ON to retry"]="Dijeda: %s • matikan/nyalakan toggle untuk mencoba lagi",
+["Using %s"]="Menggunakan %s",
+["Floor %s/%s"]="Lantai %s/%s",
+["Complete • ticket %s • max %s"]="Selesai • tiket %s • maks %s",
+["Round %s transition failed"]="Transisi Round %s gagal",
 ["COMMUNITY"]="Komunitas",
 ["UPDATES"]="Pembaruan",
 },
@@ -1646,6 +1959,159 @@ I18N.Packs={
 ["Recovering"]="Đang khôi phục",
 ["All selected units reached an accepted Trait."]="Mọi Unit đã chọn đã đạt Trait chấp nhận được.",
 ["All selected units reached an accepted Grade."]="Mọi Unit đã chọn đã đạt Grade chấp nhận được.",
+["Independent progression workers."]="Các tiến trình tự động hoạt động độc lập.",
+["Auto Train"]="Tự động luyện tập",
+["Uses the strongest free train area currently unlocked. No scripted movement."]="Dùng khu luyện tập miễn phí mạnh nhất hiện đã mở khóa. Không di chuyển bằng script.",
+["Buys the cheapest affordable normal Ore Pack, Luck, or Train upgrade."]="Mua nâng cấp Ore Pack, Luck hoặc Train thường rẻ nhất có thể mua.",
+["Equipment"]="Trang bị",
+["Automatically keep the strongest equipment equipped."]="Tự động luôn trang bị vật phẩm mạnh nhất.",
+["Auto Equip Best Sword"]="Tự động trang bị kiếm tốt nhất",
+["Auto Equip Best Armor"]="Tự động trang bị giáp tốt nhất",
+["Auto Equip Best Hat"]="Tự động trang bị mũ tốt nhất",
+["Equip Status"]="Trạng thái trang bị",
+["Best Equipment"]="Trang bị tốt nhất",
+["Ranks owned gear by Design Power, then Use Power, and equips it through the game's exact Backpack Equip-button callback."]="Xếp hạng trang bị sở hữu theo Design Power rồi Use Power, sau đó trang bị qua callback nút Equip trong Backpack của game.",
+["Free claimable rewards."]="Phần thưởng miễn phí có thể nhận.",
+["Auto Index Rewards"]="Tự động nhận thưởng Index",
+["Auto Online Rewards"]="Tự động nhận thưởng online",
+["Forge"]="Rèn",
+["Normal filtered forging or strongest-ore forging."]="Rèn thường có bộ lọc hoặc rèn bằng quặng mạnh nhất.",
+["Auto Forge"]="Tự động rèn",
+["Filtered normal forging."]="Rèn thường có bộ lọc.",
+["Forge Types"]="Loại rèn",
+["Ore Rarities"]="Độ hiếm quặng",
+["Only selected ore rarities are allowed."]="Chỉ cho phép các độ hiếm quặng đã chọn.",
+["Specific Ores"]="Quặng cụ thể",
+["Shows currently owned ore types. Empty means every owned ore that passes Ore Rarities."]="Hiển thị các loại quặng hiện có. Để trống nghĩa là mọi quặng sở hữu vượt qua bộ lọc Ore Rarities.",
+["Refresh Ores"]="Làm mới quặng",
+["Ore Reserve Per Type"]="Quặng dự trữ mỗi loại",
+["Auto Forge Best Ore"]="Tự động rèn quặng tốt nhất",
+["Strongest possible legal four-ore recipe."]="Công thức bốn quặng hợp lệ mạnh nhất có thể.",
+["Overrides normal Auto Forge while enabled."]="Khi bật, tính năng này ghi đè Auto Forge thường.",
+["Best Ore Rule"]="Quy tắc quặng tốt nhất",
+["Ignores Ore Rarities, Specific Ores, and Ore Reserve. Uses the strongest available four ore units by Power, then Quality."]="Bỏ qua Ore Rarities, Specific Ores và Ore Reserve. Dùng bốn đơn vị quặng mạnh nhất theo Power rồi Quality.",
+["Selling"]="Bán",
+["Equipment and ore selling are fully separate."]="Bán trang bị và quặng hoàn toàn tách biệt.",
+["Auto Sell Equipment"]="Tự động bán trang bị",
+["Equipment-only selling."]="Chỉ bán trang bị.",
+["Equipment Rarities"]="Độ hiếm trang bị",
+["Empty means sell no equipment. Equipped gear is always protected."]="Để trống nghĩa là không bán trang bị. Trang bị đang dùng luôn được bảo vệ.",
+["Sell Order"]="Thứ tự bán",
+["Auto Sell Ores"]="Tự động bán quặng",
+["Ore-only selling."]="Chỉ bán quặng.",
+["Empty means sell no ores. Sells one ore unit per confirmed request."]="Để trống nghĩa là không bán quặng. Bán một đơn vị quặng cho mỗi yêu cầu được xác nhận.",
+["Enchant"]="Phù phép",
+["Filtered enchanting or automatic best-equipment enchanting."]="Phù phép có bộ lọc hoặc tự động phù phép trang bị tốt nhất.",
+["Auto Enchant"]="Tự động phù phép",
+["Enchant allowed equipment with allowed owned runes."]="Phù phép trang bị được phép bằng rune sở hữu được phép.",
+["Rune Rarities"]="Độ hiếm rune",
+["Specific Runes"]="Rune cụ thể",
+["Shows currently owned runes. Empty means every owned rune that passes Rune Rarities."]="Hiển thị rune hiện có. Để trống nghĩa là mọi rune sở hữu vượt qua Rune Rarities.",
+["Refresh Runes"]="Làm mới rune",
+["Auto Enchant Best Equipment"]="Tự động phù phép trang bị tốt nhất",
+["Always targets the strongest equipment that still has an empty rune slot."]="Luôn chọn trang bị mạnh nhất còn ô rune trống.",
+["Overrides filtered Auto Enchant while enabled."]="Khi bật, tính năng này ghi đè Auto Enchant có bộ lọc.",
+["Best Equipment Rule"]="Quy tắc trang bị tốt nhất",
+["Chooses the highest Design Power equipment with an empty enchant slot, then uses the strongest owned rune that can be afforded. When that item is full, it moves to the next strongest eligible item."]="Chọn trang bị có Design Power cao nhất còn ô enchant trống, rồi dùng rune mạnh nhất đang sở hữu và đủ tiền. Khi vật phẩm đó đầy, chuyển sang vật phẩm hợp lệ mạnh nhất tiếp theo.",
+["Dungeon"]="Hầm ngục",
+["Original many-stage progression farm."]="Farm tiến trình nhiều màn nguyên bản.",
+["Auto Dungeon"]="Tự động Dungeon",
+["Automatically farms the strongest stage that can actually clear fast, then collects and banks the ore."]="Tự động farm màn mạnh nhất có thể vượt nhanh, sau đó thu thập và cất quặng.",
+["Stage Selection"]="Chọn màn",
+["Specific Stages"]="Màn cụ thể",
+["Used only when Stage Selection is Specific Stages. Serenity tries the highest selected stage first and falls back if it proves too slow."]="Chỉ dùng khi Stage Selection là Specific Stages. Serenity thử màn đã chọn cao nhất trước và lùi xuống nếu quá chậm.",
+["Current Stage"]="Màn hiện tại",
+["Dungeon Status"]="Trạng thái Dungeon",
+["Last Reward Delta"]="Thay đổi phần thưởng gần nhất",
+["Automatic Stage Selection"]="Tự động chọn màn",
+["Uses real combat damage, proves the frontier with actual clears, and demotes stages that take over 10 seconds. No scripted movement."]="Dùng sát thương chiến đấu thực, xác nhận giới hạn bằng lượt vượt thực tế và hạ các màn mất hơn 10 giây. Không di chuyển bằng script.",
+["Automatic normal five-floor Tower blocks."]="Tự động các khối Tower thường năm tầng.",
+["Allowed Stages"]="Màn được phép",
+["Last Result"]="Kết quả gần nhất",
+["Tickets"]="Vé",
+["Automatic Safety"]="An toàn tự động",
+["Serenity always uses the highest selected stage that is currently unlocked. After a successful run it re-checks progression and automatically promotes to the next selected unlocked stage. A post-entry failure pauses retries without turning the switch off or draining more tickets."]="Serenity luôn dùng màn đã chọn cao nhất hiện đã mở khóa. Sau lượt thành công, hệ thống kiểm tra lại tiến trình và tự động chuyển lên màn đã chọn tiếp theo đã mở. Lỗi sau khi vào sẽ tạm dừng thử lại mà không tắt công tắc hoặc tiêu thêm vé.",
+["Weapon"]="Vũ khí",
+["Armor"]="Giáp",
+["Hat"]="Mũ",
+["Common"]="Thường",
+["UnCommon"]="Không thường",
+["Rare"]="Hiếm",
+["Epic"]="Sử thi",
+["Legendary"]="Huyền thoại",
+["Mythic"]="Thần thoại",
+["Eternal"]="Vĩnh cửu",
+["Secret"]="Bí mật",
+["Lowest Power First"]="Power thấp nhất trước",
+["Highest Power First"]="Power cao nhất trước",
+["Automatic"]="Tự động",
+["Auto Highest Unlocked"]="Tự động chọn cao nhất đã mở",
+["Lowest Allowed"]="Thấp nhất được phép",
+["Highest Allowed"]="Cao nhất được phép",
+["Auto"]="Tự động",
+["No confirmed reward yet"]="Chưa có phần thưởng được xác nhận",
+["No run yet"]="Chưa có lượt chạy",
+["Ready"]="Sẵn sàng",
+["Stopped"]="Đã dừng",
+["Selected stages are currently too slow"]="Các màn đã chọn hiện quá chậm",
+["No selected stage currently unlocked"]="Hiện chưa có màn đã chọn nào được mở khóa",
+["Select at least one stage"]="Chọn ít nhất một màn",
+["No usable selected stage"]="Không có màn đã chọn nào có thể dùng",
+["Engine unavailable"]="Engine không khả dụng",
+["Combat damage unavailable"]="Không có dữ liệu sát thương chiến đấu",
+["Claim not confirmed"]="Chưa xác nhận nhận thưởng",
+["Checking selected stages..."]="Đang kiểm tra các màn đã chọn...",
+["No Tower tickets"]="Không có vé Tower",
+["Already inside Tower"]="Đã ở trong Tower",
+["Tower manager unavailable"]="Tower manager không khả dụng",
+["Tower entry listener unavailable"]="Listener vào Tower không khả dụng",
+["Tower entry rejected"]="Vào Tower bị từ chối",
+["Tower entry not confirmed"]="Chưa xác nhận vào Tower",
+["Stopped: start round failed"]="Đã dừng: không thể bắt đầu vòng",
+["Stopped: unsupported weapon"]="Đã dừng: vũ khí không được hỗ trợ",
+["Stopped: combat timeout"]="Đã dừng: chiến đấu hết thời gian",
+["Stopped: floor became too slow"]="Đã dừng: tầng trở nên quá chậm",
+["Stopped: no result confirmed"]="Đã dừng: không có kết quả được xác nhận",
+["Waiting for Tower combat"]="Đang chờ chiến đấu Tower",
+["Dungeon worker busy"]="Tiến trình Dungeon đang bận",
+["Waiting for Dungeon combat"]="Đang chờ chiến đấu Dungeon",
+["Tower worker busy"]="Tiến trình Tower đang bận",
+["Open info failed"]="Không mở được thông tin",
+["Equip callback missing"]="Thiếu callback Equip",
+["Equip callback error"]="Lỗi callback Equip",
+["Equip not confirmed"]="Chưa xác nhận trang bị",
+["Coin"]="Xu",
+["Ore"]="Quặng",
+["Rune"]="Rune",
+["Reward"]="Phần thưởng",
+["Stage"]="Màn",
+["ore"]="quặng",
+["ticket"]="vé",
+["max"]="tối đa",
+["No rewards replicated"]="Không có phần thưởng được đồng bộ",
+["Paused"]="Tạm dừng",
+["Start round failed"]="Không thể bắt đầu vòng",
+["Attack payload unavailable"]="Không có payload tấn công",
+["State refresh failed after ticket entry"]="Không thể làm mới trạng thái sau khi vào bằng vé",
+["Combat timeout after ticket entry"]="Chiến đấu hết thời gian sau khi vào bằng vé",
+["Actual floor clear became too slow"]="Thời gian vượt tầng thực tế trở nên quá chậm",
+["No authoritative result after one ticket"]="Không có kết quả xác thực sau một vé",
+["%s already best"]="%s đã là tốt nhất",
+["No %s owned"]="Không sở hữu %s",
+["Equipping %s"]="Đang trang bị %s",
+["Starting Stage_%s"]="Đang bắt đầu Màn_%s",
+["Fighting Stage_%s"]="Đang chiến đấu ở Màn_%s",
+["Collecting Stage_%s"]="Đang thu thập ở Màn_%s",
+["Completed Stage_%s • %s ore"]="Hoàn thành Màn_%s • %s quặng",
+["Stage_%s too slow; demoted"]="Màn_%s quá chậm; đã hạ xuống",
+["Start failed: %s"]="Không thể bắt đầu: %s",
+["Collect failed: %s"]="Thu thập thất bại: %s",
+["Stopped: %s"]="Đã dừng: %s",
+["Paused: %s • toggle OFF/ON to retry"]="Tạm dừng: %s • tắt/bật công tắc để thử lại",
+["Using %s"]="Đang dùng %s",
+["Floor %s/%s"]="Tầng %s/%s",
+["Complete • ticket %s • max %s"]="Hoàn tất • vé %s • tối đa %s",
+["Round %s transition failed"]="Chuyển Vòng %s thất bại",
 ["COMMUNITY"]="Cộng đồng",
 ["UPDATES"]="Cập nhật",
 },
@@ -2156,6 +2622,159 @@ I18N.Packs={
 ["Recovering"]="กำลังกู้คืน",
 ["All selected units reached an accepted Trait."]="ยูนิตที่เลือกทั้งหมดได้ Trait ที่ยอมรับแล้ว",
 ["All selected units reached an accepted Grade."]="ยูนิตที่เลือกทั้งหมดได้ Grade ที่ยอมรับแล้ว",
+["Independent progression workers."]="ระบบความก้าวหน้าแต่ละส่วนทำงานแยกกัน",
+["Auto Train"]="ฝึกอัตโนมัติ",
+["Uses the strongest free train area currently unlocked. No scripted movement."]="ใช้พื้นที่ฝึกฟรีที่แรงที่สุดซึ่งปลดล็อกแล้ว ไม่มีการเคลื่อนที่ด้วยสคริปต์",
+["Buys the cheapest affordable normal Ore Pack, Luck, or Train upgrade."]="ซื้ออัปเกรด Ore Pack, Luck หรือ Train แบบปกติที่ถูกที่สุดและจ่ายไหว",
+["Equipment"]="อุปกรณ์",
+["Automatically keep the strongest equipment equipped."]="สวมใส่อุปกรณ์ที่แข็งแกร่งที่สุดให้อัตโนมัติ",
+["Auto Equip Best Sword"]="สวมดาบที่ดีที่สุดอัตโนมัติ",
+["Auto Equip Best Armor"]="สวมเกราะที่ดีที่สุดอัตโนมัติ",
+["Auto Equip Best Hat"]="สวมหมวกที่ดีที่สุดอัตโนมัติ",
+["Equip Status"]="สถานะการสวมใส่",
+["Best Equipment"]="อุปกรณ์ที่ดีที่สุด",
+["Ranks owned gear by Design Power, then Use Power, and equips it through the game's exact Backpack Equip-button callback."]="จัดอันดับอุปกรณ์ที่มีตาม Design Power แล้วตาม Use Power และสวมใส่ผ่าน callback ปุ่ม Equip ใน Backpack ของเกมโดยตรง",
+["Free claimable rewards."]="รางวัลฟรีที่รับได้",
+["Auto Index Rewards"]="รับรางวัล Index อัตโนมัติ",
+["Auto Online Rewards"]="รับรางวัลออนไลน์อัตโนมัติ",
+["Forge"]="ตีเหล็ก",
+["Normal filtered forging or strongest-ore forging."]="ตีเหล็กแบบกรองปกติ หรือใช้แร่ที่แข็งแกร่งที่สุด",
+["Auto Forge"]="ตีเหล็กอัตโนมัติ",
+["Filtered normal forging."]="ตีเหล็กปกติแบบกรอง",
+["Forge Types"]="ประเภทการตีเหล็ก",
+["Ore Rarities"]="ระดับความหายากของแร่",
+["Only selected ore rarities are allowed."]="อนุญาตเฉพาะระดับความหายากของแร่ที่เลือก",
+["Specific Ores"]="แร่เฉพาะ",
+["Shows currently owned ore types. Empty means every owned ore that passes Ore Rarities."]="แสดงชนิดแร่ที่มีอยู่ตอนนี้ หากว่างจะใช้แร่ที่มีทั้งหมดซึ่งผ่าน Ore Rarities",
+["Refresh Ores"]="รีเฟรชแร่",
+["Ore Reserve Per Type"]="สำรองแร่ต่อประเภท",
+["Auto Forge Best Ore"]="ตีเหล็กด้วยแร่ที่ดีที่สุดอัตโนมัติ",
+["Strongest possible legal four-ore recipe."]="สูตรแร่ 4 ชิ้นที่ถูกต้องและแข็งแกร่งที่สุด",
+["Overrides normal Auto Forge while enabled."]="เมื่อเปิด จะทำงานแทน Auto Forge ปกติ",
+["Best Ore Rule"]="กฎแร่ที่ดีที่สุด",
+["Ignores Ore Rarities, Specific Ores, and Ore Reserve. Uses the strongest available four ore units by Power, then Quality."]="ไม่สน Ore Rarities, Specific Ores และ Ore Reserve ใช้แร่ 4 หน่วยที่แรงที่สุดตาม Power แล้ว Quality",
+["Selling"]="การขาย",
+["Equipment and ore selling are fully separate."]="การขายอุปกรณ์และแร่แยกจากกันโดยสิ้นเชิง",
+["Auto Sell Equipment"]="ขายอุปกรณ์อัตโนมัติ",
+["Equipment-only selling."]="ขายเฉพาะอุปกรณ์",
+["Equipment Rarities"]="ระดับความหายากของอุปกรณ์",
+["Empty means sell no equipment. Equipped gear is always protected."]="หากว่างจะไม่ขายอุปกรณ์ อุปกรณ์ที่สวมอยู่จะได้รับการป้องกันเสมอ",
+["Sell Order"]="ลำดับการขาย",
+["Auto Sell Ores"]="ขายแร่อัตโนมัติ",
+["Ore-only selling."]="ขายเฉพาะแร่",
+["Empty means sell no ores. Sells one ore unit per confirmed request."]="หากว่างจะไม่ขายแร่ ขายแร่ครั้งละ 1 หน่วยต่อคำขอที่ยืนยันแล้ว",
+["Enchant"]="เสริมพลัง",
+["Filtered enchanting or automatic best-equipment enchanting."]="เสริมพลังแบบกรอง หรือเสริมพลังอุปกรณ์ที่ดีที่สุดอัตโนมัติ",
+["Auto Enchant"]="เสริมพลังอัตโนมัติ",
+["Enchant allowed equipment with allowed owned runes."]="เสริมพลังอุปกรณ์ที่อนุญาตด้วยรูนที่มีและอนุญาต",
+["Rune Rarities"]="ระดับความหายากของรูน",
+["Specific Runes"]="รูนเฉพาะ",
+["Shows currently owned runes. Empty means every owned rune that passes Rune Rarities."]="แสดงรูนที่มีอยู่ตอนนี้ หากว่างจะใช้รูนที่มีทั้งหมดซึ่งผ่าน Rune Rarities",
+["Refresh Runes"]="รีเฟรชรูน",
+["Auto Enchant Best Equipment"]="เสริมพลังอุปกรณ์ที่ดีที่สุดอัตโนมัติ",
+["Always targets the strongest equipment that still has an empty rune slot."]="เลือกอุปกรณ์ที่แข็งแกร่งที่สุดซึ่งยังมีช่องรูนว่างเสมอ",
+["Overrides filtered Auto Enchant while enabled."]="เมื่อเปิด จะทำงานแทน Auto Enchant แบบกรอง",
+["Best Equipment Rule"]="กฎอุปกรณ์ที่ดีที่สุด",
+["Chooses the highest Design Power equipment with an empty enchant slot, then uses the strongest owned rune that can be afforded. When that item is full, it moves to the next strongest eligible item."]="เลือกอุปกรณ์ที่มี Design Power สูงสุดและมีช่อง enchant ว่าง จากนั้นใช้รูนที่แรงที่สุดที่มีและจ่ายไหว เมื่อไอเท็มเต็มจะย้ายไปยังไอเท็มที่แรงรองลงมาซึ่งใช้ได้",
+["Dungeon"]="ดันเจี้ยน",
+["Original many-stage progression farm."]="ฟาร์มความก้าวหน้าแบบหลายด่านดั้งเดิม",
+["Auto Dungeon"]="ดันเจี้ยนอัตโนมัติ",
+["Automatically farms the strongest stage that can actually clear fast, then collects and banks the ore."]="ฟาร์มด่านที่แรงที่สุดซึ่งเคลียร์ได้เร็วจริงโดยอัตโนมัติ จากนั้นเก็บและฝากแร่",
+["Stage Selection"]="เลือกด่าน",
+["Specific Stages"]="ด่านเฉพาะ",
+["Used only when Stage Selection is Specific Stages. Serenity tries the highest selected stage first and falls back if it proves too slow."]="ใช้เฉพาะเมื่อ Stage Selection เป็น Specific Stages โดย Serenity จะลองด่านที่เลือกสูงสุดก่อน และลดลงหากช้าเกินไป",
+["Current Stage"]="ด่านปัจจุบัน",
+["Dungeon Status"]="สถานะดันเจี้ยน",
+["Last Reward Delta"]="การเปลี่ยนแปลงรางวัลล่าสุด",
+["Automatic Stage Selection"]="เลือกด่านอัตโนมัติ",
+["Uses real combat damage, proves the frontier with actual clears, and demotes stages that take over 10 seconds. No scripted movement."]="ใช้ดาเมจต่อสู้จริง พิสูจน์ขีดจำกัดด้วยการเคลียร์จริง และลดด่านที่ใช้เกิน 10 วินาที ไม่มีการเคลื่อนที่ด้วยสคริปต์",
+["Automatic normal five-floor Tower blocks."]="บล็อก Tower ปกติ 5 ชั้นแบบอัตโนมัติ",
+["Allowed Stages"]="ด่านที่อนุญาต",
+["Last Result"]="ผลลัพธ์ล่าสุด",
+["Tickets"]="ตั๋ว",
+["Automatic Safety"]="ความปลอดภัยอัตโนมัติ",
+["Serenity always uses the highest selected stage that is currently unlocked. After a successful run it re-checks progression and automatically promotes to the next selected unlocked stage. A post-entry failure pauses retries without turning the switch off or draining more tickets."]="Serenity จะใช้ด่านที่เลือกสูงสุดซึ่งปลดล็อกแล้วเสมอ หลังจากรันสำเร็จจะตรวจความก้าวหน้าอีกครั้งและเลื่อนไปยังด่านที่เลือกถัดไปที่ปลดล็อกโดยอัตโนมัติ หากล้มเหลวหลังเข้า จะพักการลองใหม่โดยไม่ปิดสวิตช์หรือใช้ตั๋วเพิ่ม",
+["Weapon"]="อาวุธ",
+["Armor"]="เกราะ",
+["Hat"]="หมวก",
+["Common"]="ทั่วไป",
+["UnCommon"]="ไม่ธรรมดา",
+["Rare"]="หายาก",
+["Epic"]="อีพิก",
+["Legendary"]="ตำนาน",
+["Mythic"]="เทพนิยาย",
+["Eternal"]="นิรันดร์",
+["Secret"]="ลับ",
+["Lowest Power First"]="Power ต่ำสุดก่อน",
+["Highest Power First"]="Power สูงสุดก่อน",
+["Automatic"]="อัตโนมัติ",
+["Auto Highest Unlocked"]="อัตโนมัติ: สูงสุดที่ปลดล็อก",
+["Lowest Allowed"]="ต่ำสุดที่อนุญาต",
+["Highest Allowed"]="สูงสุดที่อนุญาต",
+["Auto"]="อัตโนมัติ",
+["No confirmed reward yet"]="ยังไม่มีรางวัลที่ยืนยัน",
+["No run yet"]="ยังไม่มีรัน",
+["Ready"]="พร้อม",
+["Stopped"]="หยุดแล้ว",
+["Selected stages are currently too slow"]="ด่านที่เลือกตอนนี้ช้าเกินไป",
+["No selected stage currently unlocked"]="ตอนนี้ยังไม่มีด่านที่เลือกและปลดล็อกแล้ว",
+["Select at least one stage"]="เลือกอย่างน้อยหนึ่งด่าน",
+["No usable selected stage"]="ไม่มีด่านที่เลือกซึ่งใช้งานได้",
+["Engine unavailable"]="เอนจินใช้งานไม่ได้",
+["Combat damage unavailable"]="ข้อมูลดาเมจต่อสู้ไม่พร้อมใช้งาน",
+["Claim not confirmed"]="ยังไม่ยืนยันการรับ",
+["Checking selected stages..."]="กำลังตรวจด่านที่เลือก...",
+["No Tower tickets"]="ไม่มีตั๋ว Tower",
+["Already inside Tower"]="อยู่ใน Tower แล้ว",
+["Tower manager unavailable"]="Tower manager ใช้งานไม่ได้",
+["Tower entry listener unavailable"]="ตัวฟังการเข้า Tower ใช้งานไม่ได้",
+["Tower entry rejected"]="การเข้า Tower ถูกปฏิเสธ",
+["Tower entry not confirmed"]="ยังไม่ยืนยันการเข้า Tower",
+["Stopped: start round failed"]="หยุดแล้ว: เริ่มรอบไม่สำเร็จ",
+["Stopped: unsupported weapon"]="หยุดแล้ว: ไม่รองรับอาวุธ",
+["Stopped: combat timeout"]="หยุดแล้ว: การต่อสู้หมดเวลา",
+["Stopped: floor became too slow"]="หยุดแล้ว: ชั้นช้าเกินไป",
+["Stopped: no result confirmed"]="หยุดแล้ว: ไม่มีผลลัพธ์ที่ยืนยัน",
+["Waiting for Tower combat"]="กำลังรอการต่อสู้ Tower",
+["Dungeon worker busy"]="ตัวทำงาน Dungeon ไม่ว่าง",
+["Waiting for Dungeon combat"]="กำลังรอการต่อสู้ Dungeon",
+["Tower worker busy"]="ตัวทำงาน Tower ไม่ว่าง",
+["Open info failed"]="เปิดข้อมูลไม่สำเร็จ",
+["Equip callback missing"]="ไม่พบ callback Equip",
+["Equip callback error"]="ข้อผิดพลาด callback Equip",
+["Equip not confirmed"]="ยังไม่ยืนยันการสวมใส่",
+["Coin"]="เหรียญ",
+["Ore"]="แร่",
+["Rune"]="รูน",
+["Reward"]="รางวัล",
+["Stage"]="ด่าน",
+["ore"]="แร่",
+["ticket"]="ตั๋ว",
+["max"]="สูงสุด",
+["No rewards replicated"]="ไม่มีรางวัลที่ replicate มา",
+["Paused"]="พัก",
+["Start round failed"]="เริ่มรอบไม่สำเร็จ",
+["Attack payload unavailable"]="attack payload ใช้งานไม่ได้",
+["State refresh failed after ticket entry"]="รีเฟรชสถานะไม่สำเร็จหลังใช้ตั๋วเข้า",
+["Combat timeout after ticket entry"]="การต่อสู้หมดเวลาหลังใช้ตั๋วเข้า",
+["Actual floor clear became too slow"]="เวลาเคลียร์ชั้นจริงช้าเกินไป",
+["No authoritative result after one ticket"]="ไม่มีผลลัพธ์ที่ยืนยันได้หลังใช้ตั๋วหนึ่งใบ",
+["%s already best"]="%s ดีที่สุดอยู่แล้ว",
+["No %s owned"]="ไม่มี %s ที่เป็นเจ้าของ",
+["Equipping %s"]="กำลังสวม %s",
+["Starting Stage_%s"]="กำลังเริ่ม ด่าน_%s",
+["Fighting Stage_%s"]="กำลังต่อสู้ใน ด่าน_%s",
+["Collecting Stage_%s"]="กำลังเก็บของจาก ด่าน_%s",
+["Completed Stage_%s • %s ore"]="ผ่าน ด่าน_%s • แร่ %s",
+["Stage_%s too slow; demoted"]="ด่าน_%s ช้าเกินไป; ลดระดับแล้ว",
+["Start failed: %s"]="เริ่มไม่สำเร็จ: %s",
+["Collect failed: %s"]="เก็บไม่สำเร็จ: %s",
+["Stopped: %s"]="หยุดแล้ว: %s",
+["Paused: %s • toggle OFF/ON to retry"]="พัก: %s • ปิด/เปิดสวิตช์เพื่อลองใหม่",
+["Using %s"]="กำลังใช้ %s",
+["Floor %s/%s"]="ชั้น %s/%s",
+["Complete • ticket %s • max %s"]="เสร็จสิ้น • ตั๋ว %s • สูงสุด %s",
+["Round %s transition failed"]="เปลี่ยนรอบ %s ไม่สำเร็จ",
 ["COMMUNITY"]="ชุมชน",
 ["UPDATES"]="อัปเดต",
 },
@@ -2666,6 +3285,159 @@ I18N.Packs={
 ["Recovering"]="Recuperando",
 ["All selected units reached an accepted Trait."]="Todas las unidades seleccionadas alcanzaron un Trait aceptado.",
 ["All selected units reached an accepted Grade."]="Todas las unidades seleccionadas alcanzaron un Grade aceptado.",
+["Independent progression workers."]="Procesos de progreso independientes.",
+["Auto Train"]="Entrenamiento automático",
+["Uses the strongest free train area currently unlocked. No scripted movement."]="Usa la zona de entrenamiento gratuita más fuerte desbloqueada. Sin movimiento programado.",
+["Buys the cheapest affordable normal Ore Pack, Luck, or Train upgrade."]="Compra la mejora normal de Ore Pack, Luck o Train más barata que puedas pagar.",
+["Equipment"]="Equipo",
+["Automatically keep the strongest equipment equipped."]="Mantiene equipado automáticamente el equipo más fuerte.",
+["Auto Equip Best Sword"]="Equipar automáticamente la mejor espada",
+["Auto Equip Best Armor"]="Equipar automáticamente la mejor armadura",
+["Auto Equip Best Hat"]="Equipar automáticamente el mejor sombrero",
+["Equip Status"]="Estado de equipamiento",
+["Best Equipment"]="Mejor equipo",
+["Ranks owned gear by Design Power, then Use Power, and equips it through the game's exact Backpack Equip-button callback."]="Ordena el equipo que posees por Design Power y luego Use Power, y lo equipa mediante el callback exacto del botón Equip del Backpack del juego.",
+["Free claimable rewards."]="Recompensas gratuitas para reclamar.",
+["Auto Index Rewards"]="Recompensas de índice automáticas",
+["Auto Online Rewards"]="Recompensas online automáticas",
+["Forge"]="Forja",
+["Normal filtered forging or strongest-ore forging."]="Forja normal filtrada o forja con el mineral más fuerte.",
+["Auto Forge"]="Forja automática",
+["Filtered normal forging."]="Forja normal con filtros.",
+["Forge Types"]="Tipos de forja",
+["Ore Rarities"]="Rarezas de mineral",
+["Only selected ore rarities are allowed."]="Solo se permiten las rarezas de mineral seleccionadas.",
+["Specific Ores"]="Minerales específicos",
+["Shows currently owned ore types. Empty means every owned ore that passes Ore Rarities."]="Muestra los tipos de mineral que tienes. Vacío significa todos los minerales propios que pasen Ore Rarities.",
+["Refresh Ores"]="Actualizar minerales",
+["Ore Reserve Per Type"]="Reserva de mineral por tipo",
+["Auto Forge Best Ore"]="Forjar automáticamente el mejor mineral",
+["Strongest possible legal four-ore recipe."]="La receta válida de cuatro minerales más fuerte posible.",
+["Overrides normal Auto Forge while enabled."]="Al activarlo, reemplaza Auto Forge normal.",
+["Best Ore Rule"]="Regla del mejor mineral",
+["Ignores Ore Rarities, Specific Ores, and Ore Reserve. Uses the strongest available four ore units by Power, then Quality."]="Ignora Ore Rarities, Specific Ores y Ore Reserve. Usa las cuatro unidades de mineral disponibles más fuertes por Power y luego Quality.",
+["Selling"]="Venta",
+["Equipment and ore selling are fully separate."]="La venta de equipo y minerales está completamente separada.",
+["Auto Sell Equipment"]="Vender equipo automáticamente",
+["Equipment-only selling."]="Solo vende equipo.",
+["Equipment Rarities"]="Rarezas de equipo",
+["Empty means sell no equipment. Equipped gear is always protected."]="Vacío significa no vender equipo. El equipo equipado siempre está protegido.",
+["Sell Order"]="Orden de venta",
+["Auto Sell Ores"]="Vender minerales automáticamente",
+["Ore-only selling."]="Solo vende minerales.",
+["Empty means sell no ores. Sells one ore unit per confirmed request."]="Vacío significa no vender minerales. Vende una unidad de mineral por solicitud confirmada.",
+["Enchant"]="Encantar",
+["Filtered enchanting or automatic best-equipment enchanting."]="Encantamiento filtrado o encantamiento automático del mejor equipo.",
+["Auto Enchant"]="Encantamiento automático",
+["Enchant allowed equipment with allowed owned runes."]="Encanta el equipo permitido con las runas permitidas que posees.",
+["Rune Rarities"]="Rarezas de runas",
+["Specific Runes"]="Runas específicas",
+["Shows currently owned runes. Empty means every owned rune that passes Rune Rarities."]="Muestra las runas que tienes. Vacío significa todas las runas propias que pasen Rune Rarities.",
+["Refresh Runes"]="Actualizar runas",
+["Auto Enchant Best Equipment"]="Encantar automáticamente el mejor equipo",
+["Always targets the strongest equipment that still has an empty rune slot."]="Siempre selecciona el equipo más fuerte que aún tenga un espacio de runa vacío.",
+["Overrides filtered Auto Enchant while enabled."]="Al activarlo, reemplaza Auto Enchant filtrado.",
+["Best Equipment Rule"]="Regla del mejor equipo",
+["Chooses the highest Design Power equipment with an empty enchant slot, then uses the strongest owned rune that can be afforded. When that item is full, it moves to the next strongest eligible item."]="Elige el equipo con mayor Design Power que tenga un espacio de encantamiento vacío y usa la runa propia más fuerte que puedas pagar. Cuando se llena, pasa al siguiente objeto elegible más fuerte.",
+["Dungeon"]="Mazmorra",
+["Original many-stage progression farm."]="Farm de progreso original de muchas etapas.",
+["Auto Dungeon"]="Mazmorra automática",
+["Automatically farms the strongest stage that can actually clear fast, then collects and banks the ore."]="Farmea automáticamente la etapa más fuerte que realmente pueda completarse rápido, luego recoge y guarda el mineral.",
+["Stage Selection"]="Selección de etapa",
+["Specific Stages"]="Etapas específicas",
+["Used only when Stage Selection is Specific Stages. Serenity tries the highest selected stage first and falls back if it proves too slow."]="Solo se usa cuando Stage Selection está en Specific Stages. Serenity prueba primero la etapa seleccionada más alta y baja si resulta demasiado lenta.",
+["Current Stage"]="Etapa actual",
+["Dungeon Status"]="Estado de la mazmorra",
+["Last Reward Delta"]="Último cambio de recompensa",
+["Automatic Stage Selection"]="Selección automática de etapa",
+["Uses real combat damage, proves the frontier with actual clears, and demotes stages that take over 10 seconds. No scripted movement."]="Usa daño de combate real, valida el límite con completados reales y baja las etapas que tardan más de 10 segundos. Sin movimiento programado.",
+["Automatic normal five-floor Tower blocks."]="Bloques normales automáticos de cinco pisos de la torre.",
+["Allowed Stages"]="Etapas permitidas",
+["Last Result"]="Último resultado",
+["Tickets"]="Boletos",
+["Automatic Safety"]="Seguridad automática",
+["Serenity always uses the highest selected stage that is currently unlocked. After a successful run it re-checks progression and automatically promotes to the next selected unlocked stage. A post-entry failure pauses retries without turning the switch off or draining more tickets."]="Serenity siempre usa la etapa seleccionada más alta que esté desbloqueada. Tras una ejecución exitosa, vuelve a comprobar el progreso y sube automáticamente a la siguiente etapa seleccionada desbloqueada. Un fallo después de entrar pausa los reintentos sin apagar el interruptor ni gastar más boletos.",
+["Weapon"]="Arma",
+["Armor"]="Armadura",
+["Hat"]="Sombrero",
+["Common"]="Común",
+["UnCommon"]="Poco común",
+["Rare"]="Raro",
+["Epic"]="Épico",
+["Legendary"]="Legendario",
+["Mythic"]="Mítico",
+["Eternal"]="Eterno",
+["Secret"]="Secreto",
+["Lowest Power First"]="Menor Power primero",
+["Highest Power First"]="Mayor Power primero",
+["Automatic"]="Automático",
+["Auto Highest Unlocked"]="Máximo desbloqueado automático",
+["Lowest Allowed"]="Más bajo permitido",
+["Highest Allowed"]="Más alto permitido",
+["Auto"]="Auto",
+["No confirmed reward yet"]="Aún no hay recompensa confirmada",
+["No run yet"]="Aún no hay ejecución",
+["Ready"]="Listo",
+["Stopped"]="Detenido",
+["Selected stages are currently too slow"]="Las etapas seleccionadas son demasiado lentas ahora",
+["No selected stage currently unlocked"]="No hay ninguna etapa seleccionada desbloqueada ahora",
+["Select at least one stage"]="Selecciona al menos una etapa",
+["No usable selected stage"]="No hay ninguna etapa seleccionada utilizable",
+["Engine unavailable"]="Motor no disponible",
+["Combat damage unavailable"]="Daño de combate no disponible",
+["Claim not confirmed"]="Reclamación no confirmada",
+["Checking selected stages..."]="Comprobando etapas seleccionadas...",
+["No Tower tickets"]="No hay boletos de Tower",
+["Already inside Tower"]="Ya estás dentro de la Tower",
+["Tower manager unavailable"]="Gestor de Tower no disponible",
+["Tower entry listener unavailable"]="Listener de entrada a Tower no disponible",
+["Tower entry rejected"]="Entrada a Tower rechazada",
+["Tower entry not confirmed"]="Entrada a Tower no confirmada",
+["Stopped: start round failed"]="Detenido: no se pudo iniciar la ronda",
+["Stopped: unsupported weapon"]="Detenido: arma no compatible",
+["Stopped: combat timeout"]="Detenido: tiempo de combate agotado",
+["Stopped: floor became too slow"]="Detenido: el piso se volvió demasiado lento",
+["Stopped: no result confirmed"]="Detenido: no se confirmó ningún resultado",
+["Waiting for Tower combat"]="Esperando combate de Tower",
+["Dungeon worker busy"]="Proceso de Dungeon ocupado",
+["Waiting for Dungeon combat"]="Esperando combate de Dungeon",
+["Tower worker busy"]="Proceso de Tower ocupado",
+["Open info failed"]="No se pudo abrir la información",
+["Equip callback missing"]="Falta el callback de Equip",
+["Equip callback error"]="Error del callback de Equip",
+["Equip not confirmed"]="Equipamiento no confirmado",
+["Coin"]="Moneda",
+["Ore"]="Mineral",
+["Rune"]="Runa",
+["Reward"]="Recompensa",
+["Stage"]="Etapa",
+["ore"]="mineral",
+["ticket"]="boleto",
+["max"]="máx.",
+["No rewards replicated"]="No se replicaron recompensas",
+["Paused"]="Pausado",
+["Start round failed"]="No se pudo iniciar la ronda",
+["Attack payload unavailable"]="Payload de ataque no disponible",
+["State refresh failed after ticket entry"]="Falló la actualización del estado tras entrar con boleto",
+["Combat timeout after ticket entry"]="Tiempo de combate agotado tras entrar con boleto",
+["Actual floor clear became too slow"]="La limpieza real del piso se volvió demasiado lenta",
+["No authoritative result after one ticket"]="No hubo resultado autorizado tras un boleto",
+["%s already best"]="%s ya es lo mejor",
+["No %s owned"]="No tienes %s",
+["Equipping %s"]="Equipando %s",
+["Starting Stage_%s"]="Iniciando Etapa_%s",
+["Fighting Stage_%s"]="Combatiendo en Etapa_%s",
+["Collecting Stage_%s"]="Recolectando en Etapa_%s",
+["Completed Stage_%s • %s ore"]="Etapa_%s completada • %s mineral",
+["Stage_%s too slow; demoted"]="Etapa_%s demasiado lenta; degradada",
+["Start failed: %s"]="Error al iniciar: %s",
+["Collect failed: %s"]="Error al recoger: %s",
+["Stopped: %s"]="Detenido: %s",
+["Paused: %s • toggle OFF/ON to retry"]="Pausado: %s • apaga/enciende el interruptor para reintentar",
+["Using %s"]="Usando %s",
+["Floor %s/%s"]="Piso %s/%s",
+["Complete • ticket %s • max %s"]="Completado • boleto %s • máx. %s",
+["Round %s transition failed"]="Falló la transición de la Ronda %s",
 ["COMMUNITY"]="Comunidad",
 ["UPDATES"]="Actualizaciones",
 },
@@ -3176,6 +3948,159 @@ I18N.Packs={
 ["Recovering"]="Recuperando",
 ["All selected units reached an accepted Trait."]="Todas as unidades selecionadas atingiram um Trait aceito.",
 ["All selected units reached an accepted Grade."]="Todas as unidades selecionadas atingiram um Grade aceito.",
+["Independent progression workers."]="Processos de progresso independentes.",
+["Auto Train"]="Treino automático",
+["Uses the strongest free train area currently unlocked. No scripted movement."]="Usa a área de treino gratuita mais forte já desbloqueada. Sem movimento por script.",
+["Buys the cheapest affordable normal Ore Pack, Luck, or Train upgrade."]="Compra a melhoria normal de Ore Pack, Luck ou Train mais barata que puder pagar.",
+["Equipment"]="Equipamento",
+["Automatically keep the strongest equipment equipped."]="Mantém automaticamente equipado o equipamento mais forte.",
+["Auto Equip Best Sword"]="Equipar automaticamente a melhor espada",
+["Auto Equip Best Armor"]="Equipar automaticamente a melhor armadura",
+["Auto Equip Best Hat"]="Equipar automaticamente o melhor chapéu",
+["Equip Status"]="Status do equipamento",
+["Best Equipment"]="Melhor equipamento",
+["Ranks owned gear by Design Power, then Use Power, and equips it through the game's exact Backpack Equip-button callback."]="Classifica o equipamento possuído por Design Power e depois Use Power, e equipa pelo callback exato do botão Equip da Backpack do jogo.",
+["Free claimable rewards."]="Recompensas grátis para resgatar.",
+["Auto Index Rewards"]="Recompensas de índice automáticas",
+["Auto Online Rewards"]="Recompensas online automáticas",
+["Forge"]="Forja",
+["Normal filtered forging or strongest-ore forging."]="Forja normal filtrada ou forja com o minério mais forte.",
+["Auto Forge"]="Forja automática",
+["Filtered normal forging."]="Forja normal com filtros.",
+["Forge Types"]="Tipos de forja",
+["Ore Rarities"]="Raridades de minério",
+["Only selected ore rarities are allowed."]="Somente as raridades de minério selecionadas são permitidas.",
+["Specific Ores"]="Minérios específicos",
+["Shows currently owned ore types. Empty means every owned ore that passes Ore Rarities."]="Mostra os tipos de minério que você possui. Vazio significa todos os minérios possuídos que passarem por Ore Rarities.",
+["Refresh Ores"]="Atualizar minérios",
+["Ore Reserve Per Type"]="Reserva de minério por tipo",
+["Auto Forge Best Ore"]="Forjar automaticamente o melhor minério",
+["Strongest possible legal four-ore recipe."]="A receita válida de quatro minérios mais forte possível.",
+["Overrides normal Auto Forge while enabled."]="Quando ativado, substitui o Auto Forge normal.",
+["Best Ore Rule"]="Regra do melhor minério",
+["Ignores Ore Rarities, Specific Ores, and Ore Reserve. Uses the strongest available four ore units by Power, then Quality."]="Ignora Ore Rarities, Specific Ores e Ore Reserve. Usa as quatro unidades de minério disponíveis mais fortes por Power e depois Quality.",
+["Selling"]="Venda",
+["Equipment and ore selling are fully separate."]="A venda de equipamento e minério é totalmente separada.",
+["Auto Sell Equipment"]="Vender equipamento automaticamente",
+["Equipment-only selling."]="Vende somente equipamento.",
+["Equipment Rarities"]="Raridades de equipamento",
+["Empty means sell no equipment. Equipped gear is always protected."]="Vazio significa não vender equipamento. O equipamento equipado está sempre protegido.",
+["Sell Order"]="Ordem de venda",
+["Auto Sell Ores"]="Vender minérios automaticamente",
+["Ore-only selling."]="Vende somente minérios.",
+["Empty means sell no ores. Sells one ore unit per confirmed request."]="Vazio significa não vender minérios. Vende uma unidade de minério por solicitação confirmada.",
+["Enchant"]="Encantar",
+["Filtered enchanting or automatic best-equipment enchanting."]="Encantamento filtrado ou encantamento automático do melhor equipamento.",
+["Auto Enchant"]="Encantamento automático",
+["Enchant allowed equipment with allowed owned runes."]="Encanta o equipamento permitido com as runas permitidas que você possui.",
+["Rune Rarities"]="Raridades de runas",
+["Specific Runes"]="Runas específicas",
+["Shows currently owned runes. Empty means every owned rune that passes Rune Rarities."]="Mostra as runas que você possui. Vazio significa todas as runas possuídas que passarem por Rune Rarities.",
+["Refresh Runes"]="Atualizar runas",
+["Auto Enchant Best Equipment"]="Encantar automaticamente o melhor equipamento",
+["Always targets the strongest equipment that still has an empty rune slot."]="Sempre seleciona o equipamento mais forte que ainda tenha um espaço de runa vazio.",
+["Overrides filtered Auto Enchant while enabled."]="Quando ativado, substitui o Auto Enchant filtrado.",
+["Best Equipment Rule"]="Regra do melhor equipamento",
+["Chooses the highest Design Power equipment with an empty enchant slot, then uses the strongest owned rune that can be afforded. When that item is full, it moves to the next strongest eligible item."]="Escolhe o equipamento com maior Design Power que tenha um espaço de encantamento vazio e usa a runa própria mais forte que puder pagar. Quando fica cheio, passa ao próximo item elegível mais forte.",
+["Dungeon"]="Masmorra",
+["Original many-stage progression farm."]="Farm de progresso original com várias etapas.",
+["Auto Dungeon"]="Masmorra automática",
+["Automatically farms the strongest stage that can actually clear fast, then collects and banks the ore."]="Farma automaticamente a fase mais forte que realmente possa ser concluída rápido, depois coleta e guarda o minério.",
+["Stage Selection"]="Seleção de fase",
+["Specific Stages"]="Fases específicas",
+["Used only when Stage Selection is Specific Stages. Serenity tries the highest selected stage first and falls back if it proves too slow."]="Usado somente quando Stage Selection está em Specific Stages. Serenity tenta primeiro a fase selecionada mais alta e recua se ela for lenta demais.",
+["Current Stage"]="Fase atual",
+["Dungeon Status"]="Status da masmorra",
+["Last Reward Delta"]="Última variação de recompensa",
+["Automatic Stage Selection"]="Seleção automática de fase",
+["Uses real combat damage, proves the frontier with actual clears, and demotes stages that take over 10 seconds. No scripted movement."]="Usa dano de combate real, valida o limite com conclusões reais e rebaixa fases que levam mais de 10 segundos. Sem movimento por script.",
+["Automatic normal five-floor Tower blocks."]="Blocos normais automáticos de cinco andares da torre.",
+["Allowed Stages"]="Fases permitidas",
+["Last Result"]="Último resultado",
+["Tickets"]="Ingressos",
+["Automatic Safety"]="Segurança automática",
+["Serenity always uses the highest selected stage that is currently unlocked. After a successful run it re-checks progression and automatically promotes to the next selected unlocked stage. A post-entry failure pauses retries without turning the switch off or draining more tickets."]="Serenity sempre usa a fase selecionada mais alta que esteja desbloqueada. Após uma execução bem-sucedida, verifica novamente o progresso e avança automaticamente para a próxima fase selecionada desbloqueada. Uma falha após a entrada pausa as tentativas sem desligar o botão nem gastar mais ingressos.",
+["Weapon"]="Arma",
+["Armor"]="Armadura",
+["Hat"]="Chapéu",
+["Common"]="Comum",
+["UnCommon"]="Incomum",
+["Rare"]="Raro",
+["Epic"]="Épico",
+["Legendary"]="Lendário",
+["Mythic"]="Mítico",
+["Eternal"]="Eterno",
+["Secret"]="Secreto",
+["Lowest Power First"]="Menor Power primeiro",
+["Highest Power First"]="Maior Power primeiro",
+["Automatic"]="Automático",
+["Auto Highest Unlocked"]="Maior desbloqueado automático",
+["Lowest Allowed"]="Mais baixo permitido",
+["Highest Allowed"]="Mais alto permitido",
+["Auto"]="Auto",
+["No confirmed reward yet"]="Ainda não há recompensa confirmada",
+["No run yet"]="Ainda não houve execução",
+["Ready"]="Pronto",
+["Stopped"]="Parado",
+["Selected stages are currently too slow"]="As fases selecionadas estão lentas demais no momento",
+["No selected stage currently unlocked"]="Nenhuma fase selecionada está desbloqueada no momento",
+["Select at least one stage"]="Selecione pelo menos uma fase",
+["No usable selected stage"]="Não há nenhuma fase selecionada utilizável",
+["Engine unavailable"]="Engine indisponível",
+["Combat damage unavailable"]="Dano de combate indisponível",
+["Claim not confirmed"]="Resgate não confirmado",
+["Checking selected stages..."]="Verificando fases selecionadas...",
+["No Tower tickets"]="Sem ingressos de Tower",
+["Already inside Tower"]="Já está dentro da Tower",
+["Tower manager unavailable"]="Gerenciador da Tower indisponível",
+["Tower entry listener unavailable"]="Listener de entrada da Tower indisponível",
+["Tower entry rejected"]="Entrada na Tower rejeitada",
+["Tower entry not confirmed"]="Entrada na Tower não confirmada",
+["Stopped: start round failed"]="Parado: falha ao iniciar a rodada",
+["Stopped: unsupported weapon"]="Parado: arma não suportada",
+["Stopped: combat timeout"]="Parado: tempo de combate esgotado",
+["Stopped: floor became too slow"]="Parado: o andar ficou lento demais",
+["Stopped: no result confirmed"]="Parado: nenhum resultado confirmado",
+["Waiting for Tower combat"]="Aguardando combate da Tower",
+["Dungeon worker busy"]="Processo de Dungeon ocupado",
+["Waiting for Dungeon combat"]="Aguardando combate da Dungeon",
+["Tower worker busy"]="Processo de Tower ocupado",
+["Open info failed"]="Falha ao abrir informações",
+["Equip callback missing"]="Callback de Equip ausente",
+["Equip callback error"]="Erro no callback de Equip",
+["Equip not confirmed"]="Equipamento não confirmado",
+["Coin"]="Moeda",
+["Ore"]="Minério",
+["Rune"]="Runa",
+["Reward"]="Recompensa",
+["Stage"]="Fase",
+["ore"]="minério",
+["ticket"]="ingresso",
+["max"]="máx.",
+["No rewards replicated"]="Nenhuma recompensa replicada",
+["Paused"]="Pausado",
+["Start round failed"]="Falha ao iniciar a rodada",
+["Attack payload unavailable"]="Payload de ataque indisponível",
+["State refresh failed after ticket entry"]="Falha ao atualizar o estado após entrar com ingresso",
+["Combat timeout after ticket entry"]="Tempo de combate esgotado após entrar com ingresso",
+["Actual floor clear became too slow"]="A conclusão real do andar ficou lenta demais",
+["No authoritative result after one ticket"]="Nenhum resultado autoritativo após um ingresso",
+["%s already best"]="%s já é o melhor",
+["No %s owned"]="Você não possui %s",
+["Equipping %s"]="Equipando %s",
+["Starting Stage_%s"]="Iniciando Fase_%s",
+["Fighting Stage_%s"]="Lutando na Fase_%s",
+["Collecting Stage_%s"]="Coletando na Fase_%s",
+["Completed Stage_%s • %s ore"]="Fase_%s concluída • %s minério",
+["Stage_%s too slow; demoted"]="Fase_%s lenta demais; rebaixada",
+["Start failed: %s"]="Falha ao iniciar: %s",
+["Collect failed: %s"]="Falha ao coletar: %s",
+["Stopped: %s"]="Parado: %s",
+["Paused: %s • toggle OFF/ON to retry"]="Pausado: %s • desligue/ligue o botão para tentar novamente",
+["Using %s"]="Usando %s",
+["Floor %s/%s"]="Andar %s/%s",
+["Complete • ticket %s • max %s"]="Concluído • ingresso %s • máx. %s",
+["Round %s transition failed"]="Falha na transição da Rodada %s",
 ["COMMUNITY"]="Comunidade",
 ["UPDATES"]="Atualizações",
 },
@@ -3686,6 +4611,159 @@ I18N.Packs={
 ["Recovering"]="Récupération",
 ["All selected units reached an accepted Trait."]="Toutes les unités sélectionnées ont obtenu un Trait accepté.",
 ["All selected units reached an accepted Grade."]="Toutes les unités sélectionnées ont obtenu un Grade accepté.",
+["Independent progression workers."]="Processus de progression indépendants.",
+["Auto Train"]="Entraînement automatique",
+["Uses the strongest free train area currently unlocked. No scripted movement."]="Utilise la zone d’entraînement gratuite la plus puissante déjà débloquée. Aucun déplacement scripté.",
+["Buys the cheapest affordable normal Ore Pack, Luck, or Train upgrade."]="Achète l’amélioration normale Ore Pack, Luck ou Train la moins chère abordable.",
+["Equipment"]="Équipement",
+["Automatically keep the strongest equipment equipped."]="Garde automatiquement le meilleur équipement équipé.",
+["Auto Equip Best Sword"]="Équiper automatiquement la meilleure épée",
+["Auto Equip Best Armor"]="Équiper automatiquement la meilleure armure",
+["Auto Equip Best Hat"]="Équiper automatiquement le meilleur chapeau",
+["Equip Status"]="État de l’équipement",
+["Best Equipment"]="Meilleur équipement",
+["Ranks owned gear by Design Power, then Use Power, and equips it through the game's exact Backpack Equip-button callback."]="Classe l’équipement possédé selon Design Power puis Use Power, et l’équipe via le callback exact du bouton Equip du Backpack du jeu.",
+["Free claimable rewards."]="Récompenses gratuites à récupérer.",
+["Auto Index Rewards"]="Récompenses d’index automatiques",
+["Auto Online Rewards"]="Récompenses en ligne automatiques",
+["Forge"]="Forge",
+["Normal filtered forging or strongest-ore forging."]="Forge normale filtrée ou forge avec le minerai le plus puissant.",
+["Auto Forge"]="Forge automatique",
+["Filtered normal forging."]="Forge normale avec filtres.",
+["Forge Types"]="Types de forge",
+["Ore Rarities"]="Raretés des minerais",
+["Only selected ore rarities are allowed."]="Seules les raretés de minerai sélectionnées sont autorisées.",
+["Specific Ores"]="Minerais spécifiques",
+["Shows currently owned ore types. Empty means every owned ore that passes Ore Rarities."]="Affiche les types de minerai possédés. Vide signifie tous les minerais possédés qui passent Ore Rarities.",
+["Refresh Ores"]="Actualiser les minerais",
+["Ore Reserve Per Type"]="Réserve de minerai par type",
+["Auto Forge Best Ore"]="Forger automatiquement le meilleur minerai",
+["Strongest possible legal four-ore recipe."]="La recette valide de quatre minerais la plus puissante possible.",
+["Overrides normal Auto Forge while enabled."]="Lorsqu’il est activé, remplace l’Auto Forge normal.",
+["Best Ore Rule"]="Règle du meilleur minerai",
+["Ignores Ore Rarities, Specific Ores, and Ore Reserve. Uses the strongest available four ore units by Power, then Quality."]="Ignore Ore Rarities, Specific Ores et Ore Reserve. Utilise les quatre unités de minerai disponibles les plus puissantes selon Power puis Quality.",
+["Selling"]="Vente",
+["Equipment and ore selling are fully separate."]="La vente d’équipement et de minerai est entièrement séparée.",
+["Auto Sell Equipment"]="Vente automatique d’équipement",
+["Equipment-only selling."]="Vend uniquement l’équipement.",
+["Equipment Rarities"]="Raretés d’équipement",
+["Empty means sell no equipment. Equipped gear is always protected."]="Vide signifie ne vendre aucun équipement. L’équipement porté est toujours protégé.",
+["Sell Order"]="Ordre de vente",
+["Auto Sell Ores"]="Vente automatique de minerais",
+["Ore-only selling."]="Vend uniquement les minerais.",
+["Empty means sell no ores. Sells one ore unit per confirmed request."]="Vide signifie ne vendre aucun minerai. Vend une unité de minerai par requête confirmée.",
+["Enchant"]="Enchanter",
+["Filtered enchanting or automatic best-equipment enchanting."]="Enchantement filtré ou enchantement automatique du meilleur équipement.",
+["Auto Enchant"]="Enchantement automatique",
+["Enchant allowed equipment with allowed owned runes."]="Enchante l’équipement autorisé avec les runes autorisées possédées.",
+["Rune Rarities"]="Raretés des runes",
+["Specific Runes"]="Runes spécifiques",
+["Shows currently owned runes. Empty means every owned rune that passes Rune Rarities."]="Affiche les runes possédées. Vide signifie toutes les runes possédées qui passent Rune Rarities.",
+["Refresh Runes"]="Actualiser les runes",
+["Auto Enchant Best Equipment"]="Enchanter automatiquement le meilleur équipement",
+["Always targets the strongest equipment that still has an empty rune slot."]="Cible toujours l’équipement le plus puissant ayant encore un emplacement de rune vide.",
+["Overrides filtered Auto Enchant while enabled."]="Lorsqu’il est activé, remplace l’Auto Enchant filtré.",
+["Best Equipment Rule"]="Règle du meilleur équipement",
+["Chooses the highest Design Power equipment with an empty enchant slot, then uses the strongest owned rune that can be afforded. When that item is full, it moves to the next strongest eligible item."]="Choisit l’équipement au Design Power le plus élevé avec un emplacement d’enchantement vide, puis utilise la rune possédée la plus puissante et abordable. Quand l’objet est plein, passe au suivant éligible le plus puissant.",
+["Dungeon"]="Donjon",
+["Original many-stage progression farm."]="Farm de progression original à plusieurs étapes.",
+["Auto Dungeon"]="Donjon automatique",
+["Automatically farms the strongest stage that can actually clear fast, then collects and banks the ore."]="Farme automatiquement l’étape la plus forte pouvant réellement être terminée rapidement, puis collecte et conserve le minerai.",
+["Stage Selection"]="Sélection d’étape",
+["Specific Stages"]="Étapes spécifiques",
+["Used only when Stage Selection is Specific Stages. Serenity tries the highest selected stage first and falls back if it proves too slow."]="Utilisé uniquement lorsque Stage Selection est sur Specific Stages. Serenity essaie d’abord l’étape sélectionnée la plus élevée et redescend si elle est trop lente.",
+["Current Stage"]="Étape actuelle",
+["Dungeon Status"]="État du donjon",
+["Last Reward Delta"]="Dernière variation de récompense",
+["Automatic Stage Selection"]="Sélection automatique d’étape",
+["Uses real combat damage, proves the frontier with actual clears, and demotes stages that take over 10 seconds. No scripted movement."]="Utilise les vrais dégâts de combat, valide la limite avec des réussites réelles et rétrograde les étapes dépassant 10 secondes. Aucun déplacement scripté.",
+["Automatic normal five-floor Tower blocks."]="Blocs normaux automatiques de cinq étages de la tour.",
+["Allowed Stages"]="Étapes autorisées",
+["Last Result"]="Dernier résultat",
+["Tickets"]="Tickets",
+["Automatic Safety"]="Sécurité automatique",
+["Serenity always uses the highest selected stage that is currently unlocked. After a successful run it re-checks progression and automatically promotes to the next selected unlocked stage. A post-entry failure pauses retries without turning the switch off or draining more tickets."]="Serenity utilise toujours l’étape sélectionnée la plus élevée actuellement débloquée. Après une réussite, il revérifie la progression et passe automatiquement à l’étape sélectionnée suivante débloquée. Un échec après l’entrée met les nouvelles tentatives en pause sans désactiver l’interrupteur ni consommer plus de tickets.",
+["Weapon"]="Arme",
+["Armor"]="Armure",
+["Hat"]="Chapeau",
+["Common"]="Commun",
+["UnCommon"]="Peu commun",
+["Rare"]="Rare",
+["Epic"]="Épique",
+["Legendary"]="Légendaire",
+["Mythic"]="Mythique",
+["Eternal"]="Éternel",
+["Secret"]="Secret",
+["Lowest Power First"]="Power le plus faible d’abord",
+["Highest Power First"]="Power le plus élevé d’abord",
+["Automatic"]="Automatique",
+["Auto Highest Unlocked"]="Plus haut débloqué automatiquement",
+["Lowest Allowed"]="Plus bas autorisé",
+["Highest Allowed"]="Plus haut autorisé",
+["Auto"]="Auto",
+["No confirmed reward yet"]="Aucune récompense confirmée pour le moment",
+["No run yet"]="Aucune exécution pour le moment",
+["Ready"]="Prêt",
+["Stopped"]="Arrêté",
+["Selected stages are currently too slow"]="Les étapes sélectionnées sont actuellement trop lentes",
+["No selected stage currently unlocked"]="Aucune étape sélectionnée n’est actuellement débloquée",
+["Select at least one stage"]="Sélectionnez au moins une étape",
+["No usable selected stage"]="Aucune étape sélectionnée utilisable",
+["Engine unavailable"]="Moteur indisponible",
+["Combat damage unavailable"]="Dégâts de combat indisponibles",
+["Claim not confirmed"]="Réclamation non confirmée",
+["Checking selected stages..."]="Vérification des étapes sélectionnées...",
+["No Tower tickets"]="Aucun ticket de Tower",
+["Already inside Tower"]="Déjà dans la Tower",
+["Tower manager unavailable"]="Gestionnaire de Tower indisponible",
+["Tower entry listener unavailable"]="Listener d’entrée de Tower indisponible",
+["Tower entry rejected"]="Entrée dans la Tower refusée",
+["Tower entry not confirmed"]="Entrée dans la Tower non confirmée",
+["Stopped: start round failed"]="Arrêté : échec du démarrage de la manche",
+["Stopped: unsupported weapon"]="Arrêté : arme non prise en charge",
+["Stopped: combat timeout"]="Arrêté : délai de combat dépassé",
+["Stopped: floor became too slow"]="Arrêté : l’étage est devenu trop lent",
+["Stopped: no result confirmed"]="Arrêté : aucun résultat confirmé",
+["Waiting for Tower combat"]="En attente du combat de Tower",
+["Dungeon worker busy"]="Worker Dungeon occupé",
+["Waiting for Dungeon combat"]="En attente du combat de Dungeon",
+["Tower worker busy"]="Worker Tower occupé",
+["Open info failed"]="Échec de l’ouverture des informations",
+["Equip callback missing"]="Callback Equip manquant",
+["Equip callback error"]="Erreur du callback Equip",
+["Equip not confirmed"]="Équipement non confirmé",
+["Coin"]="Pièce",
+["Ore"]="Minerai",
+["Rune"]="Rune",
+["Reward"]="Récompense",
+["Stage"]="Étape",
+["ore"]="minerai",
+["ticket"]="ticket",
+["max"]="max.",
+["No rewards replicated"]="Aucune récompense répliquée",
+["Paused"]="En pause",
+["Start round failed"]="Échec du démarrage de la manche",
+["Attack payload unavailable"]="Payload d’attaque indisponible",
+["State refresh failed after ticket entry"]="Échec de l’actualisation de l’état après l’entrée avec ticket",
+["Combat timeout after ticket entry"]="Délai de combat dépassé après l’entrée avec ticket",
+["Actual floor clear became too slow"]="Le nettoyage réel de l’étage est devenu trop lent",
+["No authoritative result after one ticket"]="Aucun résultat faisant autorité après un ticket",
+["%s already best"]="%s est déjà le meilleur",
+["No %s owned"]="Aucun %s possédé",
+["Equipping %s"]="Équipement de %s",
+["Starting Stage_%s"]="Démarrage de l’Étape_%s",
+["Fighting Stage_%s"]="Combat dans l’Étape_%s",
+["Collecting Stage_%s"]="Collecte dans l’Étape_%s",
+["Completed Stage_%s • %s ore"]="Étape_%s terminée • %s minerai",
+["Stage_%s too slow; demoted"]="Étape_%s trop lente ; rétrogradée",
+["Start failed: %s"]="Échec du démarrage : %s",
+["Collect failed: %s"]="Échec de la collecte : %s",
+["Stopped: %s"]="Arrêté : %s",
+["Paused: %s • toggle OFF/ON to retry"]="En pause : %s • désactivez/réactivez l’interrupteur pour réessayer",
+["Using %s"]="Utilisation de %s",
+["Floor %s/%s"]="Étage %s/%s",
+["Complete • ticket %s • max %s"]="Terminé • ticket %s • max. %s",
+["Round %s transition failed"]="Échec de la transition de la Manche %s",
 ["COMMUNITY"]="Communauté",
 ["UPDATES"]="Mises à jour",
 },
@@ -4196,6 +5274,159 @@ I18N.Packs={
 ["Recovering"]="Wiederherstellung",
 ["All selected units reached an accepted Trait."]="Alle ausgewählten Einheiten haben einen akzeptierten Trait erreicht.",
 ["All selected units reached an accepted Grade."]="Alle ausgewählten Einheiten haben einen akzeptierten Grade erreicht.",
+["Independent progression workers."]="Unabhängige Fortschritts-Worker.",
+["Auto Train"]="Auto-Training",
+["Uses the strongest free train area currently unlocked. No scripted movement."]="Nutzt den stärksten freigeschalteten kostenlosen Trainingsbereich. Keine Skriptbewegung.",
+["Buys the cheapest affordable normal Ore Pack, Luck, or Train upgrade."]="Kauft das günstigste bezahlbare normale Ore-Pack-, Luck- oder Train-Upgrade.",
+["Equipment"]="Ausrüstung",
+["Automatically keep the strongest equipment equipped."]="Rüstet automatisch stets die stärkste Ausrüstung aus.",
+["Auto Equip Best Sword"]="Bestes Schwert automatisch ausrüsten",
+["Auto Equip Best Armor"]="Beste Rüstung automatisch ausrüsten",
+["Auto Equip Best Hat"]="Besten Hut automatisch ausrüsten",
+["Equip Status"]="Ausrüstungsstatus",
+["Best Equipment"]="Beste Ausrüstung",
+["Ranks owned gear by Design Power, then Use Power, and equips it through the game's exact Backpack Equip-button callback."]="Sortiert eigene Ausrüstung nach Design Power und dann Use Power und rüstet sie über den exakten Backpack-Equip-Callback des Spiels aus.",
+["Free claimable rewards."]="Kostenlose abholbare Belohnungen.",
+["Auto Index Rewards"]="Index-Belohnungen automatisch",
+["Auto Online Rewards"]="Online-Belohnungen automatisch",
+["Forge"]="Schmiede",
+["Normal filtered forging or strongest-ore forging."]="Normales gefiltertes Schmieden oder Schmieden mit dem stärksten Erz.",
+["Auto Forge"]="Auto-Schmiede",
+["Filtered normal forging."]="Normales Schmieden mit Filtern.",
+["Forge Types"]="Schmiedetypen",
+["Ore Rarities"]="Erz-Seltenheiten",
+["Only selected ore rarities are allowed."]="Nur ausgewählte Erz-Seltenheiten sind erlaubt.",
+["Specific Ores"]="Bestimmte Erze",
+["Shows currently owned ore types. Empty means every owned ore that passes Ore Rarities."]="Zeigt aktuell eigene Erztypen. Leer bedeutet alle eigenen Erze, die den Ore-Rarities-Filter erfüllen.",
+["Refresh Ores"]="Erze aktualisieren",
+["Ore Reserve Per Type"]="Erzreserve pro Typ",
+["Auto Forge Best Ore"]="Bestes Erz automatisch schmieden",
+["Strongest possible legal four-ore recipe."]="Stärkstes mögliches gültiges Vier-Erz-Rezept.",
+["Overrides normal Auto Forge while enabled."]="Überschreibt bei Aktivierung das normale Auto Forge.",
+["Best Ore Rule"]="Regel für bestes Erz",
+["Ignores Ore Rarities, Specific Ores, and Ore Reserve. Uses the strongest available four ore units by Power, then Quality."]="Ignoriert Ore Rarities, Specific Ores und Ore Reserve. Nutzt die vier stärksten verfügbaren Erze nach Power, dann Quality.",
+["Selling"]="Verkauf",
+["Equipment and ore selling are fully separate."]="Ausrüstungs- und Erzverkauf sind vollständig getrennt.",
+["Auto Sell Equipment"]="Ausrüstung automatisch verkaufen",
+["Equipment-only selling."]="Verkauft nur Ausrüstung.",
+["Equipment Rarities"]="Ausrüstungs-Seltenheiten",
+["Empty means sell no equipment. Equipped gear is always protected."]="Leer bedeutet keine Ausrüstung verkaufen. Ausgerüstete Gegenstände sind immer geschützt.",
+["Sell Order"]="Verkaufsreihenfolge",
+["Auto Sell Ores"]="Erze automatisch verkaufen",
+["Ore-only selling."]="Verkauft nur Erze.",
+["Empty means sell no ores. Sells one ore unit per confirmed request."]="Leer bedeutet keine Erze verkaufen. Verkauft eine Erzeinheit pro bestätigter Anfrage.",
+["Enchant"]="Verzaubern",
+["Filtered enchanting or automatic best-equipment enchanting."]="Gefiltertes Verzaubern oder automatisches Verzaubern der besten Ausrüstung.",
+["Auto Enchant"]="Auto-Verzaubern",
+["Enchant allowed equipment with allowed owned runes."]="Verzaubert erlaubte Ausrüstung mit erlaubten eigenen Runen.",
+["Rune Rarities"]="Runen-Seltenheiten",
+["Specific Runes"]="Bestimmte Runen",
+["Shows currently owned runes. Empty means every owned rune that passes Rune Rarities."]="Zeigt aktuell eigene Runen. Leer bedeutet alle eigenen Runen, die den Rune-Rarities-Filter erfüllen.",
+["Refresh Runes"]="Runen aktualisieren",
+["Auto Enchant Best Equipment"]="Beste Ausrüstung automatisch verzaubern",
+["Always targets the strongest equipment that still has an empty rune slot."]="Wählt immer die stärkste Ausrüstung mit noch freiem Runenplatz.",
+["Overrides filtered Auto Enchant while enabled."]="Überschreibt bei Aktivierung das gefilterte Auto Enchant.",
+["Best Equipment Rule"]="Regel für beste Ausrüstung",
+["Chooses the highest Design Power equipment with an empty enchant slot, then uses the strongest owned rune that can be afforded. When that item is full, it moves to the next strongest eligible item."]="Wählt die Ausrüstung mit höchstem Design Power und freiem Verzauberungsplatz und nutzt dann die stärkste eigene bezahlbare Rune. Ist der Gegenstand voll, wird der nächststärkere geeignete gewählt.",
+["Dungeon"]="Dungeon",
+["Original many-stage progression farm."]="Ursprüngliche mehrstufige Fortschrittsfarm.",
+["Auto Dungeon"]="Auto-Dungeon",
+["Automatically farms the strongest stage that can actually clear fast, then collects and banks the ore."]="Farmt automatisch die stärkste Stufe, die tatsächlich schnell geschafft werden kann, sammelt danach das Erz und sichert es.",
+["Stage Selection"]="Stufenauswahl",
+["Specific Stages"]="Bestimmte Stufen",
+["Used only when Stage Selection is Specific Stages. Serenity tries the highest selected stage first and falls back if it proves too slow."]="Wird nur verwendet, wenn Stage Selection auf Specific Stages steht. Serenity testet zuerst die höchste gewählte Stufe und weicht bei zu langsamer Stufe nach unten aus.",
+["Current Stage"]="Aktuelle Stufe",
+["Dungeon Status"]="Dungeon-Status",
+["Last Reward Delta"]="Letzte Belohnungsänderung",
+["Automatic Stage Selection"]="Automatische Stufenauswahl",
+["Uses real combat damage, proves the frontier with actual clears, and demotes stages that take over 10 seconds. No scripted movement."]="Nutzt echten Kampfschaden, bestätigt die Grenze durch echte Abschlüsse und stuft Stufen über 10 Sekunden herab. Keine Skriptbewegung.",
+["Automatic normal five-floor Tower blocks."]="Automatische normale Fünf-Etagen-Turmblöcke.",
+["Allowed Stages"]="Erlaubte Stufen",
+["Last Result"]="Letztes Ergebnis",
+["Tickets"]="Tickets",
+["Automatic Safety"]="Automatische Sicherheit",
+["Serenity always uses the highest selected stage that is currently unlocked. After a successful run it re-checks progression and automatically promotes to the next selected unlocked stage. A post-entry failure pauses retries without turning the switch off or draining more tickets."]="Serenity nutzt immer die höchste ausgewählte und aktuell freigeschaltete Stufe. Nach einem erfolgreichen Lauf wird der Fortschritt erneut geprüft und automatisch zur nächsten ausgewählten freigeschalteten Stufe gewechselt. Ein Fehler nach dem Eintritt pausiert weitere Versuche, ohne den Schalter auszuschalten oder weitere Tickets zu verbrauchen.",
+["Weapon"]="Waffe",
+["Armor"]="Rüstung",
+["Hat"]="Hut",
+["Common"]="Gewöhnlich",
+["UnCommon"]="Ungewöhnlich",
+["Rare"]="Selten",
+["Epic"]="Episch",
+["Legendary"]="Legendär",
+["Mythic"]="Mythisch",
+["Eternal"]="Ewig",
+["Secret"]="Geheim",
+["Lowest Power First"]="Niedrigste Power zuerst",
+["Highest Power First"]="Höchste Power zuerst",
+["Automatic"]="Automatisch",
+["Auto Highest Unlocked"]="Automatisch höchste freigeschaltete",
+["Lowest Allowed"]="Niedrigste erlaubte",
+["Highest Allowed"]="Höchste erlaubte",
+["Auto"]="Auto",
+["No confirmed reward yet"]="Noch keine bestätigte Belohnung",
+["No run yet"]="Noch kein Lauf",
+["Ready"]="Bereit",
+["Stopped"]="Gestoppt",
+["Selected stages are currently too slow"]="Die ausgewählten Stufen sind derzeit zu langsam",
+["No selected stage currently unlocked"]="Derzeit ist keine ausgewählte Stufe freigeschaltet",
+["Select at least one stage"]="Wähle mindestens eine Stufe",
+["No usable selected stage"]="Keine nutzbare ausgewählte Stufe",
+["Engine unavailable"]="Engine nicht verfügbar",
+["Combat damage unavailable"]="Kampfschaden nicht verfügbar",
+["Claim not confirmed"]="Abholung nicht bestätigt",
+["Checking selected stages..."]="Ausgewählte Stufen werden geprüft...",
+["No Tower tickets"]="Keine Tower-Tickets",
+["Already inside Tower"]="Bereits im Tower",
+["Tower manager unavailable"]="Tower-Manager nicht verfügbar",
+["Tower entry listener unavailable"]="Tower-Eintritts-Listener nicht verfügbar",
+["Tower entry rejected"]="Tower-Eintritt abgelehnt",
+["Tower entry not confirmed"]="Tower-Eintritt nicht bestätigt",
+["Stopped: start round failed"]="Gestoppt: Runde konnte nicht gestartet werden",
+["Stopped: unsupported weapon"]="Gestoppt: nicht unterstützte Waffe",
+["Stopped: combat timeout"]="Gestoppt: Kampf-Zeitlimit überschritten",
+["Stopped: floor became too slow"]="Gestoppt: Etage wurde zu langsam",
+["Stopped: no result confirmed"]="Gestoppt: kein Ergebnis bestätigt",
+["Waiting for Tower combat"]="Warten auf Tower-Kampf",
+["Dungeon worker busy"]="Dungeon-Worker beschäftigt",
+["Waiting for Dungeon combat"]="Warten auf Dungeon-Kampf",
+["Tower worker busy"]="Tower-Worker beschäftigt",
+["Open info failed"]="Info konnte nicht geöffnet werden",
+["Equip callback missing"]="Equip-Callback fehlt",
+["Equip callback error"]="Fehler im Equip-Callback",
+["Equip not confirmed"]="Ausrüsten nicht bestätigt",
+["Coin"]="Münze",
+["Ore"]="Erz",
+["Rune"]="Rune",
+["Reward"]="Belohnung",
+["Stage"]="Stufe",
+["ore"]="Erz",
+["ticket"]="Ticket",
+["max"]="max.",
+["No rewards replicated"]="Keine Belohnungen repliziert",
+["Paused"]="Pausiert",
+["Start round failed"]="Runde konnte nicht gestartet werden",
+["Attack payload unavailable"]="Angriffs-Payload nicht verfügbar",
+["State refresh failed after ticket entry"]="Statusaktualisierung nach Ticket-Eintritt fehlgeschlagen",
+["Combat timeout after ticket entry"]="Kampf-Zeitlimit nach Ticket-Eintritt überschritten",
+["Actual floor clear became too slow"]="Tatsächlicher Etagenabschluss wurde zu langsam",
+["No authoritative result after one ticket"]="Kein autoritatives Ergebnis nach einem Ticket",
+["%s already best"]="%s ist bereits das Beste",
+["No %s owned"]="Kein %s im Besitz",
+["Equipping %s"]="%s wird ausgerüstet",
+["Starting Stage_%s"]="Stufe_%s wird gestartet",
+["Fighting Stage_%s"]="Kampf in Stufe_%s",
+["Collecting Stage_%s"]="Sammeln in Stufe_%s",
+["Completed Stage_%s • %s ore"]="Stufe_%s abgeschlossen • %s Erz",
+["Stage_%s too slow; demoted"]="Stufe_%s zu langsam; herabgestuft",
+["Start failed: %s"]="Start fehlgeschlagen: %s",
+["Collect failed: %s"]="Sammeln fehlgeschlagen: %s",
+["Stopped: %s"]="Gestoppt: %s",
+["Paused: %s • toggle OFF/ON to retry"]="Pausiert: %s • Schalter AUS/EIN zum erneuten Versuch",
+["Using %s"]="Verwende %s",
+["Floor %s/%s"]="Etage %s/%s",
+["Complete • ticket %s • max %s"]="Fertig • Ticket %s • max. %s",
+["Round %s transition failed"]="Übergang zu Runde %s fehlgeschlagen",
 ["COMMUNITY"]="Community",
 ["UPDATES"]="Updates",
 },
@@ -4706,10 +5937,1891 @@ I18N.Packs={
 ["Recovering"]="Восстановление",
 ["All selected units reached an accepted Trait."]="Все выбранные юниты получили допустимый Trait.",
 ["All selected units reached an accepted Grade."]="Все выбранные юниты получили допустимый Grade.",
+["Independent progression workers."]="Независимые процессы прогресса.",
+["Auto Train"]="Автотренировка",
+["Uses the strongest free train area currently unlocked. No scripted movement."]="Использует самую сильную открытую бесплатную зону тренировки. Без движения скриптом.",
+["Buys the cheapest affordable normal Ore Pack, Luck, or Train upgrade."]="Покупает самое дешёвое доступное обычное улучшение Ore Pack, Luck или Train.",
+["Equipment"]="Снаряжение",
+["Automatically keep the strongest equipment equipped."]="Автоматически оставляет надетым самое сильное снаряжение.",
+["Auto Equip Best Sword"]="Автоэкипировка лучшего меча",
+["Auto Equip Best Armor"]="Автоэкипировка лучшей брони",
+["Auto Equip Best Hat"]="Автоэкипировка лучшей шляпы",
+["Equip Status"]="Статус экипировки",
+["Best Equipment"]="Лучшее снаряжение",
+["Ranks owned gear by Design Power, then Use Power, and equips it through the game's exact Backpack Equip-button callback."]="Сортирует имеющееся снаряжение по Design Power, затем по Use Power, и надевает его через точный callback кнопки Equip в Backpack игры.",
+["Free claimable rewards."]="Бесплатные награды, доступные для получения.",
+["Auto Index Rewards"]="Автонаграды Index",
+["Auto Online Rewards"]="Автонаграды за онлайн",
+["Forge"]="Кузница",
+["Normal filtered forging or strongest-ore forging."]="Обычная ковка с фильтрами или ковка из самой сильной руды.",
+["Auto Forge"]="Автоковка",
+["Filtered normal forging."]="Обычная ковка с фильтрами.",
+["Forge Types"]="Типы ковки",
+["Ore Rarities"]="Редкость руды",
+["Only selected ore rarities are allowed."]="Разрешены только выбранные редкости руды.",
+["Specific Ores"]="Определённая руда",
+["Shows currently owned ore types. Empty means every owned ore that passes Ore Rarities."]="Показывает типы имеющейся руды. Пусто означает всю вашу руду, прошедшую фильтр Ore Rarities.",
+["Refresh Ores"]="Обновить руду",
+["Ore Reserve Per Type"]="Запас руды на тип",
+["Auto Forge Best Ore"]="Автоковка из лучшей руды",
+["Strongest possible legal four-ore recipe."]="Самый сильный допустимый рецепт из четырёх единиц руды.",
+["Overrides normal Auto Forge while enabled."]="При включении заменяет обычный Auto Forge.",
+["Best Ore Rule"]="Правило лучшей руды",
+["Ignores Ore Rarities, Specific Ores, and Ore Reserve. Uses the strongest available four ore units by Power, then Quality."]="Игнорирует Ore Rarities, Specific Ores и Ore Reserve. Использует четыре самые сильные доступные единицы руды по Power, затем Quality.",
+["Selling"]="Продажа",
+["Equipment and ore selling are fully separate."]="Продажа снаряжения и руды полностью разделена.",
+["Auto Sell Equipment"]="Автопродажа снаряжения",
+["Equipment-only selling."]="Продаёт только снаряжение.",
+["Equipment Rarities"]="Редкость снаряжения",
+["Empty means sell no equipment. Equipped gear is always protected."]="Пусто означает не продавать снаряжение. Надетые предметы всегда защищены.",
+["Sell Order"]="Порядок продажи",
+["Auto Sell Ores"]="Автопродажа руды",
+["Ore-only selling."]="Продаёт только руду.",
+["Empty means sell no ores. Sells one ore unit per confirmed request."]="Пусто означает не продавать руду. Продаёт по одной единице руды на подтверждённый запрос.",
+["Enchant"]="Зачарование",
+["Filtered enchanting or automatic best-equipment enchanting."]="Зачарование с фильтрами или автоматическое зачарование лучшего снаряжения.",
+["Auto Enchant"]="Автозачарование",
+["Enchant allowed equipment with allowed owned runes."]="Зачаровывает разрешённое снаряжение разрешёнными имеющимися рунами.",
+["Rune Rarities"]="Редкость рун",
+["Specific Runes"]="Определённые руны",
+["Shows currently owned runes. Empty means every owned rune that passes Rune Rarities."]="Показывает имеющиеся руны. Пусто означает все ваши руны, прошедшие фильтр Rune Rarities.",
+["Refresh Runes"]="Обновить руны",
+["Auto Enchant Best Equipment"]="Автозачарование лучшего снаряжения",
+["Always targets the strongest equipment that still has an empty rune slot."]="Всегда выбирает самое сильное снаряжение, где ещё есть пустой слот руны.",
+["Overrides filtered Auto Enchant while enabled."]="При включении заменяет Auto Enchant с фильтрами.",
+["Best Equipment Rule"]="Правило лучшего снаряжения",
+["Chooses the highest Design Power equipment with an empty enchant slot, then uses the strongest owned rune that can be afforded. When that item is full, it moves to the next strongest eligible item."]="Выбирает снаряжение с наибольшим Design Power и пустым слотом зачарования, затем использует самую сильную доступную по цене имеющуюся руну. Когда предмет заполнен, переходит к следующему сильнейшему подходящему предмету.",
+["Dungeon"]="Подземелье",
+["Original many-stage progression farm."]="Оригинальный фарм прогресса по множеству этапов.",
+["Auto Dungeon"]="Автоподземелье",
+["Automatically farms the strongest stage that can actually clear fast, then collects and banks the ore."]="Автоматически фармит самый сильный этап, который реально можно быстро пройти, затем собирает и сохраняет руду.",
+["Stage Selection"]="Выбор этапа",
+["Specific Stages"]="Определённые этапы",
+["Used only when Stage Selection is Specific Stages. Serenity tries the highest selected stage first and falls back if it proves too slow."]="Используется только когда Stage Selection = Specific Stages. Serenity сначала пробует самый высокий выбранный этап и переходит ниже, если он слишком медленный.",
+["Current Stage"]="Текущий этап",
+["Dungeon Status"]="Статус подземелья",
+["Last Reward Delta"]="Последнее изменение награды",
+["Automatic Stage Selection"]="Автоматический выбор этапа",
+["Uses real combat damage, proves the frontier with actual clears, and demotes stages that take over 10 seconds. No scripted movement."]="Использует реальный боевой урон, подтверждает границу настоящими прохождениями и понижает этапы дольше 10 секунд. Без движения скриптом.",
+["Automatic normal five-floor Tower blocks."]="Автоматические обычные блоки башни по пять этажей.",
+["Allowed Stages"]="Разрешённые этапы",
+["Last Result"]="Последний результат",
+["Tickets"]="Билеты",
+["Automatic Safety"]="Автоматическая безопасность",
+["Serenity always uses the highest selected stage that is currently unlocked. After a successful run it re-checks progression and automatically promotes to the next selected unlocked stage. A post-entry failure pauses retries without turning the switch off or draining more tickets."]="Serenity всегда использует самый высокий выбранный и уже открытый этап. После успешного прохождения прогресс проверяется снова, и система автоматически переходит к следующему выбранному открытому этапу. Ошибка после входа ставит повторы на паузу, не выключая переключатель и не расходуя дополнительные билеты.",
+["Weapon"]="Оружие",
+["Armor"]="Броня",
+["Hat"]="Шляпа",
+["Common"]="Обычный",
+["UnCommon"]="Необычный",
+["Rare"]="Редкий",
+["Epic"]="Эпический",
+["Legendary"]="Легендарный",
+["Mythic"]="Мифический",
+["Eternal"]="Вечный",
+["Secret"]="Секретный",
+["Lowest Power First"]="Сначала минимальная Power",
+["Highest Power First"]="Сначала максимальная Power",
+["Automatic"]="Автоматически",
+["Auto Highest Unlocked"]="Авто: самый высокий открытый",
+["Lowest Allowed"]="Самый низкий разрешённый",
+["Highest Allowed"]="Самый высокий разрешённый",
+["Auto"]="Авто",
+["No confirmed reward yet"]="Подтверждённой награды пока нет",
+["No run yet"]="Запусков пока нет",
+["Ready"]="Готово",
+["Stopped"]="Остановлено",
+["Selected stages are currently too slow"]="Выбранные этапы сейчас слишком медленные",
+["No selected stage currently unlocked"]="Сейчас ни один выбранный этап не открыт",
+["Select at least one stage"]="Выберите хотя бы один этап",
+["No usable selected stage"]="Нет подходящего выбранного этапа",
+["Engine unavailable"]="Движок недоступен",
+["Combat damage unavailable"]="Боевой урон недоступен",
+["Claim not confirmed"]="Получение не подтверждено",
+["Checking selected stages..."]="Проверка выбранных этапов...",
+["No Tower tickets"]="Нет билетов Tower",
+["Already inside Tower"]="Уже внутри Tower",
+["Tower manager unavailable"]="Менеджер Tower недоступен",
+["Tower entry listener unavailable"]="Слушатель входа в Tower недоступен",
+["Tower entry rejected"]="Вход в Tower отклонён",
+["Tower entry not confirmed"]="Вход в Tower не подтверждён",
+["Stopped: start round failed"]="Остановлено: не удалось начать раунд",
+["Stopped: unsupported weapon"]="Остановлено: оружие не поддерживается",
+["Stopped: combat timeout"]="Остановлено: превышено время боя",
+["Stopped: floor became too slow"]="Остановлено: этаж стал слишком медленным",
+["Stopped: no result confirmed"]="Остановлено: результат не подтверждён",
+["Waiting for Tower combat"]="Ожидание боя Tower",
+["Dungeon worker busy"]="Процесс Dungeon занят",
+["Waiting for Dungeon combat"]="Ожидание боя Dungeon",
+["Tower worker busy"]="Процесс Tower занят",
+["Open info failed"]="Не удалось открыть информацию",
+["Equip callback missing"]="Отсутствует callback Equip",
+["Equip callback error"]="Ошибка callback Equip",
+["Equip not confirmed"]="Экипировка не подтверждена",
+["Coin"]="Монета",
+["Ore"]="Руда",
+["Rune"]="Руна",
+["Reward"]="Награда",
+["Stage"]="Этап",
+["ore"]="руда",
+["ticket"]="билет",
+["max"]="макс.",
+["No rewards replicated"]="Награды не реплицированы",
+["Paused"]="Пауза",
+["Start round failed"]="Не удалось начать раунд",
+["Attack payload unavailable"]="Payload атаки недоступен",
+["State refresh failed after ticket entry"]="Не удалось обновить состояние после входа по билету",
+["Combat timeout after ticket entry"]="Время боя истекло после входа по билету",
+["Actual floor clear became too slow"]="Фактическое прохождение этажа стало слишком медленным",
+["No authoritative result after one ticket"]="Нет подтверждённого результата после одного билета",
+["%s already best"]="%s уже лучшее",
+["No %s owned"]="Нет %s в наличии",
+["Equipping %s"]="Экипировка: %s",
+["Starting Stage_%s"]="Запуск Этап_%s",
+["Fighting Stage_%s"]="Бой на Этап_%s",
+["Collecting Stage_%s"]="Сбор на Этап_%s",
+["Completed Stage_%s • %s ore"]="Этап_%s завершён • %s руды",
+["Stage_%s too slow; demoted"]="Этап_%s слишком медленный; понижен",
+["Start failed: %s"]="Ошибка запуска: %s",
+["Collect failed: %s"]="Ошибка сбора: %s",
+["Stopped: %s"]="Остановлено: %s",
+["Paused: %s • toggle OFF/ON to retry"]="Пауза: %s • выключите/включите переключатель для повтора",
+["Using %s"]="Используется %s",
+["Floor %s/%s"]="Этаж %s/%s",
+["Complete • ticket %s • max %s"]="Готово • билет %s • макс. %s",
+["Round %s transition failed"]="Ошибка перехода раунда %s",
 ["COMMUNITY"]="Сообщество",
 ["UPDATES"]="Обновления",
 },
 }
+return I18N
+)
+        if equipType and equipName and pack[equipType] then return pack[equipType]..' → '..equipName end
+        local bestType=source:match('^(.-) already best
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if bestType and pack[bestType] then return ltfFormat('%s already best',pack[bestType]) or source end
+        local noType=source:match('^No (.-) owned
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if noType and pack[noType] then return ltfFormat('No %s owned',pack[noType]) or source end
+        local equipping=source:match('^Equipping (.+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if equipping then return ltfFormat('Equipping %s',equipping) or source end
+        local stageOnly=source:match('^Stage_(%d+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if stageOnly and pack.Stage then return pack.Stage..'_'..stageOnly end
+        local stageLabel=source:match('^Stage (%d+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if stageLabel and pack.Stage then return pack.Stage..' '..stageLabel end
+        local starting=source:match('^Starting Stage_(%d+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if starting then return ltfFormat('Starting Stage_%s',starting) or source end
+        local fighting=source:match('^Fighting Stage_(%d+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if fighting then return ltfFormat('Fighting Stage_%s',fighting) or source end
+        local collecting=source:match('^Collecting Stage_(%d+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if collecting then return ltfFormat('Collecting Stage_%s',collecting) or source end
+        local doneStage,doneOre=source:match('^Completed Stage_(%d+) • ([%d][%d,%.]*) ore
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if doneStage then return ltfFormat('Completed Stage_%s • %s ore',doneStage,doneOre) or source end
+        local slowStage=source:match('^Stage_(%d+) too slow; demoted
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if slowStage then return ltfFormat('Stage_%s too slow; demoted',slowStage) or source end
+        local startFail=source:match('^Start failed: (.+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if startFail then return ltfFormat('Start failed: %s',self:T(startFail)) or source end
+        local collectFail=source:match('^Collect failed: (.+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if collectFail then return ltfFormat('Collect failed: %s',self:T(collectFail)) or source end
+        local stoppedReason=source:match('^Stopped: (.+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if stoppedReason then return ltfFormat('Stopped: %s',self:T(stoppedReason)) or source end
+        local pausedReason=source:match('^Paused: (.-) • toggle OFF/ON to retry
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if pausedReason then return ltfFormat('Paused: %s • toggle OFF/ON to retry',self:T(pausedReason)) or source end
+        local using=source:match('^Using (.+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if using then return ltfFormat('Using %s',using) or source end
+        local floorNow,floorMax=source:match('^Floor (%d+)/(%d+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if floorNow then return ltfFormat('Floor %s/%s',floorNow,floorMax) or source end
+        local ticketDelta,maxRound=source:match('^Complete • ticket ([%-]?[%d][%d,%.]*) • max ([%d][%d,%.]*)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if ticketDelta then return ltfFormat('Complete • ticket %s • max %s',ticketDelta,maxRound) or source end
+        local roundNumber=source:match('^Round (%d+) transition failed
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if roundNumber then return ltfFormat('Round %s transition failed',roundNumber) or source end
+        local towerBlock,rewardText=source:match('^(%d+%-%d+) • (.+)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+        if towerBlock and rewardText then
+            local parts={}
+            for part in (rewardText..' • '):gmatch('(.-) • ') do
+                local label,n=part:match('^(.-) x([%d][%d,%.]*)
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
+return I18N
+)
+                if label and n and pack[label] then parts[#parts+1]=pack[label]..' x'..n else parts[#parts+1]=part end
+            end
+            return towerBlock..' • '..table.concat(parts,' • ')
+        end
+        -- END LOOT TO FORGE DYNAMIC LOCALIZATION
+        -- BEGIN ANIME DICE DYNAMIC LOCALIZATION
+        -- Translate only dictionary-backed Anime Dice status fragments. Unknown names/values stay canonical.
+        if source:find(' • ',1,true) then
+            local parts={}
+            local changed=false
+            for part in (source..' • '):gmatch('(.-) • ') do
+                local translated=pack[part]
+                if not translated then
+                    local n,label=part:match('^([%d][%d,%.]*) (.+)$')
+                    if n and label and pack[label] then
+                        translated=n..' '..pack[label]
+                    else
+                        local label2,n2=part:match('^(.-) ([%d][%d,%.]*)$')
+                        if label2 and n2 and pack[label2] then translated=pack[label2]..' '..n2 end
+                    end
+                end
+                if translated then changed=true;parts[#parts+1]=translated else parts[#parts+1]=part end
+            end
+            if changed then return table.concat(parts,' • ') end
+        end
+        local sold=source:match('^Sold (.+)$')
+        if sold and pack.Sold then return pack.Sold..' '..sold end
+        local floor=source:match('^Floor (%d+)$')
+        if floor and pack.Floor then return pack.Floor..' '..floor end
+        local number,suffix=source:match('^([%d][%d,%.]*) (.+)$')
+        if number and suffix and pack[suffix] then return number..' '..pack[suffix] end
+        -- END ANIME DICE DYNAMIC LOCALIZATION
+        if source:find(' / ',1,true) then
+            local parts={}; for part in (source..' / '):gmatch('(.-) / ') do parts[#parts+1]=pack[part] or part end
+            return table.concat(parts,' / ')
+        end
+        return source
+    end
+    function self:Refresh()
+        for _,binding in pairs(self.Bindings) do binding.Render() end
+    end
+    function self:Set(selection)
+        self.Selection='English'
+        for _,name in ipairs(I18N.Options) do if name==selection then self.Selection=name end end
+        self:Refresh()
+    end
+    function self:Detect(locale)
+        self.Detected=locale
+        -- Explicit user choice; Roblox locale never changes the selected language.
+    end
+    function self:Bind(object,property)
+        local binding={Source=object[property],Last=nil,Font=object.Font,Wrapped=object.TextWrapped,Truncate=object.TextTruncate}
+        local id={};self.Bindings[id]=binding
+        function binding.Render()
+            if self.Destroyed then return end
+            -- Roblox may defer property events: capture a pending canonical write before refreshing.
+            if binding.Last~=nil and object[property]~=binding.Last then binding.Source=object[property] end
+            binding.Last=self:T(binding.Source)
+            if object[property]~=binding.Last then object[property]=binding.Last end
+            -- SourceSans provides Roblox's fallback glyph handling, including Thai.
+            object.Font=self:Language()=='th' and Enum.Font.SourceSans or binding.Font
+            if property=='Text' then
+                local translated=binding.Last~=binding.Source
+                object.TextWrapped=translated or binding.Wrapped
+                object.TextTruncate=translated and Enum.TextTruncate.None or binding.Truncate
+            end
+        end
+        binding.Change=object:GetPropertyChangedSignal(property):Connect(function()
+            if object[property]==binding.Last then return end
+            binding.Source=object[property];binding.Render()
+        end)
+        binding.Destroy=object.Destroying:Connect(function()
+            binding.Change:Disconnect();binding.Destroy:Disconnect();self.Bindings[id]=nil
+        end)
+        binding.Render()
+    end
+    function self:Destroy()
+        self.Destroyed=true
+        for _,b in pairs(self.Bindings) do b.Change:Disconnect();b.Destroy:Disconnect() end
+        self.Bindings={}
+    end
+    self:Set(selection)
+    return self
+end
 return I18N
 
 end)()
