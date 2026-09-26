@@ -31,6 +31,7 @@ Serenity Hub is made to stay simple to use and easy to come back to. Open it wit
 - **Roll Anime to Fight!**
 - **Mine a Mountain**
 - **Lift a Cube**
+- **+1 Loot to Forge**
 
 ---
 
