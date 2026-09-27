@@ -67,27 +67,142 @@ if not fn then
     error("[SERENITY HUB] Loader compile failed: "..tostring(err),0)
 end
 
--- Copy the community invite once after successful loader execution.
--- The marker is shared by games in this executor's filesystem.
+-- Run the selected Serenity payload first.
 local results=table.pack(fn())
--- Shared idle protection: one connection per session, no polling or notifications.
+
+-- ============================================================
+-- SHARED ANTI-AFK
+--
+-- Ride A Pet compatibility rule:
+--   NEVER acquire VirtualUser in Ride A Pet.
+-- Live isolation proved that merely acquiring VirtualUser can cause
+-- stolen eggs to be returned.
+--
+-- Ride A Pet:
+--   executor-native mousemoverel pulse every 60 seconds.
+--
+-- Other games:
+--   legacy VirtualUser Idled handler.
+--
+-- Re-execution:
+--   one runtime owner; old worker/connection is stopped first.
+-- ============================================================
 pcall(function()
     local env=(type(getgenv)=="function" and getgenv()) or _G
-    local key="__SERENITY_IDLE_CONNECTION"
-    local old=env[key]
-    if old then pcall(function() old:Disconnect() end) end
-    env[key]=nil
-    local player=game:GetService("Players").LocalPlayer
-    if not player then return end
-    local virtualUser=game:GetService("VirtualUser")
-    env[key]=player.Idled:Connect(function()
+
+    -- Stop the new shared runtime from a previous execution.
+    local oldRuntime=env.__SERENITY_IDLE_RUNTIME
+    if type(oldRuntime)=="table" then
+        oldRuntime.Alive=false
+
+        if oldRuntime.Connection then
+            pcall(function()
+                oldRuntime.Connection:Disconnect()
+            end)
+        end
+    end
+
+    -- Backward compatibility: disconnect the old loader's legacy connection.
+    local oldLegacy=env.__SERENITY_IDLE_CONNECTION
+    if oldLegacy then
         pcall(function()
-            virtualUser:CaptureController()
-            virtualUser:ClickButton2(Vector2.new(0,0))
+            oldLegacy:Disconnect()
         end)
-    end)
+    end
+    env.__SERENITY_IDLE_CONNECTION=nil
+
+    local runtime={
+        Alive=true,
+        Connection=nil,
+        Mode=nil,
+    }
+    env.__SERENITY_IDLE_RUNTIME=runtime
+
+    local player=game:GetService("Players").LocalPlayer
+    if not player then
+        runtime.Alive=false
+        return
+    end
+
+    if isRideAPet then
+        -- IMPORTANT:
+        -- Do not call game:GetService("VirtualUser") anywhere in this branch.
+
+        local function findExecutorFunction(name)
+            local direct=rawget(env,name)
+            if type(direct)=="function" then
+                return direct
+            end
+
+            direct=rawget(_G,name)
+            if type(direct)=="function" then
+                return direct
+            end
+
+            local okEnv,callerEnv=pcall(function()
+                return getfenv and getfenv()
+            end)
+
+            if okEnv
+                and type(callerEnv)=="table"
+                and type(callerEnv[name])=="function" then
+                return callerEnv[name]
+            end
+
+            return nil
+        end
+
+        local mouseMove=findExecutorFunction("mousemoverel")
+
+        if not mouseMove then
+            -- Compatibility wins over forcing an unsafe fallback.
+            runtime.Mode="unsupported"
+            return
+        end
+
+        runtime.Mode="mousemoverel"
+
+        task.spawn(function()
+            -- Match the validated AA1 cadence.
+            task.wait(60)
+
+            while runtime.Alive
+                and env.__SERENITY_IDLE_RUNTIME==runtime do
+
+                pcall(mouseMove,1,0)
+                task.wait(0.03)
+                pcall(mouseMove,-1,0)
+
+                task.wait(60)
+            end
+        end)
+
+        return
+    end
+
+    -- Existing universal behavior for games that have not shown a conflict.
+    local virtualUser=game:GetService("VirtualUser")
+    runtime.Mode="VirtualUser"
+
+    runtime.Connection=
+        player.Idled:Connect(function()
+            if not runtime.Alive
+                or env.__SERENITY_IDLE_RUNTIME~=runtime then
+                return
+            end
+
+            pcall(function()
+                virtualUser:CaptureController()
+                virtualUser:ClickButton2(Vector2.new(0,0))
+            end)
+        end)
+
+    -- Keep legacy key populated for compatibility with anything that inspects it.
+    env.__SERENITY_IDLE_CONNECTION=runtime.Connection
 end)
 
+-- Copy the community invite once after successful loader execution.
+-- The marker is shared by games in this executor's filesystem.
 pcall(function()
     local invite="https://discord.gg/pWPs7428wE"
     local env=(type(getgenv)=="function" and getgenv()) or _G
@@ -110,4 +225,5 @@ pcall(function()
         pcall(writefile,marker,invite)
     end
 end)
+
 return table.unpack(results,1,results.n)
