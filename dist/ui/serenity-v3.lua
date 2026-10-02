@@ -85,27 +85,31 @@ local function startPresence(app,manifest)
 
 end
 
--- A startup-only invite: at least 30 seconds between notices, shared across games.
+-- Startup Discord invite: at most once every 24 hours, shared across games.
+-- The root loader uses this same timestamp marker, preventing duplicate copies in one execution.
 local function showDiscord(app)
     local window=app and (app.Window or app)
     if not window or type(window.NotifyDiscord)~="function" then return end
+
     local env=(type(getgenv)=="function" and getgenv()) or _G
     local now=os.time()
-    local last=tonumber(env.__SERENITY_DISCORD_NOTICE_AT) or 0
+    local cooldown=24*60*60
     local path="SerenityHub/discord-notice-at.txt"
+    local last=tonumber(env.__SERENITY_DISCORD_NOTICE_AT) or 0
+
     if type(readfile)=="function" then
         local ok,value=pcall(readfile,path)
-        if ok then last=math.max(last,tonumber(value) or 0) end
+        if ok then
+            last=math.max(last,tonumber(value) or 0)
+        end
     end
+
     if last>now then last=now end
-    if now-last<30 then return end
-    env.__SERENITY_DISCORD_NOTICE_AT=now
-    if type(writefile)=="function" then
-        if type(makefolder)=="function" then pcall(makefolder,"SerenityHub") end
-        pcall(writefile,path,tostring(now))
-    end
+    if now-last<cooldown then return end
+
     local invite="https://discord.gg/pWPs7428wE"
     local providers={setclipboard,toclipboard,type(syn)=="table" and syn.write_clipboard or false}
+
     for i=1,3 do
         local copy=providers[i]
         if type(copy)=="function" then
@@ -116,6 +120,14 @@ local function showDiscord(app)
             end
         end
     end
+
+    env.__SERENITY_DISCORD_NOTICE_AT=now
+
+    if type(writefile)=="function" then
+        if type(makefolder)=="function" then pcall(makefolder,"SerenityHub") end
+        pcall(writefile,path,tostring(now))
+    end
+
     window:NotifyDiscord()
 end
 
