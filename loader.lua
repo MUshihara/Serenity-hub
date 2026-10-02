@@ -201,28 +201,41 @@ pcall(function()
     env.__SERENITY_IDLE_CONNECTION=runtime.Connection
 end)
 
--- Copy the community invite once after successful loader execution.
--- The marker is shared by games in this executor's filesystem.
+-- Copy the community invite at most once every 24 hours.
+-- This shares the same timestamp marker as the V3 UI, so one execution cannot copy twice.
 pcall(function()
     local invite="https://discord.gg/pWPs7428wE"
     local env=(type(getgenv)=="function" and getgenv()) or _G
-    local key="__SERENITY_DISCORD_COPIED"
-    if env[key] then return end
-    local marker="SerenityHub/discord-invite-copied.txt"
+    local now=os.time()
+    local cooldown=24*60*60
+    local marker="SerenityHub/discord-notice-at.txt"
+    local last=tonumber(env.__SERENITY_DISCORD_NOTICE_AT) or 0
+
     if type(readfile)=="function" then
         local ok,value=pcall(readfile,marker)
-        if ok and value==invite then env[key]=true; return end
+        if ok then
+            last=math.max(last,tonumber(value) or 0)
+        end
     end
+
+    if last>now then last=now end
+    if now-last<cooldown then return end
+
     local copy=type(setclipboard)=="function" and setclipboard
         or type(toclipboard)=="function" and toclipboard
         or (type(syn)=="table" and type(syn.write_clipboard)=="function" and syn.write_clipboard)
+
     if not copy then return end
+
     local ok,result=pcall(copy,invite)
     if not ok or result==false then return end
-    env[key]=true
-    if type(writefile)=="function" and type(readfile)=="function" then
+
+    env.__SERENITY_DISCORD_COPIED=true
+    env.__SERENITY_DISCORD_NOTICE_AT=now
+
+    if type(writefile)=="function" then
         if type(makefolder)=="function" then pcall(makefolder,"SerenityHub") end
-        pcall(writefile,marker,invite)
+        pcall(writefile,marker,tostring(now))
     end
 end)
 
