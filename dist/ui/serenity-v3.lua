@@ -131,17 +131,6 @@ local function showDiscord(app)
     window:NotifyDiscord()
 end
 
--- Keep the optional in-game active-user counter paused.
--- Gameplay SetLive updates and website presence reporting remain active.
-local function pauseActiveCount(app)
-    if type(app)~="table" then return end
-    local window=app.Window or app
-    if type(window)=="table" and type(window.SetActiveCount)=="function" then
-        pcall(window.SetActiveCount,window,nil)
-        window.SetActiveCount=function() return false end
-    end
-end
-
 local Serenity={Version="3.2.0",APIVersion=3}
 function Serenity.Detect()
     return module("dist/ui/serenity-v3-legacy.lua").Detect()
@@ -156,7 +145,6 @@ function Serenity.Build(manifest,options)
     else
         app=module("dist/ui/serenity-v3-legacy.lua").Build(manifest,options)
     end
-    pauseActiveCount(app)
     pcall(startPresence,app,manifest)
     pcall(showDiscord,app)
     return app
