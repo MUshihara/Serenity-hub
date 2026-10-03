@@ -131,6 +131,26 @@ local function showDiscord(app)
     window:NotifyDiscord()
 end
 
+-- Temporary performance isolation: pause in-game live rendering only.
+-- Gameplay controls and website presence reporting remain active.
+local function pauseLiveDisplays(app)
+    if type(app)~="table" then return end
+    local window=app.Window or app
+    local function paused() return false end
+    app.LiveUpdatesPaused=true
+    if type(app.SetLive)=="function" then app.SetLive=paused end
+    if type(window)=="table" then
+        window.LiveUpdatesPaused=true
+        if type(window.SetLive)=="function" then window.SetLive=paused end
+        if type(window.SetActiveCount)=="function" then
+            pcall(window.SetActiveCount,window,nil)
+            window.SetActiveCount=paused
+        end
+        if type(window.Adapter)=="table" then window.Adapter.SetLive=paused end
+    end
+    if type(app.Adapter)=="table" then app.Adapter.SetLive=paused end
+end
+
 local Serenity={Version="3.2.0",APIVersion=3}
 function Serenity.Detect()
     return module("dist/ui/serenity-v3-legacy.lua").Detect()
@@ -145,6 +165,7 @@ function Serenity.Build(manifest,options)
     else
         app=module("dist/ui/serenity-v3-legacy.lua").Build(manifest,options)
     end
+    pauseLiveDisplays(app)
     pcall(startPresence,app,manifest)
     pcall(showDiscord,app)
     return app
