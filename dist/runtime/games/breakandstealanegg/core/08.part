@@ -1,0 +1,767 @@
+r.Position
+- surface.point
+local horizontal =
+Vector3.new(
+delta.X,
+0,
+delta.Z
+).Magnitude
+local vertical =
+math.abs(delta.Y)
+return horizontal
+<= CONFIG.TREADMILL_HOLD_MAX_HORIZONTAL
+and vertical
+<= CONFIG.TREADMILL_HOLD_MAX_VERTICAL,
+horizontal,
+vertical
+end
+local function waitOnTreadmillForGlobalRarest(
+treadmill,
+surface
+)
+setState(
+"WAIT_ON_TREADMILL_FOR_RAREST"
+)
+local announcedWaiting = false
+local lastHoldCheck = 0
+log(
+"TREADMILL_HOLD_BEGIN",
+"treadmill="
+.. safeName(treadmill),
+"surface="
+.. safeName(
+surface
+and surface.part
+or nil
+),
+"action=stay_until_target_exists"
+)
+while R.Active do
+local now =
+os.clock()
+if now - lastHoldCheck
+>= CONFIG.TREADMILL_HOLD_CHECK_INTERVAL then
+lastHoldCheck = now
+local held,
+horizontal,
+vertical =
+treadmillHoldVerified(
+surface
+)
+if not held then
+log(
+"TREADMILL_HOLD_LOST",
+"horizontal="
+.. string.format(
+"%.2f",
+horizontal
+),
+"vertical="
+.. string.format(
+"%.2f",
+vertical
+),
+"action=reenter_treadmill"
+)
+return nil,
+"treadmill_lost"
+end
+end
+local best,
+targetKind,
+alternate =
+bestGlobalRarestTarget()
+if best then
+if targetKind
+== "carried" then
+setState(
+"GLOBAL_RAREST_CARRIED"
+)
+logCarrier(
+"GLOBAL_RAREST_CARRIED",
+best
+)
+if alternate then
+logPickup(
+"BEST_EXPOSED_ALTERNATE",
+alternate
+)
+end
+else
+setState(
+"GLOBAL_RAREST_FOUND"
+)
+ensurePickupStage(best)
+logPickup(
+"GLOBAL_RAREST",
+best
+)
+if alternate then
+logCarrier(
+"BEST_CARRIED_ALTERNATE",
+alternate
+)
+end
+end
+log(
+"TREADMILL_TARGET_FOUND",
+"kind="
+.. tostring(
+targetKind
+),
+"stillOnTreadmill=true",
+"NEXT_ACTION=EXIT_TREADMILL"
+)
+return best,
+targetKind
+== "carried"
+and "carried"
+or "found"
+end
+if not announcedWaiting then
+announcedWaiting = true
+log(
+"GLOBAL_RAREST=<none>",
+"action=STAY_ON_TREADMILL_UNTIL_TARGET"
+)
+end
+task.wait(
+CONFIG.EXPOSED_WAIT_POLL
+)
+end
+return nil,
+"stopped"
+end
+local function modelBounds(inst)
+if typeof(inst) ~= "Instance" then
+return nil, nil
+end
+if inst:IsA("Model") then
+local ok, cf, size =
+pcall(
+inst.GetBoundingBox,
+inst
+)
+if ok then
+return cf, size
+end
+end
+if inst:IsA("BasePart") then
+return inst.CFrame, inst.Size
+end
+local minV = nil
+local maxV = nil
+for _, part in ipairs(
+inst:GetDescendants()
+) do
+if part:IsA("BasePart") then
+local p = part.Position
+local half = part.Size * 0.5
+local lo = p - half
+local hi = p + half
+minV =
+minV
+and Vector3.new(
+math.min(minV.X, lo.X),
+math.min(minV.Y, lo.Y),
+math.min(minV.Z, lo.Z)
+)
+or lo
+maxV =
+maxV
+and Vector3.new(
+math.max(maxV.X, hi.X),
+math.max(maxV.Y, hi.Y),
+math.max(maxV.Z, hi.Z)
+)
+or hi
+end
+end
+if minV and maxV then
+local center =
+(minV + maxV) * 0.5
+return CFrame.new(center),
+maxV - minV
+end
+return nil, nil
+end
+local function redScore(part, baseCenter)
+if not part:IsA("BasePart")
+or not part.Parent then
+return nil
+end
+local full =
+string.lower(
+safeName(part)
+)
+-- Avoid confusing treadmill decorations for the Safe Zone line.
+if full:find("treadmill", 1, true)
+or full:find("spike", 1, true) then
+return nil
+end
+local n =
+string.lower(part.Name)
+local c = part.Color
+local looksRed =
+c.R >= 0.72
+and c.G <= 0.40
+and c.B <= 0.40
+local long =
+math.max(
+part.Size.X,
+part.Size.Z
+)
+local thin =
+math.min(
+part.Size.X,
+part.Size.Z
+)
+local score = 0
+if looksRed then
+score += 220
+end
+if n:find("safe", 1, true) then
+score += 180
+end
+if n:find("zone", 1, true) then
+score += 100
+end
+if n:find("line", 1, true) then
+score += 120
+end
+if n:find("border", 1, true)
+or n:find("boundary", 1, true)
+or n:find("edge", 1, true) then
+score += 100
+end
+if long >= 20 then
+score += 70
+end
+if long >= 40 then
+score += 50
+end
+if thin <= 6 then
+score += 50
+end
+if part.Size.Y <= 5 then
+score += 30
+end
+if baseCenter then
+local d =
+(Vector3.new(
+part.Position.X,
+0,
+part.Position.Z
+) - Vector3.new(
+baseCenter.X,
+0,
+baseCenter.Z
+)).Magnitude
+if d <= CONFIG.SAFE_LINE_SEARCH_RADIUS then
+score +=
+math.max(
+0,
+90 - d * 0.45
+)
+else
+score -= 200
+end
+end
+if not looksRed
+and score < 220 then
+return nil
+end
+return score
+end
+local function findOwnSafeLine(base)
+local baseCF =
+select(1, modelBounds(base))
+local center =
+baseCF and baseCF.Position
+or R.HomeCFrame
+and R.HomeCFrame.Position
+or nil
+local best = nil
+local bestScore = -math.huge
+local function consider(part)
+local score =
+redScore(
+part,
+center
+)
+if score
+and score > bestScore then
+best = part
+bestScore = score
+end
+end
+-- Prefer parts belonging to our own base.
+if base then
+if base:IsA("BasePart") then
+consider(base)
+end
+for _, inst in ipairs(
+base:GetDescendants()
+) do
+if inst:IsA("BasePart") then
+consider(inst)
+end
+end
+end
+-- Fallback: search physically around own base in case the red
+-- boundary is parented outside Base_X.
+if center and not best then
+for _, inst in ipairs(
+workspace:GetDescendants()
+) do
+if inst:IsA("BasePart") then
+local p =
+Vector3.new(
+inst.Position.X,
+0,
+inst.Position.Z
+)
+local c =
+Vector3.new(
+center.X,
+0,
+center.Z
+)
+if (p - c).Magnitude
+<= CONFIG.SAFE_LINE_SEARCH_RADIUS then
+consider(inst)
+end
+end
+end
+end
+return best, bestScore
+end
+local function fallbackBoundaryPoints(base, r)
+local cf, size =
+modelBounds(base)
+if not cf or not size then
+return nil
+end
+local center = cf.Position
+local outward =
+Vector3.new(
+r.Position.X - center.X,
+0,
+r.Position.Z - center.Z
+)
+if outward.Magnitude < 0.1 then
+outward =
+Vector3.new(
+cf.LookVector.X,
+0,
+cf.LookVector.Z
+)
+end
+if outward.Magnitude < 0.1 then
+outward = Vector3.new(0, 0, 1)
+end
+outward = outward.Unit
+local localDir =
+cf:VectorToObjectSpace(outward)
+local halfX =
+math.max(
+size.X * 0.5,
+1
+)
+local halfZ =
+math.max(
+size.Z * 0.5,
+1
+)
+local tx =
+math.abs(localDir.X) > 0.001
+and halfX / math.abs(localDir.X)
+or math.huge
+local tz =
+math.abs(localDir.Z) > 0.001
+and halfZ / math.abs(localDir.Z)
+or math.huge
+local edgeDist =
+math.min(tx, tz)
+if edgeDist == math.huge then
+return nil
+end
+local edge =
+center + outward * edgeDist
+local y =
+math.max(
+r.Position.Y,
+center.Y + 3
+)
+local outside =
+Vector3.new(
+edge.X,
+y,
+edge.Z
+)
++ outward
+* CONFIG.SAFE_LINE_OUTSIDE_OFFSET
+local inside =
+Vector3.new(
+edge.X,
+y,
+edge.Z
+)
+- outward
+* CONFIG.SAFE_LINE_INSIDE_OFFSET
+return outside,
+inside,
+"base_bounds",
+nil
+end
+local function safeLinePoints(base, r)
+local line, score =
+findOwnSafeLine(base)
+local baseCF =
+select(1, modelBounds(base))
+local baseCenter =
+baseCF and baseCF.Position
+or R.HomeCFrame
+and R.HomeCFrame.Position
+or nil
+if line and baseCenter then
+local inward =
+Vector3.new(
+baseCenter.X - line.Position.X,
+0,
+baseCenter.Z - line.Position.Z
+)
+if inward.Magnitude > 0.1 then
+inward = inward.Unit
+local y =
+math.max(
+line.Position.Y + 3,
+r.Position.Y
+)
+local linePoint =
+Vector3.new(
+line.Position.X,
+y,
+line.Position.Z
+)
+local outside =
+linePoint
+- inward
+* CONFIG.SAFE_LINE_OUTSIDE_OFFSET
+local inside =
+linePoint
++ inward
+* CONFIG.SAFE_LINE_INSIDE_OFFSET
+return outside,
+inside,
+"red_line",
+line,
+score
+end
+end
+return fallbackBoundaryPoints(
+base,
+r
+)
+end
+local function safeZoneTweenAndConfirm()
+setState("SAFEZONE_LINE_RETURN")
+local base, baseScore =
+findOwnedBaseObject()
+local r = root()
+if not base or not r then
+log(
+"SAFEZONE_ROUTE_FAILED",
+"reason=no_base_or_root"
+)
+return false
+end
+local outside,
+inside,
+method,
+line,
+lineScore =
+safeLinePoints(
+base,
+r
+)
+if not outside or not inside then
+log(
+"SAFEZONE_ROUTE_FAILED",
+"reason=no_boundary_points"
+)
+return false
+end
+local banked = false
+local bankConnection = nil
+local remote =
+ReplicatedStorage:FindFirstChild(
+"AnimalBankedRemote"
+)
+if remote
+and remote:IsA("RemoteEvent") then
+bankConnection =
+remote.OnClientEvent:Connect(
+function(...)
+banked = true
+log(
+"ANIMAL_BANKED_REMOTE",
+"argsCount="
+.. tostring(
+select("#", ...)
+)
+)
+end
+)
+end
+-- Stage 1: teleport to the egg-field side just BEFORE the line.
+pcall(function()
+r.AssemblyLinearVelocity =
+Vector3.zero
+r.AssemblyAngularVelocity =
+Vector3.zero
+r.CFrame =
+CFrame.lookAt(
+outside,
+inside
+)
+end)
+log(
+"SAFEZONE_BEFORE_LINE",
+"method=" .. tostring(method),
+"base=" .. safeName(base),
+"baseScore="
+.. tostring(baseScore),
+"line="
+.. safeName(line),
+"lineScore="
+.. tostring(lineScore),
+"outside="
+.. tostring(outside),
+"inside="
+.. tostring(inside)
+)
+RunService.Heartbeat:Wait()
+task.wait(
+CONFIG.SAFE_LINE_TELEPORT_SETTLE
+)
+-- Stage 2: cross the boundary by tweening instead of teleporting
+-- directly into the Safe Zone.
+local tween =
+TweenService:Create(
+r,
+TweenInfo.new(
+CONFIG.SAFE_LINE_TWEEN_SECONDS,
+Enum.EasingStyle.Linear,
+Enum.EasingDirection.Out
+),
+{
+CFrame =
+CFrame.lookAt(
+inside,
+inside
++ (
+inside - outside
+).Unit
+)
+}
+)
+log(
+"SAFEZONE_TWEEN_START",
+"seconds="
+.. tostring(
+CONFIG.SAFE_LINE_TWEEN_SECONDS
+)
+)
+tween:Play()
+local tweenDone = false
+local completedConnection =
+tween.Completed:Connect(
+function()
+tweenDone = true
+end
+)
+local deadline =
+os.clock()
++ CONFIG.SAFE_LINE_CONFIRM_TIMEOUT
+while R.Active
+and os.clock() < deadline do
+if banked then
+log(
+"SAFEZONE_CONFIRMED=AnimalBankedRemote"
+)
+pcall(function()
+completedConnection:Disconnect()
+end)
+if bankConnection then
+pcall(function()
+bankConnection:Disconnect()
+end)
+end
+return true
+end
+if not chaseActive() then
+log(
+"SAFEZONE_CONFIRMED=ChaseStateEnded",
+"tweenDone="
+.. tostring(tweenDone)
+)
+pcall(function()
+completedConnection:Disconnect()
+end)
+if bankConnection then
+pcall(function()
+bankConnection:Disconnect()
+end)
+end
+return true
+end
+task.wait(0.02)
+end
+pcall(function()
+completedConnection:Disconnect()
+end)
+if bankConnection then
+pcall(function()
+bankConnection:Disconnect()
+end)
+end
+log(
+"SAFEZONE_CONFIRM_TIMEOUT",
+"tweenDone="
+.. tostring(tweenDone),
+"ChaseActive="
+.. tostring(
+chaseActive()
+)
+)
+return false
+end
+local function teleportHome()
+setState("RETURN_TO_BASE")
+local base, baseScore =
+findOwnedBaseObject()
+if base then
+local p = positionOf(base)
+if p then
+local r = root()
+if r then
+pcall(function()
+r.AssemblyLinearVelocity = Vector3.zero
+r.AssemblyAngularVelocity = Vector3.zero
+r.CFrame = CFrame.new(
+p + Vector3.new(0, 3, 0)
+)
+end)
+task.wait(CONFIG.HOME_SETTLE)
+log(
+"RETURN_HOME",
+"method=owned_base",
+"path=" .. safeName(base),
+"score=" .. tostring(baseScore)
+)
+return true
+end
+end
+end
+if R.HomeCFrame then
+local r = root()
+if r then
+pcall(function()
+r.AssemblyLinearVelocity = Vector3.zero
+r.AssemblyAngularVelocity = Vector3.zero
+r.CFrame = R.HomeCFrame
+end)
+task.wait(CONFIG.HOME_SETTLE)
+log(
+"RETURN_HOME",
+"method=start_position_fallback"
+)
+return true
+end
+end
+log("RETURN_HOME_FAILED=no base or start position")
+return false
+end
+local function returnHomeAndConfirm()
+local banked = false
+local bankConnection = nil
+local remote =
+ReplicatedStorage:FindFirstChild("AnimalBankedRemote")
+if remote and remote:IsA("RemoteEvent") then
+bankConnection =
+remote.OnClientEvent:Connect(function(...)
+banked = true
+log(
+"ANIMAL_BANKED_REMOTE",
+"argsCount=" .. tostring(select("#", ...))
+)
+end)
+end
+local moved = teleportHome()
+if not moved then
+if bankConnection then
+pcall(function()
+bankConnection:Disconnect()
+end)
+end
+return false
+end
+local deadline =
+os.clock()
++ CONFIG.HOME_CONFIRM_TIMEOUT
+while R.Active and os.clock() < deadline do
+if banked then
+log("HOME_CONFIRMED=AnimalBankedRemote")
+if bankConnection then
+pcall(function()
+bankConnection:Disconnect()
+end)
+end
+return true
+end
+if not chaseActive() then
+log("HOME_CONFIRMED=ChaseStateEnded")
+if bankConnection then
+pcall(function()
+bankConnection:Disconnect()
+end)
+end
+return true
+end
+task.wait(0.05)
+end
+if bankConnection then
+pcall(function()
+bankConnection:Disconnect()
+end)
+end
+log("HOME_CONFIRM_TIMEOUT")
+return false
+end
+-- =========================================================
+-- Guard hit
+-- =========================================================
+local function isRagdolled()
+local c = character()
+local h = humanoid()
+if not c or not h then
+return false
+end
+return c:GetAttribute("Ragdolled") == true
+or h.PlatformStand == true
+or h:GetState() == Enum.HumanoidStateType.Physics
+end
+local function antiRagdollRecover()
+if not CONFIG.ANTI_RAGDOLL then
+return
+end
+local deadline =
+os.clock()
++ CONFIG.ANTI_RAGDOLL_HOLD
+R.RagdollRecoverUntil =
+math.max(
+R.RagdollRecoverUntil or 0,
+deadline
+)
+task.spawn(function()
