@@ -1,0 +1,538 @@
+"HatchAnimal=" .. tostring(egg:GetAttribute("HatchAnimal")),
+"HatchBreakerUserId=" .. tostring(egg:GetAttribute("HatchBreakerUserId")),
+"EggType=" .. tostring(egg:GetAttribute("EggType")),
+}, " ")
+end
+-- =========================================================
+-- Pickaxe
+-- =========================================================
+local function getPickaxe()
+local c = character()
+if c then
+local tool = c:FindFirstChild("Pickaxe")
+if tool and tool:IsA("Tool") then
+return tool
+end
+end
+local backpack = LP:FindFirstChildOfClass("Backpack")
+if backpack then
+local tool = backpack:FindFirstChild("Pickaxe")
+if tool and tool:IsA("Tool") then
+return tool
+end
+end
+return nil
+end
+local function equipPickaxe()
+local tool = getPickaxe()
+if not tool then
+log("ERROR=no Pickaxe tool found")
+return nil
+end
+local c = character()
+local h = humanoid()
+if tool.Parent ~= c and h then
+pcall(function()
+h:EquipTool(tool)
+end)
+task.wait(0.15)
+end
+if tool.Parent ~= c then
+log(
+"ERROR=pickaxe failed to equip",
+"parent=" .. safeName(tool.Parent)
+)
+return nil
+end
+return tool
+end
+local function swingExactEgg(egg)
+if not eggLive(egg) then
+return false
+end
+local tool = equipPickaxe()
+if not tool then
+return false
+end
+if PickaxeController
+and type(PickaxeController.Swing) == "function" then
+local ok, result = pcall(
+PickaxeController.Swing,
+egg
+)
+log(
+"PICKAXE_SWING",
+"method=PickaxeController.Swing",
+"ok=" .. tostring(ok),
+"result=" .. tostring(result),
+eggState(egg)
+)
+return ok and result ~= false
+end
+local ok = pcall(function()
+tool:Activate()
+end)
+log(
+"PICKAXE_SWING",
+"method=Tool.Activate",
+"ok=" .. tostring(ok),
+eggState(egg)
+)
+return ok
+end
+local function breakEgg(egg)
+if not eggLive(egg) then
+return false, "invalid"
+end
+setState("BREAK_EXACT_EGG")
+R.CurrentTask = "Breaking"
+R.CurrentTarget = tostring(egg:GetAttribute("EggType") or egg.Name)
+teleportNear(egg, CONFIG.EGG_APPROACH_DISTANCE)
+log("TARGET_EGG", eggState(egg))
+local deadline = os.clock() + CONFIG.BREAK_TIMEOUT
+local lastHealth = egg:GetAttribute("Health")
+while R.Active
+and SETTINGS.AutoBreak
+and os.clock() < deadline
+and egg.Parent do
+-- Strict priority: a qualifying steal immediately preempts breaking.
+if SETTINGS.AutoSteal then
+local stealTarget = bestGlobalRarestTarget()
+if stealTarget then
+log(
+"BREAK_INTERRUPTED",
+"reason=steal_priority",
+"animal=" .. tostring(stealTarget.animal),
+"rarity=" .. tostring(stealTarget.rarity),
+"value=" .. tostring(stealTarget.value)
+)
+return false, "steal_priority", stealTarget
+end
+end
+-- Demon event is higher priority than both steal and break.
+if SETTINGS.AutoDemon
+and HellEventConfig
+and Workspace:GetAttribute(HellEventConfig.JoinableAttribute or "HellJoinable") == true then
+return false, "demon_priority"
+end
+if egg:GetAttribute("Hatching")
+or egg:GetAttribute("Broken")
+or (tonumber(egg:GetAttribute("Health")) or math.huge) <= 0 then
+R.Stats.Breaks += 1
+log("BREAK_CONFIRMED", eggState(egg))
+return true, "broken"
+end
+if distanceTo(egg) > 8 then
+teleportNear(egg, CONFIG.EGG_APPROACH_DISTANCE)
+end
+swingExactEgg(egg)
+local waitUntil = os.clock() + CONFIG.SWING_INTERVAL
+while R.Active
+and SETTINGS.AutoBreak
+and os.clock() < waitUntil do
+local health = egg:GetAttribute("Health")
+if health ~= lastHealth then
+log(
+"EGG_HEALTH_CHANGED",
+tostring(lastHealth) .. "->" .. tostring(health),
+eggState(egg)
+)
+lastHealth = health
+end
+if SETTINGS.AutoSteal then
+local interruptTarget = bestGlobalRarestTarget()
+if interruptTarget then
+return false, "steal_priority", interruptTarget
+end
+end
+if egg:GetAttribute("Hatching")
+or egg:GetAttribute("Broken")
+or (tonumber(health) or math.huge) <= 0 then
+R.Stats.Breaks += 1
+log("BREAK_CONFIRMED", eggState(egg))
+return true, "broken"
+end
+task.wait(0.05)
+end
+end
+if not SETTINGS.AutoBreak then
+return false, "disabled"
+end
+log("BREAK_TIMEOUT", eggState(egg))
+return false, "timeout"
+end
+-- =========================================================
+-- Wait for hatch result
+-- =========================================================
+local function waitForEggPickup(egg)
+setState("WAIT_FOR_EXPOSED_FROM_EGG")
+local eggPos = positionOf(egg)
+local expectedAnimal = egg:GetAttribute("HatchAnimal")
+local deadline = os.clock() + CONFIG.HATCH_EXPOSE_TIMEOUT
+log(
+"EXPECTED_HATCH",
+"animal=" .. tostring(expectedAnimal),
+"egg=" .. eggState(egg)
+)
+while R.Active and os.clock() < deadline do
+expectedAnimal =
+egg:GetAttribute("HatchAnimal")
+or expectedAnimal
+local bestExact = nil
+local bestNear = nil
+local bestNearDistance = math.huge
+for _, inst in ipairs(
+CollectionService:GetTagged("AnimalPickup")
+) do
+local info = pickupInfo(inst)
+if info then
+local p = info.pos
+local d =
+(eggPos and p)
+and (p - eggPos).Magnitude
+or math.huge
+if expectedAnimal
+and info.animal == tostring(expectedAnimal)
+and d <= 25 then
+bestExact = info
+break
+end
+if d < bestNearDistance and d <= 18 then
+bestNear = info
+bestNearDistance = d
+end
+end
+end
+if bestExact then
+logPickup(
+"EXPOSED_FROM_EGG_EXACT",
+bestExact
+)
+return bestExact
+end
+if bestNear then
+logPickup(
+"EXPOSED_FROM_EGG_NEAR",
+bestNear
+)
+return bestNear
+end
+task.wait(0.10)
+end
+log("EXPOSE_WAIT_TIMEOUT")
+return nil
+end
+-- =========================================================
+-- Steal prompt
+-- =========================================================
+local function normalizeText(s)
+s = tostring(s or "")
+s = s:gsub("<.->", "")
+s = s:gsub("%s+", " ")
+return s:lower()
+end
+local function chaseActive()
+if ChaseState
+and type(ChaseState.IsActive) == "function" then
+local ok, result =
+pcall(
+ChaseState.IsActive,
+LP
+)
+if ok then
+return result == true
+end
+end
+return false
+end
+local function promptMatchesAnimal(prompt, animalName)
+if not prompt
+or not prompt.Parent
+or not prompt:IsA("ProximityPrompt")
+or not prompt.Enabled then
+return false
+end
+local expected = normalizeText(animalName)
+if expected == "" then
+return false
+end
+return normalizeText(prompt.ActionText):find("steal", 1, true) ~= nil
+and normalizeText(prompt.ObjectText):find(expected, 1, true) ~= nil
+end
+-- IMPORTANT:
+-- There can be multiple same-named StealPrompt instances under PromptAnchor.
+-- FindFirstChild can return a stale one. PromptShown gives us the exact live instance.
+local function waitForExactShownPrompt(info, teleportIssuedAt)
+local exactPrompt = nil
+local shownAt = nil
+local connection
+connection =
+ProximityPromptService.PromptShown:Connect(function(prompt)
+if exactPrompt then
+return
+end
+if promptMatchesAnimal(prompt, info.animal) then
+exactPrompt = prompt
+shownAt = os.clock()
+end
+end)
+-- A prompt may already have been shown during the same frame that the
+-- teleport was issued. Check every prompt instance, but only accept an
+-- exact animal match (never a generic/stale prompt).
+local function exactVisiblePrompt()
+for _, inst in ipairs(workspace:GetDescendants()) do
+if inst:IsA("ProximityPrompt")
+and promptMatchesAnimal(inst, info.animal) then
+return inst
+end
+end
+return nil
+end
+local deadline =
+os.clock()
++ CONFIG.STEAL_PROMPT_TIMEOUT
+while R.Active
+and os.clock() < deadline
+and not pickupGone(info.inst) do
+if exactPrompt then
+break
+end
+local visible = exactVisiblePrompt()
+if visible then
+exactPrompt = visible
+shownAt = os.clock()
+break
+end
+task.wait(0.01)
+end
+pcall(function()
+connection:Disconnect()
+end)
+if exactPrompt then
+local readyDelay =
+shownAt - teleportIssuedAt
+log(
+"STEAL_EXACT_PROMPT_READY",
+"animal=" .. info.animal,
+"readyDelay="
+.. string.format("%.4f", readyDelay),
+"object=" .. tostring(exactPrompt.ObjectText)
+)
+end
+return exactPrompt, shownAt
+end
+local function triggerPrompt(prompt)
+if not prompt
+or not prompt.Parent
+or not prompt.Enabled then
+return false
+end
+if type(fireproximityprompt) == "function" then
+local ok = pcall(
+fireproximityprompt,
+prompt
+)
+log(
+"STEAL_PROMPT_FIRE",
+"method=fireproximityprompt",
+"ok=" .. tostring(ok),
+"path=" .. safeName(prompt),
+"object=" .. tostring(prompt.ObjectText)
+)
+return ok
+end
+local ok = pcall(function()
+prompt:InputHoldBegin()
+task.wait(
+math.max(
+prompt.HoldDuration,
+0
+) + 0.05
+)
+prompt:InputHoldEnd()
+end)
+log(
+"STEAL_PROMPT_FIRE",
+"method=InputHold",
+"ok=" .. tostring(ok),
+"path=" .. safeName(prompt),
+"object=" .. tostring(prompt.ObjectText)
+)
+return ok
+end
+local function pickupGone(inst)
+return typeof(inst) ~= "Instance"
+or inst.Parent == nil
+or not CollectionService:HasTag(
+inst,
+"AnimalPickup"
+)
+or inst:GetAttribute("Despawning") == true
+end
+local function stealPickup(info, label)
+if not info or pickupGone(info.inst) then
+return false
+end
+setState(label or "STEAL_PICKUP")
+logPickup("STEAL_TARGET", info)
+for attempt = 1, CONFIG.STEAL_ATTEMPTS do
+if pickupGone(info.inst) then
+-- Removal by itself is not enough proof that WE stole it.
+log(
+"STEAL_TARGET_GONE_BEFORE_CONFIRMED",
+"attempt=" .. attempt,
+"animal=" .. info.animal
+)
+return false
+end
+-- Start listening for the exact PromptShown before movement.
+local shownPrompt = nil
+local shownAt = nil
+local expected = normalizeText(info.animal)
+local shownConnection
+shownConnection =
+ProximityPromptService.PromptShown:Connect(function(prompt)
+if not shownPrompt
+and promptMatchesAnimal(prompt, info.animal) then
+shownPrompt = prompt
+shownAt = os.clock()
+end
+end)
+local teleportIssuedAt = os.clock()
+teleportNear(
+info.inst,
+CONFIG.PICKUP_APPROACH_DISTANCE
+)
+-- Wait for the exact live prompt instance.
+local promptDeadline =
+os.clock()
++ CONFIG.STEAL_PROMPT_TIMEOUT
+while R.Active
+and os.clock() < promptDeadline
+and not pickupGone(info.inst)
+and not shownPrompt do
+-- PromptShown is preferred. Fallback scans every same-named prompt
+-- and accepts only an exact target match.
+for _, inst in ipairs(workspace:GetDescendants()) do
+if inst:IsA("ProximityPrompt")
+and promptMatchesAnimal(inst, info.animal) then
+shownPrompt = inst
+shownAt = os.clock()
+break
+end
+end
+if not shownPrompt then
+task.wait(0.01)
+end
+end
+pcall(function()
+shownConnection:Disconnect()
+end)
+if pickupGone(info.inst) then
+log(
+"STEAL_TARGET_GONE_UNCONFIRMED",
+"attempt=" .. attempt,
+"animal=" .. info.animal
+)
+return false
+end
+if not shownPrompt then
+log(
+"STEAL_PROMPT_NOT_READY",
+"attempt=" .. attempt,
+"animal=" .. info.animal
+)
+task.wait(CONFIG.STEAL_RETRY_INTERVAL)
+continue
+end
+local promptReadyAt =
+shownAt or os.clock()
+local readyDelay =
+promptReadyAt
+- teleportIssuedAt
+log(
+"STEAL_EXACT_PROMPT_READY",
+"attempt=" .. attempt,
+"animal=" .. info.animal,
+"readyDelay="
+.. string.format("%.4f", readyDelay)
+)
+-- This is the key fix from the diagnostic:
+-- a client PromptShown at ~0.01s can occur before the server has
+-- received our new position. Do NOT add a big fixed delay; only wait
+-- until the tiny server-position settle threshold.
+local earliestFireAt =
+teleportIssuedAt
++ CONFIG.STEAL_SERVER_SETTLE
+while R.Active
+and os.clock() < earliestFireAt
+and not pickupGone(info.inst) do
+task.wait(0.005)
+end
+if pickupGone(info.inst) then
+log(
+"STEAL_TARGET_GONE_BEFORE_FIRE",
+"attempt=" .. attempt,
+"animal=" .. info.animal
+)
+return false
+end
+local fireAt = os.clock()
+triggerPrompt(shownPrompt)
+log(
+"STEAL_FIRE_TIMING",
+"attempt=" .. attempt,
+"sinceTeleport="
+.. string.format(
+"%.4f",
+fireAt - teleportIssuedAt
+),
+"sincePrompt="
+.. string.format(
+"%.4f",
+fireAt - promptReadyAt
+)
+)
+-- Authoritative-enough success for this flow:
+-- ChaseState becoming active proves our steal was accepted.
+local confirmDeadline =
+os.clock()
++ CONFIG.STEAL_CONFIRM_TIMEOUT
+local removedAt = nil
+while R.Active
+and os.clock() < confirmDeadline do
+if chaseActive() then
+log(
+"STEAL_CONFIRMED",
+"attempt=" .. attempt,
+"animal=" .. info.animal,
+"confirmation=ChaseState",
+"delay="
+.. string.format(
+"%.4f",
+os.clock() - fireAt
+)
+)
+return true
+end
+if pickupGone(info.inst)
+and not removedAt then
+removedAt = os.clock()
+end
+task.wait(0.01)
+end
+-- If it disappeared, give ChaseState a tiny replication grace period.
+if removedAt then
+local graceDeadline =
+os.clock() + 0.25
+while R.Active
+and os.clock() < graceDeadline do
+if chaseActive() then
+log(
+"STEAL_CONFIRMED",
+"attempt=" .. attempt,
+"animal=" .. info.animal,
+"confirmation=ChaseStateAfterRemoval",
+"delay="
+.. string.format(
+"%.4f",
