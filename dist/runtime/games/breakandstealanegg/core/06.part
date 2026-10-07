@@ -1,0 +1,835 @@
+Vector3.new(
+hit.Position.X,
+0,
+hit.Position.Z
+)
+- Vector3.new(
+boundsCF.Position.X,
+0,
+boundsCF.Position.Z
+)
+).Magnitude
+local score =
+math.min(area, 500)
++ hit.Normal.Y * 300
+- centerDistance * 5
+if part.CanCollide then
+score += 100
+end
+if part.CanTouch then
+score += 100
+end
+if part.Transparency < 1 then
+score += 40
+end
+-- Prefer broad horizontal surfaces over posts/walls.
+if part.Size.Y
+<= math.max(
+part.Size.X,
+part.Size.Z
+) then
+score += 100
+end
+if score > bestScore then
+bestScore = score
+best = {
+part = part,
+point = hit.Position,
+normal = hit.Normal,
+score = score,
+boundsCF = boundsCF,
+boundsSize = boundsSize,
+}
+end
+end
+end
+if best then
+log(
+"TREADMILL_SURFACE_RESOLVED",
+"part="
+.. safeName(best.part),
+"point="
+.. tostring(best.point),
+"surfaceScore="
+.. string.format(
+"%.2f",
+best.score
+)
+)
+end
+return best
+end
+local function treadmillEntryVerified(
+surface,
+r
+)
+if not surface
+or not surface.part
+or not surface.part.Parent
+or not r then
+return false,
+math.huge,
+math.huge
+end
+local horizontal =
+(
+Vector3.new(
+r.Position.X,
+0,
+r.Position.Z
+)
+- Vector3.new(
+surface.point.X,
+0,
+surface.point.Z
+)
+).Magnitude
+local vertical =
+math.abs(
+r.Position.Y
+- surface.point.Y
+)
+return horizontal
+<= CONFIG.TREADMILL_ENTRY_MAX_HORIZONTAL
+and vertical
+<= CONFIG.TREADMILL_ENTRY_MAX_VERTICAL,
+horizontal,
+vertical
+end
+local function treadmillEntryStable(
+surface,
+seconds
+)
+local deadline =
+os.clock() + seconds
+local worstHorizontal = 0
+local worstVertical = 0
+while R.Active
+and os.clock() < deadline do
+local r = root()
+local ok,
+horizontal,
+vertical =
+treadmillEntryVerified(
+surface,
+r
+)
+worstHorizontal =
+math.max(
+worstHorizontal,
+tonumber(horizontal)
+or math.huge
+)
+worstVertical =
+math.max(
+worstVertical,
+tonumber(vertical)
+or math.huge
+)
+if not ok then
+log(
+"TREADMILL_ENTRY_CORRECTED",
+"horizontal="
+.. string.format(
+"%.2f",
+tonumber(horizontal)
+or math.huge
+),
+"vertical="
+.. string.format(
+"%.2f",
+tonumber(vertical)
+or math.huge
+),
+"action=entry_failed"
+)
+return false,
+horizontal,
+vertical
+end
+RunService.Heartbeat:Wait()
+end
+return true,
+worstHorizontal,
+worstVertical
+end
+local function waitForMovementReady(reason)
+local deadline =
+os.clock()
++ CONFIG.MOVEMENT_READY_TIMEOUT
+local stableSince = nil
+local waited = false
+while R.Active
+and os.clock() < deadline do
+local c = character()
+local h = humanoid()
+local r = root()
+if not c or not h or not r then
+stableSince = nil
+waited = true
+task.wait(0.03)
+continue
+end
+local recovering =
+(R.RagdollRecoverUntil or 0)
+> os.clock()
+local ragdolled =
+c:GetAttribute("Ragdolled") == true
+local platform =
+h.PlatformStand == true
+local state =
+h:GetState()
+local physics =
+state
+== Enum.HumanoidStateType.Physics
+local ready =
+not recovering
+and not ragdolled
+and not platform
+and not physics
+if ready then
+if not stableSince then
+stableSince = os.clock()
+end
+if os.clock() - stableSince
+>= CONFIG.MOVEMENT_READY_STABLE then
+if waited then
+log(
+"MOVEMENT_READY",
+"reason="
+.. tostring(reason),
+"stableFor="
+.. string.format(
+"%.2f",
+os.clock() - stableSince
+)
+)
+end
+return true
+end
+else
+stableSince = nil
+waited = true
+end
+task.wait(0.02)
+end
+local c = character()
+local h = humanoid()
+local r = root()
+if c
+and h
+and r
+and h.Health > 0 then
+pcall(function()
+if c:GetAttribute("Ragdolled") == true then
+c:SetAttribute(
+"Ragdolled",
+false
+)
+end
+h.PlatformStand = false
+h.Sit = false
+h.AutoRotate = true
+h:ChangeState(
+Enum.HumanoidStateType.GettingUp
+)
+end)
+log(
+"MOVEMENT_READY_SOFT_RELEASE",
+"reason="
+.. tostring(reason),
+"state="
+.. tostring(
+h:GetState()
+)
+)
+-- Persistent treadmill-entry verification is authoritative.
+return true
+end
+log(
+"MOVEMENT_READY_TIMEOUT",
+"reason="
+.. tostring(reason),
+"recoverUntil="
+.. string.format(
+"%.3f",
+R.RagdollRecoverUntil or 0
+)
+)
+return false
+end
+local function teleportIntoTreadmill()
+setState("ENTER_TREADMILL")
+if not waitForMovementReady(
+"before_treadmill_entry"
+) then
+return false
+end
+local treadmill,
+score,
+base =
+findOwnTreadmill()
+if not treadmill then
+log(
+"TREADMILL_NOT_FOUND",
+"base=" .. safeName(base)
+)
+return false
+end
+local surface =
+resolveTreadmillSurface(
+treadmill
+)
+if not surface then
+log(
+"TREADMILL_SURFACE_NOT_FOUND",
+"path="
+.. safeName(treadmill)
+)
+return false
+end
+for attempt = 1,
+CONFIG.TREADMILL_ENTRY_ATTEMPTS do
+if not R.Active then
+return false
+end
+local c,
+h,
+r =
+waitCharacter()
+if not c or not h or not r then
+return false
+end
+-- Character-derived root height. No fixed treadmill Y coordinate.
+local rootHeight =
+math.max(
+1.5,
+h.HipHeight
++ r.Size.Y * 0.5
++ 0.12
+)
+local targetPosition =
+surface.point
++ Vector3.new(
+0,
+rootHeight,
+0
+)
+local flatLook =
+Vector3.new(
+surface.boundsCF.LookVector.X,
+0,
+surface.boundsCF.LookVector.Z
+)
+if flatLook.Magnitude < 0.1 then
+flatLook =
+Vector3.new(
+0,
+0,
+1
+)
+else
+flatLook = flatLook.Unit
+end
+pcall(function()
+r.AssemblyLinearVelocity =
+Vector3.zero
+r.AssemblyAngularVelocity =
+Vector3.zero
+r.CFrame =
+CFrame.lookAt(
+targetPosition,
+targetPosition
++ flatLook
+)
+end)
+RunService.Heartbeat:Wait()
+RunService.Heartbeat:Wait()
+task.wait(
+CONFIG.TREADMILL_ENTRY_VERIFY_DELAY
+)
+r = root()
+local candidate,
+horizontal,
+vertical =
+treadmillEntryVerified(
+surface,
+r
+)
+if candidate then
+log(
+"TREADMILL_ENTRY_CANDIDATE",
+"attempt="
+.. tostring(attempt),
+"horizontal="
+.. string.format(
+"%.2f",
+horizontal
+),
+"vertical="
+.. string.format(
+"%.2f",
+vertical
+)
+)
+local stable,
+stableHorizontal,
+stableVertical =
+treadmillEntryStable(
+surface,
+CONFIG.TREADMILL_ENTRY_STABLE_SECONDS
+)
+if stable then
+R.LastTreadmillPoint =
+surface.point
+log(
+"TREADMILL_ENTRY_VERIFIED",
+"attempt="
+.. tostring(attempt),
+"treadmill="
+.. safeName(treadmill),
+"surface="
+.. safeName(surface.part),
+"stableSeconds="
+.. tostring(
+CONFIG.TREADMILL_ENTRY_STABLE_SECONDS
+),
+"maxHorizontal="
+.. string.format(
+"%.2f",
+stableHorizontal
+),
+"maxVertical="
+.. string.format(
+"%.2f",
+stableVertical
+)
+)
+task.wait(
+CONFIG.TREADMILL_TOUCH_SETTLE
+)
+return true,
+treadmill,
+surface
+end
+horizontal =
+stableHorizontal
+or horizontal
+vertical =
+stableVertical
+or vertical
+end
+log(
+"TREADMILL_ENTRY_RETRY",
+"attempt="
+.. tostring(attempt),
+"horizontal="
+.. string.format(
+"%.2f",
+tonumber(horizontal)
+or math.huge
+),
+"vertical="
+.. string.format(
+"%.2f",
+tonumber(vertical)
+or math.huge
+)
+)
+task.wait(
+CONFIG.TREADMILL_ENTRY_RETRY_DELAY
+)
+end
+log(
+"TREADMILL_ENTRY_FAILED",
+"action=retry_treadmill_only"
+)
+return false,
+treadmill,
+surface
+end
+local function treadmillBounds(treadmill, part)
+if treadmill
+and treadmill.Parent
+and treadmill:IsA("Model") then
+local ok, cf, size =
+pcall(
+treadmill.GetBoundingBox,
+treadmill
+)
+if ok and cf and size then
+return cf, size
+end
+end
+if part and part.Parent then
+return part.CFrame, part.Size
+end
+return nil, nil
+end
+local function treadmillCleared(boundsCF, boundsSize, r)
+if not boundsCF
+or not boundsSize
+or not r then
+return false, nil
+end
+local localPos =
+boundsCF:PointToObjectSpace(
+r.Position
+)
+-- The treadmill script appears to hold the character close to its
+-- center. We only need to prove the character has genuinely moved
+-- beyond the treadmill footprint before the long pet teleport.
+local halfX = boundsSize.X * 0.5
+local halfZ = boundsSize.Z * 0.5
+local outside =
+math.abs(localPos.X) > halfX + 0.75
+or math.abs(localPos.Z) > halfZ + 0.75
+return outside, localPos
+end
+local function horizontalDistance(a, b)
+return (
+Vector3.new(
+a.X,
+0,
+a.Z
+)
+- Vector3.new(
+b.X,
+0,
+b.Z
+)
+).Magnitude
+end
+local function holdHumanoidDirection(
+h,
+direction,
+seconds
+)
+local started =
+os.clock()
+while R.Active
+and os.clock() - started < seconds do
+pcall(function()
+h:Move(
+direction,
+false
+)
+end)
+RunService.Heartbeat:Wait()
+end
+pcall(function()
+h:Move(
+Vector3.zero,
+false
+)
+end)
+end
+local function surfaceExitChoices(
+surface,
+r
+)
+local part =
+surface.part
+local localPos =
+part.CFrame:PointToObjectSpace(
+r.Position
+)
+local halfX =
+part.Size.X * 0.5
+local halfZ =
+part.Size.Z * 0.5
+local choices = {
+{
+dir = part.CFrame.RightVector,
+edge = halfX - localPos.X,
+label = "+X",
+},
+{
+dir = -part.CFrame.RightVector,
+edge = halfX + localPos.X,
+label = "-X",
+},
+{
+dir = part.CFrame.LookVector,
+edge = halfZ - localPos.Z,
+label = "+Z",
+},
+{
+dir = -part.CFrame.LookVector,
+edge = halfZ + localPos.Z,
+label = "-Z",
+},
+}
+for _, choice in ipairs(choices) do
+choice.dir =
+Vector3.new(
+choice.dir.X,
+0,
+choice.dir.Z
+)
+if choice.dir.Magnitude > 0.1 then
+choice.dir =
+choice.dir.Unit
+end
+end
+table.sort(
+choices,
+function(a, b)
+return a.edge < b.edge
+end
+)
+return choices
+end
+local function surfaceCleared(
+surface,
+r
+)
+local part =
+surface.part
+if not part
+or not part.Parent
+or not r then
+return false,
+nil
+end
+local localPos =
+part.CFrame:PointToObjectSpace(
+r.Position
+)
+local outside =
+math.abs(localPos.X)
+> part.Size.X * 0.5
++ CONFIG.TREADMILL_EXIT_MARGIN
+or math.abs(localPos.Z)
+> part.Size.Z * 0.5
++ CONFIG.TREADMILL_EXIT_MARGIN
+return outside,
+localPos
+end
+local function exitTreadmill(
+treadmill,
+surface
+)
+setState("EXIT_TREADMILL")
+if not waitForMovementReady(
+"before_treadmill_exit"
+) then
+log(
+"TREADMILL_EXIT_FAILED",
+"reason=movement_not_ready"
+)
+return false
+end
+local c,
+h,
+r =
+waitCharacter()
+if not c or not h or not r then
+log(
+"TREADMILL_EXIT_FAILED",
+"reason=no_character"
+)
+return false
+end
+if not surface
+or not surface.part
+or not surface.part.Parent then
+log(
+"TREADMILL_EXIT_FAILED",
+"reason=no_surface"
+)
+return false
+end
+local initialPosition =
+r.Position
+local choices =
+surfaceExitChoices(
+surface,
+r
+)
+if #choices == 0 then
+return false
+end
+log(
+"TREADMILL_EXIT_BEGIN",
+"surface="
+.. safeName(surface.part),
+"position="
+.. tostring(initialPosition),
+"primary="
+.. tostring(
+choices[1].label
+),
+"mode=walk_then_one_jump"
+)
+local function testExit(
+phase,
+choice
+)
+local outside,
+localPos =
+surfaceCleared(
+surface,
+r
+)
+local horizontalMoved =
+horizontalDistance(
+r.Position,
+initialPosition
+)
+log(
+"TREADMILL_EXIT_CHECK",
+"phase=" .. phase,
+"direction="
+.. tostring(choice.label),
+"outside="
+.. tostring(outside),
+"horizontalMoved="
+.. string.format(
+"%.2f",
+horizontalMoved
+),
+"localX="
+.. string.format(
+"%.2f",
+localPos
+and localPos.X
+or 0
+),
+"localZ="
+.. string.format(
+"%.2f",
+localPos
+and localPos.Z
+or 0
+)
+)
+return outside
+and horizontalMoved
+>= CONFIG.TREADMILL_EXIT_MIN_HORIZONTAL
+end
+-- Phase 1: ordinary horizontal walk. No jump.
+holdHumanoidDirection(
+h,
+choices[1].dir,
+CONFIG.TREADMILL_WALK_ONLY_HOLD
+)
+if testExit(
+"walk",
+choices[1]
+) then
+task.wait(
+CONFIG.TREADMILL_EXIT_SETTLE
+)
+log(
+"TREADMILL_EXITED",
+"method=walk",
+"horizontalMoved="
+.. string.format(
+"%.2f",
+horizontalDistance(
+r.Position,
+initialPosition
+)
+)
+)
+return true
+end
+-- Phase 2: ONE jump while holding the SAME edge direction.
+pcall(function()
+h.Sit = false
+h.Jump = true
+h:ChangeState(
+Enum.HumanoidStateType.Jumping
+)
+end)
+holdHumanoidDirection(
+h,
+choices[1].dir,
+CONFIG.TREADMILL_JUMP_FALLBACK_HOLD
+)
+pcall(function()
+h.Jump = false
+end)
+if testExit(
+"single_jump",
+choices[1]
+) then
+task.wait(
+CONFIG.TREADMILL_EXIT_SETTLE
+)
+log(
+"TREADMILL_EXITED",
+"method=single_jump",
+"horizontalMoved="
+.. string.format(
+"%.2f",
+horizontalDistance(
+r.Position,
+initialPosition
+)
+)
+)
+return true
+end
+-- Phase 3: one secondary horizontal edge, NO extra jump.
+if choices[2] then
+holdHumanoidDirection(
+h,
+choices[2].dir,
+CONFIG.TREADMILL_SECOND_EDGE_HOLD
+)
+if testExit(
+"secondary_walk",
+choices[2]
+) then
+task.wait(
+CONFIG.TREADMILL_EXIT_SETTLE
+)
+log(
+"TREADMILL_EXITED",
+"method=secondary_walk",
+"horizontalMoved="
+.. string.format(
+"%.2f",
+horizontalDistance(
+r.Position,
+initialPosition
+)
+)
+)
+return true
+end
+end
+pcall(function()
+h:Move(
+Vector3.zero,
+false
+)
+h.Jump = false
+end)
+log(
+"TREADMILL_EXIT_FAILED",
+"reason=surface_not_cleared",
+"horizontalMoved="
+.. string.format(
+"%.2f",
+horizontalDistance(
+r.Position,
+initialPosition
+)
+)
+)
+return false
+end
+local function treadmillDistanceNow(surface)
+local r = root()
+local point =
+surface
+and surface.point
+or R.LastTreadmillPoint
+if not r or not point then
+return math.huge
+end
+return (r.Position - point).Magnitude
+end
