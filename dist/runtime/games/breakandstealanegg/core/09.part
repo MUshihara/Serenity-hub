@@ -1,0 +1,583 @@
+while R.Active and os.clock() < deadline do
+local c = character()
+local h = humanoid()
+local r = root()
+if c and h then
+-- Clear the client-visible ragdoll state immediately.
+if c:GetAttribute("Ragdolled") == true then
+pcall(function()
+c:SetAttribute("Ragdolled", false)
+end)
+end
+if h.PlatformStand then
+pcall(function()
+h.PlatformStand = false
+end)
+end
+pcall(function()
+h.Sit = false
+h.AutoRotate = true
+h:ChangeState(Enum.HumanoidStateType.GettingUp)
+end)
+end
+if r then
+pcall(function()
+r.AssemblyAngularVelocity = Vector3.zero
+local v = r.AssemblyLinearVelocity
+r.AssemblyLinearVelocity =
+Vector3.new(
+v.X,
+math.max(v.Y, 0),
+v.Z
+)
+end)
+end
+task.wait(CONFIG.ANTI_RAGDOLL_STEP)
+end
+local h = humanoid()
+if h then
+pcall(function()
+h.PlatformStand = false
+h.Sit = false
+h.AutoRotate = true
+h:ChangeState(Enum.HumanoidStateType.Running)
+end)
+end
+if (R.RagdollRecoverUntil or 0)
+<= os.clock() + 0.05 then
+R.RagdollRecoverUntil = 0
+end
+log("ANTI_RAGDOLL_RECOVERY_COMPLETE")
+end)
+end
+local function waitForGuardHit(sourceStage)
+setState("WAIT_FOR_GUARD_HIT")
+log(
+"GUARD_STAGE_REQUEST",
+"stage="
+.. stageLabel(sourceStage),
+"stageIndex="
+.. tostring(
+sourceStage
+and sourceStage.index
+or nil
+),
+"source="
+.. tostring(
+sourceStage
+and sourceStage.source
+or "unknown"
+)
+)
+-- Rush only to the guard belonging to the pickup's SOURCE STAGE.
+local guard =
+teleportToGuard(
+sourceStage
+)
+if not guard then
+log(
+"GUARD_HIT_TIMEOUT",
+"reason=no_same_stage_guard"
+)
+return false
+end
+local c = character()
+local h = humanoid()
+if not c or not h then
+log("GUARD_HIT_TIMEOUT reason=no_character")
+return false
+end
+local latched = false
+local function latch(reason)
+if latched then
+return
+end
+-- Latch BEFORE clearing ragdoll so post-guard flow still triggers.
+latched = true
+log(
+"GUARD_HIT_CONFIRMED",
+"reason=" .. tostring(reason),
+"Ragdolled="
+.. tostring(c:GetAttribute("Ragdolled")),
+"PlatformStand="
+.. tostring(h.PlatformStand),
+"HumanoidState="
+.. tostring(h:GetState())
+)
+antiRagdollRecover()
+end
+local attrConnection =
+c:GetAttributeChangedSignal("Ragdolled"):Connect(function()
+if c:GetAttribute("Ragdolled") == true then
+latch("RagdolledAttribute")
+end
+end)
+local platformConnection =
+h:GetPropertyChangedSignal("PlatformStand"):Connect(function()
+if h.PlatformStand == true then
+latch("PlatformStand")
+end
+end)
+local stateConnection =
+h.StateChanged:Connect(function(_, newState)
+if newState == Enum.HumanoidStateType.Physics then
+latch("PhysicsState")
+end
+end)
+local deadline =
+os.clock()
++ CONFIG.GUARD_HIT_TIMEOUT
+local lastRelock = 0
+while R.Active
+and os.clock() < deadline
+and not latched do
+if isRagdolled() then
+latch("Poll")
+break
+end
+if os.clock() - lastRelock >= CONFIG.GUARD_RELOCK_INTERVAL then
+lastRelock = os.clock()
+if not guard
+or not guard.Parent then
+guard =
+select(
+1,
+findGuardForSourceStage(
+sourceStage
+)
+)
+end
+if guard
+and distanceTo(guard) > CONFIG.GUARD_RELOCK_DISTANCE then
+teleportNear(
+guard,
+CONFIG.GUARD_APPROACH_DISTANCE
+)
+end
+end
+task.wait(0.01)
+end
+pcall(function() attrConnection:Disconnect() end)
+pcall(function() platformConnection:Disconnect() end)
+pcall(function() stateConnection:Disconnect() end)
+if latched then
+-- Do not wait for the ragdoll animation to finish.
+-- The rarest-exposed scan can begin immediately.
+return true
+end
+log("GUARD_HIT_TIMEOUT")
+return false
+end
+-- =========================================================
+-- First-stage acquisition
+-- =========================================================
+local function acquireFirstStageTarget()
+setState("FIRST_STAGE_SCAN")
+local nearby, allNearby =
+bestPickup(
+CONFIG.INITIAL_EXPOSED_RADIUS
+)
+if nearby then
+log(
+"FIRST_STAGE_DECISION=USE_EXISTING_EXPOSED"
+)
+logPickup(
+"FIRST_STAGE_EXPOSED",
+nearby
+)
+return nearby, "existing_exposed"
+end
+log(
+"FIRST_STAGE_DECISION=NO_NEARBY_EXPOSED_BREAK_EGG"
+)
+local egg, d = nearestEgg()
+if not egg then
+log("ERROR=no live BreakableEgg found")
+return nil, "no_egg"
+end
+log(
+"FIRST_STAGE_EGG",
+"distance=" .. string.format("%.2f", d),
+eggState(egg)
+)
+if not breakEgg(egg) then
+return nil, "break_failed"
+end
+local pickup =
+waitForEggPickup(egg)
+if not pickup then
+return nil, "expose_failed"
+end
+return pickup, "broken_egg"
+end
+-- =========================================================
+-- Post-guard target
+-- =========================================================
+local function waitForSameDropped(
+originalInfo,
+dropPosition
+)
+setState("POST_GUARD_SAME_PET_SCAN")
+if not originalInfo then
+log(
+"POST_GUARD_SAME_PET=<none>",
+"reason=no_original_info"
+)
+return nil
+end
+local wantedAnimal =
+normalizeText(
+originalInfo.animal
+)
+local wantedRarity =
+normalizeText(
+originalInfo.rarity
+)
+local originalInst =
+originalInfo.inst
+local originalHatchId =
+originalInfo.hatchId
+local deadline =
+os.clock()
++ CONFIG.SAME_PET_WAIT
+local announced = false
+while R.Active
+and os.clock() < deadline do
+local exactInstance = nil
+local best = nil
+local bestScore = -math.huge
+for _, info in ipairs(
+getPickups(nil)
+) do
+local animalMatches =
+normalizeText(info.animal)
+== wantedAnimal
+if info.inst == originalInst then
+exactInstance = info
+break
+end
+if animalMatches then
+local score = 10000
+if normalizeText(info.rarity)
+== wantedRarity then
+score += 1000
+end
+if originalHatchId ~= nil
+and info.hatchId ~= nil
+and tostring(info.hatchId)
+== tostring(originalHatchId) then
+score += 5000
+end
+local p = info.pos
+if p and dropPosition then
+local d =
+(p - dropPosition).Magnitude
+score -=
+math.min(
+d,
+1000
+) * 10
+else
+score -=
+math.min(
+info.distance or 9999,
+1000
+)
+end
+if score > bestScore then
+bestScore = score
+best = info
+end
+end
+end
+if exactInstance then
+logPickup(
+"POST_GUARD_SAME_PET",
+exactInstance
+)
+log(
+"POST_GUARD_MATCH=EXACT_INSTANCE"
+)
+return exactInstance
+end
+if best then
+logPickup(
+"POST_GUARD_SAME_PET",
+best
+)
+log(
+"POST_GUARD_MATCH=SAME_ANIMAL",
+"wanted="
+.. tostring(
+originalInfo.animal
+),
+"matchScore="
+.. string.format(
+"%.1f",
+bestScore
+)
+)
+return best
+end
+if not announced then
+announced = true
+log(
+"POST_GUARD_WAITING_SAME_PET",
+"animal="
+.. tostring(
+originalInfo.animal
+)
+)
+end
+task.wait(
+CONFIG.SAME_PET_POLL
+)
+end
+log(
+"POST_GUARD_SAME_PET=<none>",
+"animal="
+.. tostring(
+originalInfo.animal
+),
+"action=do_not_switch_pet"
+)
+return nil
+end
+-- =========================================================
+-- Production scheduler helpers
+-- =========================================================
+local function setCurrent(taskName, targetName)
+R.CurrentTask = tostring(taskName or "Idle")
+R.CurrentTarget = tostring(targetName or "None")
+end
+local function demonPlayerAttribute()
+return (HellEventConfig and HellEventConfig.PlayerAttribute) or "InHell"
+end
+local function demonJoinableAttribute()
+return (HellEventConfig and HellEventConfig.JoinableAttribute) or "HellJoinable"
+end
+local function inDemonEvent()
+return LP:GetAttribute(demonPlayerAttribute()) == true
+end
+local function demonJoinable()
+return Workspace:GetAttribute(demonJoinableAttribute()) == true
+end
+local function demonPriorityActive()
+return SETTINGS.AutoDemon
+and (inDemonEvent() or demonJoinable())
+end
+local DemonJoinRemote =
+getRemoteEvent(
+(HellEventConfig and HellEventConfig.JoinRemoteName)
+or "HellJoinRemote"
+)
+local function handleDemonEvent()
+if not SETTINGS.AutoDemon then
+return false
+end
+setCurrent("Demon Event", inDemonEvent() and "Demon King" or "Portal")
+setState("DEMON_EVENT")
+if not inDemonEvent()
+and demonJoinable()
+and SETTINGS.DemonAutoJoin
+and DemonJoinRemote then
+log("DEMON_JOIN_REQUEST")
+pcall(DemonJoinRemote.FireServer, DemonJoinRemote)
+local deadline = os.clock() + 3
+while R.Active
+and SETTINGS.AutoDemon
+and os.clock() < deadline
+and not inDemonEvent() do
+task.wait(0.05)
+end
+end
+if not inDemonEvent() then
+return false
+end
+while R.Active
+and SETTINGS.AutoDemon
+and inDemonEvent() do
+setCurrent("Demon Event", "Demon King")
+if SETTINGS.DemonAutoBoss
+and HellBossController
+and type(HellBossController.CanBatHit) == "function"
+and BatController
+and type(BatController.Swing) == "function" then
+ensureRealBatEquipped()
+local okCan, canHit = pcall(HellBossController.CanBatHit)
+if okCan and canHit then
+local okSwing = pcall(BatController.Swing)
+if okSwing then
+R.Stats.DemonSwings += 1
+end
+end
+end
+task.wait(0.05)
+end
+return true
+end
+local function performStealCycle(rarest)
+if not R.Active
+or not SETTINGS.AutoSteal
+or not rarest then
+return false
+end
+setCurrent(
+"Stealing",
+tostring(rarest.animal)
+.. " · "
+.. tostring(rarest.rarity)
+)
+-- Revalidate locked winner once before movement.
+if rarest.kind == "carrier" then
+if not rarest.player
+or not rarest.player.Parent
+or rarest.player:GetAttribute("Carrying") == nil then
+return false
+end
+else
+if not rarest.inst
+or not rarest.inst.Parent
+or not stealTargetQualifies(rarest) then
+return false
+end
+end
+if rarest.kind == "carrier" then
+local carrierSnapshot = rarest
+rarest = acquireCarriedRarest(carrierSnapshot)
+if not rarest then
+log("AUTO_BAT_ACQUIRE_FAILED", "action=rescan")
+return false
+end
+rarest.kind = "exposed"
+if not rarest.stage then
+rarest.stage = carrierSnapshot.stage
+end
+if not rarest.stage then
+ensurePickupStage(rarest)
+end
+else
+ensurePickupStage(rarest)
+end
+if not rarest
+or not rarest.inst
+or not rarest.inst.Parent then
+return false
+end
+setState("STEAL_LOCKED_TARGET")
+local stealOk = stealPickup(rarest, "SERENITY_STEAL")
+if not stealOk then
+log("STEAL_OUTCOME=FAILED", "animal=" .. tostring(rarest.animal))
+return false
+end
+setState("GUARD_HIT_BEFORE_BASE")
+local guardHit = waitForGuardHit(rarest.stage)
+if not guardHit then
+log("GUARD_HIT_OUTCOME=FAILED", "fallback=instant_base")
+returnHomeAndConfirm()
+return false
+end
+local dropRoot = root()
+local dropPosition = dropRoot and dropRoot.Position or rarest.pos
+task.wait(CONFIG.POST_GUARD_SCAN_DELAY)
+local postGuard = waitForSameDropped(rarest, dropPosition)
+if not postGuard then
+log(
+"POST_GUARD_RESTEAL=NO_SAME_PET",
+"originalAnimal=" .. tostring(rarest.animal)
+)
+return false
+end
+setState("POST_GUARD_RESTEAL")
+if not stealPickup(postGuard, "POST_GUARD_RESTEAL") then
+log("POST_GUARD_RESTEAL=FAILED")
+return false
+end
+setState("INSTANT_BASE_AFTER_RESTEAL")
+local homeOk = returnHomeAndConfirm()
+if not homeOk and chaseActive() then
+local deadline = os.clock() + 4
+while R.Active and chaseActive() and os.clock() < deadline do
+task.wait(0.08)
+end
+if chaseActive() then
+returnHomeAndConfirm()
+end
+end
+if homeOk or not chaseActive() then
+R.Stats.Steals += 1
+log(
+"STEAL_OUTCOME=SUCCESS",
+"animal=" .. tostring(postGuard.animal),
+"rarity=" .. tostring(postGuard.rarity),
+"value=" .. tostring(postGuard.value or rarest.value or 0)
+)
+return true
+end
+return false
+end
+local function nextPriorityAction()
+if demonPriorityActive() then
+return {
+kind = "demon",
+label = "Demon Event",
+}
+end
+if SETTINGS.AutoSteal then
+local stealTarget = bestGlobalRarestTarget()
+if stealTarget then
+return {
+kind = "steal",
+target = stealTarget,
+label = tostring(stealTarget.animal),
+}
+end
+end
+if SETTINGS.AutoBreak then
+local breakTarget = bestBreakEgg()
+if breakTarget then
+return {
+kind = "break",
+target = breakTarget,
+label = breakTarget.eggType,
+}
+end
+end
+return nil
+end
+local function waitOnTreadmillForPriority(treadmill, surface)
+setState("TREADMILL_IDLE")
+setCurrent("Treadmill", "Waiting")
+local lastHoldCheck = 0
+while R.Active do
+local now = os.clock()
+if now - lastHoldCheck >= CONFIG.TREADMILL_HOLD_CHECK_INTERVAL then
+lastHoldCheck = now
+local held, horizontal, vertical = treadmillHoldVerified(surface)
+if not held then
+log(
+"TREADMILL_HOLD_LOST",
+"horizontal=" .. string.format("%.2f", horizontal),
+"vertical=" .. string.format("%.2f", vertical)
+)
+return nil, "treadmill_lost"
+end
+end
+local action = nextPriorityAction()
+if action then
+return action, "action"
+end
+local stillNeedsTreadmill =
+SETTINGS.AutoSteal
+or SETTINGS.AutoBreak
+or SETTINGS.IdleTreadmill
+if not stillNeedsTreadmill then
+return nil, "disabled"
+end
+task.wait(CONFIG.EXPOSED_WAIT_POLL)
+end
+return nil, "stopped"
+end
+local function treadmillPrepForAction()
+local entered, treadmill, surface = teleportIntoTreadmill()
+if not entered then
