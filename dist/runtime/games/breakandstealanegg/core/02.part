@@ -1,0 +1,651 @@
+if module and module:IsA("ModuleScript") then
+return require(module)
+end
+end)
+if ok and type(result) == "table" then
+PickaxeController = result
+end
+end
+do
+local ok, result = pcall(function()
+local shared = ReplicatedStorage:WaitForChild("Shared", 10)
+local module = shared and shared:FindFirstChild("EggRarity")
+if module and module:IsA("ModuleScript") then
+return require(module)
+end
+end)
+if ok and type(result) == "table" then
+EggRarity = result
+end
+end
+do
+local ok, result = pcall(function()
+local shared = ReplicatedStorage:WaitForChild("Shared", 10)
+local module = shared and shared:FindFirstChild("ChaseState")
+if module and module:IsA("ModuleScript") then
+return require(module)
+end
+end)
+if ok and type(result) == "table" then
+ChaseState = result
+end
+end
+-- Additional production modules used by filters, stages, utilities and event automation.
+local EggRewards = nil
+local EggTypeConfig = nil
+local ZonesConfig = nil
+local DemonEventConfig = nil
+local HellEventConfig = nil
+local HellBossController = nil
+local BackpackSellConfig = nil
+local MergeConfig = nil
+local TreadmillUpgradeConfig = nil
+local TrailsConfig = nil
+local PickaxeConfig = nil
+local PlotUpgradeConfig = nil
+local function requireSharedOptional(name)
+local shared = ReplicatedStorage:FindFirstChild("Shared")
+local module = shared and shared:FindFirstChild(name)
+if not module or not module:IsA("ModuleScript") then
+return nil
+end
+local ok, value = pcall(require, module)
+if ok then
+return value
+end
+return nil
+end
+EggRewards = requireSharedOptional("EggRewards")
+EggTypeConfig = requireSharedOptional("EggTypeConfig")
+ZonesConfig = requireSharedOptional("ZonesConfig")
+DemonEventConfig = requireSharedOptional("DemonEventConfig")
+HellEventConfig = requireSharedOptional("HellEventConfig")
+BackpackSellConfig = requireSharedOptional("BackpackSellConfig")
+MergeConfig = requireSharedOptional("MergeConfig")
+TreadmillUpgradeConfig = requireSharedOptional("TreadmillUpgradeConfig")
+TrailsConfig = requireSharedOptional("TrailsConfig")
+PickaxeConfig = requireSharedOptional("PickaxeConfig")
+PlotUpgradeConfig = requireSharedOptional("PlotUpgradeConfig")
+pcall(function()
+local ps = LP:WaitForChild("PlayerScripts", 5)
+local client = ps and ps:FindFirstChild("Client")
+local controllers = client and client:FindFirstChild("Controllers")
+local module = controllers and controllers:FindFirstChild("HellBossController")
+if module and module:IsA("ModuleScript") then
+HellBossController = require(module)
+end
+end)
+local function getRemoteEvent(name)
+local inst = name and ReplicatedStorage:FindFirstChild(name)
+return inst and inst:IsA("RemoteEvent") and inst or nil
+end
+local function getRemoteFunction(name)
+local inst = name and ReplicatedStorage:FindFirstChild(name)
+return inst and inst:IsA("RemoteFunction") and inst or nil
+end
+log(
+"PickaxeController=",
+PickaxeController and "READY" or "FALLBACK_TOOL_ACTIVATE"
+)
+log(
+"EggRarity=",
+EggRarity and "READY" or "FALLBACK_TABLE"
+)
+log(
+"ChaseState=",
+ChaseState and "READY" or "UNAVAILABLE"
+)
+-- =========================================================
+-- Rarity
+-- =========================================================
+local FALLBACK_RARITY = {
+Common = 1,
+Uncommon = 2,
+Rare = 3,
+Epic = 4,
+Legendary = 5,
+Mythic = 6,
+Divine = 7,
+Cosmic = 8,
+Secret = 9,
+Celestial = 10,
+Inferno = 11,
+}
+local function rarityScore(name)
+if type(name) ~= "string" then
+return 0
+end
+if EggRarity and type(EggRarity.IndexOf) == "function" then
+local ok, index = pcall(EggRarity.IndexOf, name)
+if ok and type(index) == "number" then
+return index
+end
+end
+return FALLBACK_RARITY[name] or 0
+end
+-- =========================================================
+-- AnimalPickup selection
+-- =========================================================
+local function stageIndexFromValue(value)
+if value == nil then
+return nil
+end
+if type(value) == "number" then
+return math.floor(value)
+end
+local text =
+tostring(value)
+local n =
+text:match("[Zz][Oo][Nn][Ee][%s_%-]*(%d+)")
+or text:match("[Ss][Tt][Aa][Gg][Ee][%s_%-]*(%d+)")
+or text:match("^%s*(%d+)%s*$")
+return n and tonumber(n) or nil
+end
+local function stageIndexFromName(name)
+if name == nil then
+return nil
+end
+return stageIndexFromValue(
+tostring(name)
+)
+end
+local function findZoneBuildsContainer()
+if R.ZoneBuildsCache
+and R.ZoneBuildsCache.Parent then
+return R.ZoneBuildsCache
+end
+-- Fast known hierarchy probe first, without assuming any zone number.
+local build =
+workspace:FindFirstChild("Build")
+local container =
+build
+and build:FindFirstChild(
+"ZoneBuilds"
+)
+or nil
+-- Engine-native recursive lookup is the fallback.
+-- Unlike Lua workspace:GetDescendants(), it does not allocate a giant table.
+if not container then
+container =
+workspace:FindFirstChild(
+"ZoneBuilds",
+true
+)
+end
+if container then
+R.ZoneBuildsCache = container
+log(
+"ZONEBUILDS_CACHE_READY",
+"path="
+.. safeName(container)
+)
+else
+log(
+"ZONEBUILDS_CACHE_MISSING"
+)
+end
+return container
+end
+local function collectStageModels()
+if R.StageModelsCache then
+local valid = true
+for _, info in ipairs(
+R.StageModelsCache
+) do
+if not info.model
+or not info.model.Parent then
+valid = false
+break
+end
+end
+if valid then
+return R.StageModelsCache
+end
+end
+local container =
+findZoneBuildsContainer()
+local list = {}
+if not container then
+return list
+end
+for _, child in ipairs(
+container:GetChildren()
+) do
+local index =
+stageIndexFromName(
+child.Name
+)
+if index then
+local pivotPosition = nil
+if child:IsA("Model") then
+local ok, pivot =
+pcall(
+child.GetPivot,
+child
+)
+if ok and pivot then
+pivotPosition =
+pivot.Position
+end
+elseif child:IsA("BasePart") then
+pivotPosition =
+child.Position
+end
+list[#list + 1] = {
+index = index,
+model = child,
+name = child.Name,
+pivotPosition = pivotPosition,
+}
+end
+end
+table.sort(
+list,
+function(a, b)
+return a.index < b.index
+end
+)
+R.StageModelsCache = list
+log(
+"STAGE_CACHE_READY",
+"count="
+.. tostring(#list)
+)
+return list
+end
+local function stageByIndex(index)
+if not index then
+return nil
+end
+for _, info in ipairs(
+collectStageModels()
+) do
+if info.index == index then
+return {
+index = info.index,
+model = info.model,
+name = info.name,
+pivotPosition =
+info.pivotPosition,
+}
+end
+end
+return {
+index = index,
+model = nil,
+name = "Zone"
+.. tostring(index),
+}
+end
+local function stageInfoForDescendant(inst)
+if not inst then
+return nil
+end
+local container =
+findZoneBuildsContainer()
+if not container then
+return nil
+end
+local current = inst
+while current
+and current ~= container
+and current.Parent do
+if current.Parent == container then
+local index =
+stageIndexFromName(
+current.Name
+)
+if index then
+return {
+index = index,
+model = current,
+name = current.Name,
+source =
+"zone_raycast",
+distance = 0,
+}
+end
+return nil
+end
+current = current.Parent
+end
+return nil
+end
+local function raycastStageAtPosition(
+position
+)
+if not position then
+return nil
+end
+local container =
+findZoneBuildsContainer()
+if not container then
+return nil
+end
+local params =
+RaycastParams.new()
+params.FilterType =
+Enum.RaycastFilterType.Include
+params.FilterDescendantsInstances = {
+container,
+}
+params.IgnoreWater = true
+-- Center first, then a few tiny nearby samples for gaps between parts.
+local offsets = {
+Vector3.new(0, 0, 0),
+Vector3.new(3, 0, 0),
+Vector3.new(-3, 0, 0),
+Vector3.new(0, 0, 3),
+Vector3.new(0, 0, -3),
+Vector3.new(5, 0, 5),
+Vector3.new(-5, 0, 5),
+Vector3.new(5, 0, -5),
+Vector3.new(-5, 0, -5),
+}
+for i, offset in ipairs(offsets) do
+local base =
+position + offset
+local origin =
+base
++ Vector3.new(
+0,
+80,
+0
+)
+local hit =
+workspace:Raycast(
+origin,
+Vector3.new(
+0,
+-220,
+0
+),
+params
+)
+if hit and hit.Instance then
+local stage =
+stageInfoForDescendant(
+hit.Instance
+)
+if stage then
+stage.source =
+i == 1
+and "zone_raycast_center"
+or "zone_raycast_nearby"
+stage.raycastPart =
+hit.Instance
+return stage
+end
+end
+-- Some stage geometry can be above the pickup plane.
+local lowerOrigin =
+base
++ Vector3.new(
+0,
+8,
+0
+)
+local upHit =
+workspace:Raycast(
+lowerOrigin,
+Vector3.new(
+0,
+90,
+0
+),
+params
+)
+if upHit and upHit.Instance then
+local stage =
+stageInfoForDescendant(
+upHit.Instance
+)
+if stage then
+stage.source =
+"zone_raycast_up"
+stage.raycastPart =
+upHit.Instance
+return stage
+end
+end
+end
+return nil
+end
+local function nearestCachedStage(
+position
+)
+if not position then
+return nil
+end
+local best = nil
+local bestDistance = math.huge
+for _, info in ipairs(
+collectStageModels()
+) do
+local p =
+info.pivotPosition
+if p then
+local dx =
+p.X - position.X
+local dz =
+p.Z - position.Z
+local d =
+math.sqrt(
+dx * dx
++ dz * dz
+)
+if d < bestDistance then
+bestDistance = d
+best = info
+end
+end
+end
+if not best then
+return nil
+end
+return {
+index = best.index,
+model = best.model,
+name = best.name,
+source =
+"nearest_cached_zone_pivot",
+distance = bestDistance,
+}
+end
+local function stageFromAncestors(inst)
+local current = inst
+while current
+and current ~= workspace do
+local index =
+stageIndexFromName(
+current.Name
+)
+if index then
+local resolved =
+stageByIndex(index)
+resolved.source =
+"ancestor:"
+.. current.Name
+return resolved
+end
+current = current.Parent
+end
+return nil
+end
+local function stageFromAttributes(inst)
+if not inst then
+return nil
+end
+-- Strong, common explicit keys first.
+for _, key in ipairs({
+"ZoneIndex",
+"StageIndex",
+"Zone",
+"Stage",
+"AreaIndex",
+"Area",
+}) do
+local value =
+inst:GetAttribute(key)
+local index =
+stageIndexFromValue(
+value
+)
+if index then
+local resolved =
+stageByIndex(index)
+resolved.source =
+"attribute:"
+.. key
+return resolved
+end
+end
+-- Generic replicated metadata fallback.
+local ok, attrs =
+pcall(
+inst.GetAttributes,
+inst
+)
+if ok and type(attrs) == "table" then
+for key, value in pairs(attrs) do
+local lower =
+string.lower(
+tostring(key)
+)
+if lower:find("zone", 1, true)
+or lower:find("stage", 1, true)
+or lower:find("area", 1, true) then
+local index =
+stageIndexFromValue(
+value
+)
+if index then
+local resolved =
+stageByIndex(index)
+resolved.source =
+"attribute:"
+.. tostring(key)
+return resolved
+end
+end
+end
+end
+return nil
+end
+local function stageFromPosition(position)
+if not position then
+return nil
+end
+local byRay =
+raycastStageAtPosition(
+position
+)
+if byRay then
+return byRay
+end
+-- Cheap final fallback only.
+return nearestCachedStage(
+position
+)
+end
+local function resolvePickupStage(
+inst,
+position
+)
+local explicit =
+stageFromAttributes(inst)
+if explicit then
+return explicit
+end
+local ancestry =
+stageFromAncestors(inst)
+if ancestry then
+return ancestry
+end
+return stageFromPosition(
+position
+)
+end
+local function stageLabel(stage)
+if not stage then
+return "UNKNOWN"
+end
+return tostring(
+stage.name
+or (
+stage.index
+and (
+"Zone"
+.. tostring(stage.index)
+)
+)
+or "UNKNOWN"
+)
+end
+local function petCashPerSecond(animal, sizeMult, mutation, weightKg, variant)
+if not EggRewards
+or type(EggRewards.PlacedCashPerSecond) ~= "function"
+or typeof(animal) ~= "string" then
+return 0
+end
+local ok, value = pcall(
+EggRewards.PlacedCashPerSecond,
+animal,
+sizeMult,
+mutation,
+weightKg,
+variant
+)
+if ok and typeof(value) == "number" and value == value and value >= 0 then
+return value
+end
+return 0
+end
+local function selected(set, key)
+return type(set) == "table"
+and key ~= nil
+and set[tostring(key)] == true
+end
+local function hasSelections(set)
+if type(set) ~= "table" then
+return false
+end
+for _, enabled in pairs(set) do
+if enabled == true then
+return true
+end
+end
+return false
+end
+local function stealTargetQualifies(info)
+if not info then
+return false
+end
+local criteria = {}
+if (SETTINGS.StealMinimum or 0) > 0 then
+criteria[#criteria + 1] = (info.value or 0) >= SETTINGS.StealMinimum
+end
+if hasSelections(SETTINGS.StealRarities) then
+criteria[#criteria + 1] = selected(SETTINGS.StealRarities, info.rarity)
+end
+if hasSelections(SETTINGS.StealAnimals) then
+criteria[#criteria + 1] = selected(SETTINGS.StealAnimals, info.animal)
+end
+if #criteria == 0 then
+return true
+end
+if SETTINGS.StealFilterMatch == "All" then
+for _, passed in ipairs(criteria) do
+if not passed then
+return false
+end
+end
+return true
+end
+for _, passed in ipairs(criteria) do
+if passed then
+return true
+end
+end
+return false
+end
