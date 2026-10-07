@@ -1,0 +1,685 @@
+os.clock() - fireAt
+)
+)
+return true
+end
+task.wait(0.01)
+end
+log(
+"STEAL_REMOVED_BUT_UNPROVEN",
+"attempt=" .. attempt,
+"animal=" .. info.animal
+)
+return false
+end
+log(
+"STEAL_SERVER_NO_CONFIRM",
+"attempt=" .. attempt,
+"animal=" .. info.animal,
+"retrying=true"
+)
+-- Fast bounded retry, with a fresh teleport + fresh exact prompt.
+task.wait(CONFIG.STEAL_RETRY_INTERVAL)
+end
+log(
+"STEAL_FAILED",
+"animal=" .. info.animal,
+"path=" .. safeName(info.inst)
+)
+return false
+end
+-- =========================================================
+-- Guard + home routing helpers
+-- =========================================================
+local function isPlayerCharacterModel(model)
+if not model or not model:IsA("Model") then
+return false
+end
+for _, player in ipairs(Players:GetPlayers()) do
+if player.Character == model then
+return true
+end
+end
+return false
+end
+local function guardCandidatePosition(inst)
+if not inst then
+return nil
+end
+if inst:IsA("Model") then
+local hrp =
+inst:FindFirstChild("HumanoidRootPart")
+or inst.PrimaryPart
+or inst:FindFirstChildWhichIsA("BasePart", true)
+return hrp and hrp.Position or nil
+end
+return positionOf(inst)
+end
+local function guardScore(inst)
+if typeof(inst) ~= "Instance" or not inst.Parent then
+return nil
+end
+local model =
+inst:IsA("Model")
+and inst
+or inst:FindFirstAncestorOfClass("Model")
+if model and isPlayerCharacterModel(model) then
+return nil
+end
+if CollectionService:HasTag(inst, "AnimalPickup")
+or CollectionService:HasTag(inst, "BreakableEgg") then
+return nil
+end
+local score = 0
+local name = string.lower(inst.Name)
+if name:find("guard", 1, true) then
+score += 100
+end
+local okTags, tags =
+pcall(
+CollectionService.GetTags,
+CollectionService,
+inst
+)
+if okTags and type(tags) == "table" then
+for _, tag in ipairs(tags) do
+if string.lower(tostring(tag)):find("guard", 1, true) then
+score += 140
+end
+end
+end
+local okAttrs, allAttrs = pcall(inst.GetAttributes, inst)
+if okAttrs and type(allAttrs) == "table" then
+for key, value in pairs(allAttrs) do
+local text =
+string.lower(
+tostring(key)
+.. "="
+.. tostring(value)
+)
+if text:find("guard", 1, true) then
+score += 80
+end
+end
+end
+if model then
+local hum = model:FindFirstChildOfClass("Humanoid")
+if hum and hum.Health > 0 then
+score += 12
+end
+end
+if score <= 0 then
+return nil
+end
+return score
+end
+local findNearestGuard
+local function resolveLiveStageModel(stage)
+if not stage then
+return nil
+end
+if stage.model
+and stage.model.Parent then
+return stage.model
+end
+if stage.index then
+local refreshed =
+stageByIndex(
+stage.index
+)
+return refreshed
+and refreshed.model
+or nil
+end
+return nil
+end
+local function findGuardInStage(stage)
+local r = root()
+if not r or not stage then
+return nil
+end
+local stageModel =
+resolveLiveStageModel(stage)
+if not stageModel then
+log(
+"STAGE_GUARD_RESOLVE_FAILED",
+"stage="
+.. stageLabel(stage),
+"reason=no_stage_model"
+)
+return nil
+end
+local best = nil
+local bestScore = -math.huge
+local bestDistance = math.huge
+local seen = {}
+local function consider(inst)
+if not inst
+or seen[inst] then
+return
+end
+seen[inst] = true
+local score =
+guardScore(inst)
+if not score then
+return
+end
+local p =
+guardCandidatePosition(inst)
+if not p then
+return
+end
+local d =
+(p - r.Position).Magnitude
+if score > bestScore
+or (
+score == bestScore
+and d < bestDistance
+) then
+best = inst
+bestScore = score
+bestDistance = d
+end
+end
+-- The stage subtree is authoritative.
+consider(stageModel)
+for _, inst in ipairs(
+stageModel:GetDescendants()
+) do
+if inst:IsA("Model")
+or inst:IsA("BasePart") then
+consider(inst)
+end
+end
+if best then
+log(
+"STAGE_GUARD_LOCK",
+"stage="
+.. stageLabel(stage),
+"stageIndex="
+.. tostring(stage.index),
+"stageSource="
+.. tostring(stage.source),
+"guard="
+.. safeName(best),
+"distance="
+.. string.format(
+"%.2f",
+bestDistance
+)
+)
+else
+log(
+"STAGE_GUARD_NOT_FOUND",
+"stage="
+.. stageLabel(stage),
+"stageIndex="
+.. tostring(stage.index)
+)
+end
+return best,
+bestDistance,
+bestScore
+end
+local function findGuardForSourceStage(stage)
+if stage
+and (
+stage.index
+or stage.model
+) then
+-- IMPORTANT: when stage is known, do NOT cross into another zone.
+return findGuardInStage(stage)
+end
+log(
+"SOURCE_STAGE_UNKNOWN",
+"fallback=nearest_guard_global"
+)
+return findNearestGuard()
+end
+findNearestGuard = function()
+local r = root()
+if not r then
+return nil
+end
+local best = nil
+local bestScore = -math.huge
+local bestDistance = math.huge
+local seen = {}
+local function consider(inst)
+if not inst or seen[inst] then
+return
+end
+seen[inst] = true
+local score = guardScore(inst)
+if not score then
+return
+end
+local p = guardCandidatePosition(inst)
+if not p then
+return
+end
+local d = (p - r.Position).Magnitude
+-- Prefer explicit guard identity, then distance.
+if score > bestScore
+or (score == bestScore and d < bestDistance) then
+best = inst
+bestScore = score
+bestDistance = d
+end
+end
+-- First pass: any explicitly guard-tagged instances.
+local okAllTags, allTags =
+pcall(
+CollectionService.GetAllTags,
+CollectionService
+)
+if okAllTags and type(allTags) == "table" then
+for _, tag in ipairs(allTags) do
+if string.lower(tostring(tag)):find("guard", 1, true) then
+local okTagged, tagged =
+pcall(
+CollectionService.GetTagged,
+CollectionService,
+tag
+)
+if okTagged and type(tagged) == "table" then
+for _, inst in ipairs(tagged) do
+consider(inst)
+end
+end
+end
+end
+end
+-- Second pass: named / attributed models and parts.
+for _, inst in ipairs(workspace:GetDescendants()) do
+if inst:IsA("Model") or inst:IsA("BasePart") then
+consider(inst)
+end
+end
+-- Last fallback: nearest living non-player Humanoid.
+if not best then
+for _, inst in ipairs(workspace:GetDescendants()) do
+if inst:IsA("Model")
+and not isPlayerCharacterModel(inst) then
+local hum = inst:FindFirstChildOfClass("Humanoid")
+local p = guardCandidatePosition(inst)
+if hum
+and hum.Health > 0
+and p
+and not CollectionService:HasTag(inst, "AnimalPickup") then
+local d = (p - r.Position).Magnitude
+if d < bestDistance then
+best = inst
+bestDistance = d
+bestScore = 1
+end
+end
+end
+end
+end
+return best, bestDistance, bestScore
+end
+local function teleportToGuard(stage)
+local guard, d, score =
+findGuardForSourceStage(
+stage
+)
+if not guard then
+log(
+"GUARD_ROUTE=no_same_stage_guard",
+"stage="
+.. stageLabel(stage),
+"stageIndex="
+.. tostring(
+stage
+and stage.index
+or nil
+)
+)
+return nil
+end
+setState("TELEPORT_TO_GUARD")
+log(
+"GUARD_TARGET",
+"stage="
+.. stageLabel(stage),
+"stageIndex="
+.. tostring(
+stage
+and stage.index
+or nil
+),
+"stageSource="
+.. tostring(
+stage
+and stage.source
+or "unknown"
+),
+"path=" .. safeName(guard),
+"distance="
+.. string.format(
+"%.2f",
+d or math.huge
+),
+"score="
+.. tostring(score)
+)
+teleportNear(
+guard,
+CONFIG.GUARD_APPROACH_DISTANCE
+)
+return guard
+end
+local function ownerMatches(inst)
+if typeof(inst) ~= "Instance" then
+return false
+end
+for _, key in ipairs({
+"OwnerUserId",
+"ReservedUserId",
+"UserId",
+"PlayerUserId",
+"OwnerId",
+}) do
+local value = inst:GetAttribute(key)
+if value == LP.UserId then
+return true
+end
+end
+return false
+end
+local function findOwnedBaseObject()
+local best = nil
+local bestScore = -math.huge
+local function scoreCandidate(inst)
+if typeof(inst) ~= "Instance" or not inst.Parent then
+return
+end
+local n = string.lower(inst.Name)
+local score = 0
+if n:find("base", 1, true) then score += 80 end
+if n:find("plot", 1, true) then score += 70 end
+if n:find("home", 1, true) then score += 70 end
+if n:find("spawn", 1, true) then score += 45 end
+if ownerMatches(inst) then
+score += 120
+end
+if score > bestScore and score >= 120 then
+best = inst
+bestScore = score
+end
+end
+for _, inst in ipairs(workspace:GetDescendants()) do
+if inst:IsA("Model")
+or inst:IsA("BasePart")
+or inst:IsA("Folder") then
+scoreCandidate(inst)
+if ownerMatches(inst) then
+local parent = inst.Parent
+local depth = 0
+while parent
+and parent ~= workspace
+and depth < 5 do
+scoreCandidate(parent)
+parent = parent.Parent
+depth += 1
+end
+end
+end
+end
+return best, bestScore
+end
+local function physicalPosition(inst)
+if typeof(inst) ~= "Instance" then
+return nil
+end
+if inst:IsA("BasePart") then
+return inst.Position
+end
+if inst:IsA("Model") then
+local ok, cf = pcall(inst.GetPivot, inst)
+if ok then
+return cf.Position
+end
+end
+return positionOf(inst)
+end
+local function treadmillNameLooksPhysical(inst)
+if typeof(inst) ~= "Instance"
+or not inst:IsA("Model")
+or not inst.Parent then
+return false
+end
+local n =
+string.lower(inst.Name)
+if not n:find("treadmill", 1, true)
+and not n:find("tread mill", 1, true) then
+return false
+end
+-- Generic exclusions only. No treadmill tier/name hardcode.
+for _, bad in ipairs({
+"board",
+"billboard",
+"sign",
+"upgrade",
+"shop",
+"display",
+"button",
+"prompt",
+"gui",
+}) do
+if n:find(bad, 1, true) then
+return false
+end
+end
+return true
+end
+local function treadmillStructureScore(inst)
+if not treadmillNameLooksPhysical(inst) then
+return nil
+end
+local partCount = 0
+local touchCount = 0
+local collideCount = 0
+local visibleCount = 0
+for _, d in ipairs(
+inst:GetDescendants()
+) do
+if d:IsA("BasePart") then
+partCount += 1
+if d.CanTouch then
+touchCount += 1
+end
+if d.CanCollide then
+collideCount += 1
+end
+if d.Transparency < 1 then
+visibleCount += 1
+end
+end
+end
+if partCount < 3 then
+return nil
+end
+local score =
+partCount * 5
++ math.min(touchCount, 12) * 6
++ math.min(collideCount, 12) * 5
++ math.min(visibleCount, 12) * 2
+return score, partCount
+end
+local function treadmillCandidateScore(
+inst,
+ownedBase
+)
+local structural,
+partCount =
+treadmillStructureScore(inst)
+if not structural then
+return nil
+end
+local score = structural
+if ownedBase
+and inst:IsDescendantOf(ownedBase) then
+score += 1200
+end
+if ownerMatches(inst) then
+score += 300
+end
+local p =
+physicalPosition(inst)
+if not p then
+return nil
+end
+if R.HomeCFrame then
+local d =
+(p - R.HomeCFrame.Position).Magnitude
+if d <= CONFIG.TREADMILL_SEARCH_RADIUS then
+score +=
+math.max(
+0,
+180 - d * 0.35
+)
+else
+score -= 500
+end
+end
+return score, partCount
+end
+local function findOwnTreadmill()
+local base =
+select(
+1,
+findOwnedBaseObject()
+)
+local best = nil
+local bestScore = -math.huge
+local bestParts = 0
+local function consider(inst)
+local score,
+partCount =
+treadmillCandidateScore(
+inst,
+base
+)
+if score
+and score > bestScore then
+best = inst
+bestScore = score
+bestParts = partCount or 0
+end
+end
+-- Own base is always the authoritative first search.
+if base then
+for _, inst in ipairs(
+base:GetDescendants()
+) do
+if inst:IsA("Model") then
+consider(inst)
+end
+end
+end
+-- Only fall back globally if the own-base hierarchy is unusual.
+if not best then
+for _, inst in ipairs(
+workspace:GetDescendants()
+) do
+if inst:IsA("Model") then
+consider(inst)
+end
+end
+end
+if best then
+log(
+"TREADMILL_DYNAMIC_LOCK",
+"path=" .. safeName(best),
+"parts="
+.. tostring(bestParts),
+"score="
+.. tostring(bestScore),
+"base="
+.. safeName(base)
+)
+end
+return best,
+bestScore,
+base
+end
+local function resolveTreadmillSurface(
+treadmill
+)
+if not treadmill
+or not treadmill.Parent
+or not treadmill:IsA("Model") then
+return nil
+end
+local ok,
+boundsCF,
+boundsSize =
+pcall(
+treadmill.GetBoundingBox,
+treadmill
+)
+if not ok
+or not boundsCF
+or not boundsSize then
+return nil
+end
+local params =
+RaycastParams.new()
+params.FilterType =
+Enum.RaycastFilterType.Include
+params.FilterDescendantsInstances = {
+treadmill,
+}
+params.IgnoreWater = true
+-- Sample around the center instead of trusting any descendant name.
+local samples = {
+Vector2.new(0, 0),
+Vector2.new(0.16, 0),
+Vector2.new(-0.16, 0),
+Vector2.new(0, 0.16),
+Vector2.new(0, -0.16),
+Vector2.new(0.28, 0),
+Vector2.new(-0.28, 0),
+Vector2.new(0, 0.28),
+Vector2.new(0, -0.28),
+}
+local best = nil
+local bestScore = -math.huge
+for _, sample in ipairs(samples) do
+local localX =
+boundsSize.X * sample.X
+local localZ =
+boundsSize.Z * sample.Y
+local origin =
+boundsCF:PointToWorldSpace(
+Vector3.new(
+localX,
+boundsSize.Y * 0.5 + 8,
+localZ
+)
+)
+local hit =
+workspace:Raycast(
+origin,
+Vector3.new(
+0,
+-(boundsSize.Y + 30),
+0
+),
+params
+)
+if hit
+and hit.Instance
+and hit.Instance:IsA("BasePart")
+and hit.Normal.Y >= 0.55 then
+local part = hit.Instance
+local area =
+math.max(
+part.Size.X
+* part.Size.Z,
+0.1
+)
+local centerDistance =
+(
