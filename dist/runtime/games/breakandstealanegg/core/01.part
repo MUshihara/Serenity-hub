@@ -1,0 +1,506 @@
+--[[
+SERENITY HUB — BREAK AND STEAL AN EGG
+Production readable integration V1
+Core movement priority:
+Demon Event -> Steal -> Break -> Treadmill
+This production controller preserves the validated V30 treadmill/steal/guard/re-steal/base
+engine and adds one central scheduler, Serenity V3 controls, filtered target ranking,
+interruptible egg breaking, and the already validated API-only utility workers.
+Break and Demon Event are conservative/default-OFF because their final combined
+scheduler path still benefits from live event testing. Stable validated mechanics are
+kept intact and revalidated before action.
+]]
+local CONFIG = {
+INITIAL_EXPOSED_RADIUS = 150,
+EGG_SEARCH_RADIUS = 5000,
+EGG_APPROACH_DISTANCE = 3.25,
+PICKUP_APPROACH_DISTANCE = 2.25,
+BREAK_TIMEOUT = 30,
+HATCH_EXPOSE_TIMEOUT = 18,
+SWING_INTERVAL = 0.60,
+-- Reliable fast steal:
+-- PromptShown may happen before the server has accepted our teleported position.
+-- If it appears too early, wait only until this tiny settle gate.
+STEAL_SERVER_SETTLE = 0.18,
+STEAL_PROMPT_TIMEOUT = 2.25,
+STEAL_CONFIRM_TIMEOUT = 0.45,
+STEAL_ATTEMPTS = 1,
+STEAL_RETRY_INTERVAL = 0.08,
+-- Local anti-ragdoll recovery.
+ANTI_RAGDOLL = true,
+ANTI_RAGDOLL_HOLD = 0.85,
+ANTI_RAGDOLL_STEP = 0.015,
+-- Do not begin treadmill movement until ragdoll recovery is actually over.
+MOVEMENT_READY_TIMEOUT = 0.65,
+MOVEMENT_READY_STABLE = 0.08,
+-- Same-pet recovery after guard hit.
+SAME_PET_WAIT = 4.0,
+SAME_PET_POLL = 0.025,
+-- Direct normal bat API for a rare pet carried by another player.
+PREFER_CARRIED_ON_RARITY_TIE = true,
+BAT_ATTEMPTS = 2,
+BAT_DROP_WAIT = 1.75,
+BAT_DROP_RADIUS = 75,
+BAT_TELEPORT_SETTLE = 0.12,
+BAT_EQUIP_TIMEOUT = 0.75,
+BAT_EXACT_TARGET_RETRIES = 3,
+BAT_COOLDOWN_PADDING = 0.08,
+GUARD_HIT_TIMEOUT = 4.0,
+GUARD_APPROACH_DISTANCE = 1.35,
+GUARD_RELOCK_DISTANCE = 5,
+GUARD_RELOCK_INTERVAL = 0.12,
+POST_GUARD_SCAN_DELAY = 0.03,
+POST_GUARD_TARGET_WAIT = 4.0,
+-- Dynamic treadmill surface / entry.
+TREADMILL_TOUCH_SETTLE = 0.07,
+TREADMILL_ENTRY_ATTEMPTS = 3,
+TREADMILL_ENTRY_VERIFY_DELAY = 0.04,
+TREADMILL_ENTRY_STABLE_SECONDS = 0.28,
+TREADMILL_ENTRY_RETRY_DELAY = 0.08,
+TREADMILL_ENTRY_MAX_HORIZONTAL = 6.5,
+TREADMILL_ENTRY_MAX_VERTICAL = 9.0,
+-- While waiting for a target, stay on/near the verified running surface.
+TREADMILL_HOLD_MAX_HORIZONTAL = 8.5,
+TREADMILL_HOLD_MAX_VERTICAL = 10.0,
+TREADMILL_HOLD_CHECK_INTERVAL = 0.10,
+TREADMILL_SEARCH_RADIUS = 350,
+-- Recovery reset: only after repeated failures while FAR away.
+TREADMILL_RESET_FAILURES = 3,
+TREADMILL_RESET_FAR_DISTANCE = 120,
+RESPAWN_TIMEOUT = 10,
+-- Walk off the resolved running surface.
+TREADMILL_WALK_ONLY_HOLD = 0.22,
+TREADMILL_JUMP_FALLBACK_HOLD = 0.24,
+TREADMILL_SECOND_EDGE_HOLD = 0.16,
+TREADMILL_EXIT_MARGIN = 1.25,
+TREADMILL_EXIT_MIN_HORIZONTAL = 2.0,
+TREADMILL_EXIT_SETTLE = 0.04,
+TREADMILL_RETRY_COOLDOWN = 0.35,
+-- Treadmill prep is deliberately short-lived.
+-- If a target is not ready within this window, prep again.
+TREADMILL_FRESH_SECONDS = 1.00,
+EXPOSED_WAIT_POLL = 0.03,
+-- Safe-zone crossing.
+SAFE_LINE_SEARCH_RADIUS = 140,
+SAFE_LINE_OUTSIDE_OFFSET = 4.0,
+SAFE_LINE_INSIDE_OFFSET = 9.0,
+SAFE_LINE_TELEPORT_SETTLE = 0.04,
+SAFE_LINE_TWEEN_SECONDS = 0.24,
+SAFE_LINE_CONFIRM_TIMEOUT = 3.5,
+BETWEEN_CYCLES = 0.08,
+FAILED_CYCLE_RETRY = 0.18,
+HOME_SETTLE = 0.18,
+HOME_CONFIRM_TIMEOUT = 5,
+TELEPORT_SETTLE = 0.08,
+STOP_AFTER_SECOND_STEAL = true,
+}
+-- =========================================================
+-- Serenity production settings
+-- =========================================================
+local SETTINGS = {
+-- Core scheduler.
+AutoDemon = false,
+AutoSteal = false,
+AutoBreak = false,
+IdleTreadmill = false,
+-- Steal filtering / ranking.
+StealMinimum = 0,
+StealRarities = {},       -- empty = no rarity restriction
+StealAnimals = {},        -- internal AnimalName set; empty = no name restriction
+StealFilterMatch = "Any", -- Any / All
+StealSort = "Highest Value",
+-- Breaking.
+BreakStageMode = "Recommended", -- Recommended / Specific
+BreakSpecificStage = 9,
+BreakEggNames = {},       -- empty = all
+BreakRarities = {},       -- zone rarity; empty = all
+BreakSort = "Highest",
+-- Demon Event.
+DemonAutoJoin = true,
+DemonAutoBoss = true,
+DemonBuyEgg = false,
+DemonBuyPotions = false,
+-- Inventory / economy.
+AutoSell = false,
+SellPets = true,
+SellEggs = false,
+SellMode = "Whitelist",
+SellRarities = { Common = true },
+SellNames = {},
+SellKeepStrongest = 3,
+AutoMerge = false,
+MergeKeepStrongest = 3,
+-- Progression workers already validated standalone.
+AutoTreadmillUpgrade = false,
+AutoTrails = false,
+AutoPickaxe = false,
+AutoPen = false,
+AutoIndex = false,
+-- Production timing.
+SchedulerPoll = 0.05,
+UtilityPoll = 1.0,
+}
+local MINIMUM_VALUE_OPTIONS = {
+["Any"] = 0,
+["10"] = 10,
+["10K"] = 10_000,
+["100K"] = 100_000,
+["1M"] = 1_000_000,
+["10M"] = 10_000_000,
+["100M"] = 100_000_000,
+["1B"] = 1_000_000_000,
+["10B"] = 10_000_000_000,
+["100B"] = 100_000_000_000,
+}
+local RARITY_OPTIONS = {
+"Common",
+"Uncommon",
+"Rare",
+"Epic",
+"Legendary",
+"Mythic",
+"Divine",
+"Cosmic",
+"Secret",
+"Celestial",
+"Inferno",
+}
+local UIApp = nil
+local LOG_FILE = "Serenity_BreakAndStealAnEgg_Log.txt"
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local CollectionService = game:GetService("CollectionService")
+local ProximityPromptService = game:GetService("ProximityPromptService")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local LP = Players.LocalPlayer
+local ENV = (getgenv and getgenv()) or _G
+-- Validated normal client bat surfaces.
+local BatRemote =
+ReplicatedStorage:FindFirstChild("BatHitRequest")
+local BatConfig = nil
+local BatTargeting = nil
+local BatToolQuery = nil
+local SafeZoneQuery = nil
+local BatController = nil
+pcall(function()
+local shared =
+ReplicatedStorage:WaitForChild(
+"Shared",
+5
+)
+BatConfig =
+require(
+shared:WaitForChild(
+"BatConfig",
+5
+)
+)
+BatTargeting =
+require(
+shared:WaitForChild(
+"BatTargeting",
+5
+)
+)
+BatToolQuery =
+require(
+shared:WaitForChild(
+"BatToolQuery",
+5
+)
+)
+SafeZoneQuery =
+require(
+shared:WaitForChild(
+"SafeZoneQuery",
+5
+)
+)
+local playerScripts =
+LP:WaitForChild(
+"PlayerScripts",
+5
+)
+local client =
+playerScripts
+and playerScripts:
+WaitForChild(
+"Client",
+5
+)
+local controllers =
+client
+and client:
+WaitForChild(
+"Controllers",
+5
+)
+local batControllerModule =
+controllers
+and controllers:
+WaitForChild(
+"BatController",
+5
+)
+if batControllerModule then
+BatController =
+require(
+batControllerModule
+)
+end
+end)
+-- Stop every older BSAE runtime before starting this full loop.
+for _, key in ipairs({
+"__BSAE_RUNTIME",
+"__BSAE_V8",
+"__BSAE_V9",
+"__BSAE_V10",
+"__BSAE_V11",
+"__BSAE_V12",
+"__BSAE_V13",
+"__BSAE_V14",
+"__BSAE_V15",
+"__BSAE_V16",
+"__BSAE_V17",
+"__BSAE_V18",
+"__BSAE_V19",
+"__BSAE_V20",
+"__BSAE_V21",
+"__BSAE_V22",
+"__BSAE_V23",
+"__BSAE_V24",
+"__BSAE_V25",
+"__BSAE_V26",
+"__BSAE_V27",
+"__BSAE_V28",
+"__BSAE_V29",
+"__BSAE_V30",
+}) do
+local old = ENV[key]
+if type(old) == "table" then
+old.Active = false
+end
+end
+local R = {
+Active = true,
+Started = os.clock(),
+State = "BOOT",
+Connections = {},
+HomeCFrame = nil,
+Cycle = 0,
+RagdollRecoverUntil = 0,
+ZoneBuildsCache = nil,
+StageModelsCache = nil,
+TreadmillFailStreak = 0,
+LastTreadmillPoint = nil,
+LastBatAt = -math.huge,
+LastLoggedState = nil,
+CurrentTask = "Idle",
+CurrentTarget = "None",
+InventoryBusy = false,
+Stats = {
+Steals = 0,
+Breaks = 0,
+DemonSwings = 0,
+Sells = 0,
+Merges = 0,
+},
+}
+ENV.__BSAE_RUNTIME = R
+ENV.__BSAE_V30 = R
+local FILE_LOGGING = type(writefile) == "function"
+if FILE_LOGGING then
+pcall(writefile, LOG_FILE, "")
+end
+-- =========================================================
+-- Logging
+-- =========================================================
+local buffer = {}
+local bufferBytes = 0
+local function flush()
+if #buffer == 0 then
+return
+end
+local data = table.concat(buffer)
+table.clear(buffer)
+bufferBytes = 0
+if not FILE_LOGGING then
+return
+end
+if type(appendfile) == "function" then
+pcall(appendfile, LOG_FILE, data)
+else
+local old = ""
+if type(readfile) == "function"
+and type(isfile) == "function"
+and isfile(LOG_FILE) then
+local ok, result = pcall(readfile, LOG_FILE)
+if ok and type(result) == "string" then
+old = result
+end
+end
+pcall(writefile, LOG_FILE, old .. data)
+end
+end
+local function elapsed()
+return os.clock() - R.Started
+end
+local function log(...)
+local p = table.pack(...)
+for i = 1, p.n do
+p[i] = tostring(p[i])
+end
+local line =
+string.format("[%.3f] ", elapsed())
+.. table.concat(p, " ")
+.. "\n"
+buffer[#buffer + 1] = line
+bufferBytes += #line
+if bufferBytes >= 12000 then
+flush()
+end
+end
+local function section(name)
+log("")
+log("============================================================")
+log("[" .. name .. "]")
+log("============================================================")
+end
+local function setState(name)
+R.State = name
+if R.LastLoggedState ~= name then
+R.LastLoggedState = name
+log("STATE", name)
+flush()
+end
+end
+local function safeName(inst)
+if typeof(inst) ~= "Instance" then
+return tostring(inst)
+end
+local ok, result = pcall(function()
+return inst:GetFullName()
+end)
+return ok and result or ("<" .. inst.ClassName .. ":" .. inst.Name .. ">")
+end
+local function attrs(inst)
+if typeof(inst) ~= "Instance" then
+return "{}"
+end
+local ok, a = pcall(inst.GetAttributes, inst)
+if not ok or type(a) ~= "table" then
+return "{}"
+end
+local out = {}
+for k, v in pairs(a) do
+out[#out + 1] = tostring(k) .. "=" .. tostring(v)
+end
+table.sort(out)
+return "{" .. table.concat(out, ",") .. "}"
+end
+local function connect(signal, fn)
+local ok, connection = pcall(function()
+return signal:Connect(fn)
+end)
+if ok and connection then
+R.Connections[#R.Connections + 1] = connection
+end
+return connection
+end
+-- =========================================================
+-- Character helpers
+-- =========================================================
+local function character()
+return LP.Character
+end
+local function humanoid()
+local c = character()
+return c and c:FindFirstChildOfClass("Humanoid")
+end
+local function root()
+local c = character()
+return c and c:FindFirstChild("HumanoidRootPart")
+end
+local function waitCharacter()
+local deadline = os.clock() + 10
+while R.Active and os.clock() < deadline do
+local c = character()
+local h = humanoid()
+local r = root()
+if c and h and r then
+return c, h, r
+end
+task.wait(0.1)
+end
+return nil
+end
+local function positionOf(inst)
+if typeof(inst) ~= "Instance" then
+return nil
+end
+if inst:IsA("BasePart") then
+return inst.Position
+end
+if inst:IsA("Model") then
+local ok, cf = pcall(inst.GetPivot, inst)
+if ok then
+return cf.Position
+end
+end
+local p = inst:FindFirstChildWhichIsA("BasePart", true)
+return p and p.Position or nil
+end
+local function distanceTo(inst)
+local r = root()
+local p = positionOf(inst)
+if not r or not p then
+return math.huge
+end
+return (r.Position - p).Magnitude
+end
+local function teleportNear(inst, distance)
+local r = root()
+local p = positionOf(inst)
+if not r or not p then
+return false
+end
+distance = distance or 3
+local current = r.Position
+local flat = Vector3.new(
+current.X - p.X,
+0,
+current.Z - p.Z
+)
+if flat.Magnitude < 0.1 then
+flat = Vector3.new(0, 0, 1)
+end
+local targetPos =
+p
++ flat.Unit * distance
++ Vector3.new(0, 2.2, 0)
+local cf = CFrame.lookAt(
+targetPos,
+Vector3.new(p.X, targetPos.Y, p.Z)
+)
+pcall(function()
+r.AssemblyLinearVelocity = Vector3.zero
+r.AssemblyAngularVelocity = Vector3.zero
+r.CFrame = cf
+end)
+task.wait(CONFIG.TELEPORT_SETTLE)
+return true
+end
+-- =========================================================
+-- Game modules
+-- =========================================================
+local PickaxeController = nil
+local EggRarity = nil
+local ChaseState = nil
+do
+local ok, result = pcall(function()
+local ps = LP:WaitForChild("PlayerScripts", 10)
+local client = ps and ps:FindFirstChild("Client")
+local controllers = client and client:FindFirstChild("Controllers")
+local module = controllers and controllers:FindFirstChild("PickaxeController")
