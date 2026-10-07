@@ -1,0 +1,527 @@
+local function betterStealTarget(candidate, best)
+if not best then
+return true
+end
+if SETTINGS.StealSort == "Highest Rarity" then
+if (candidate.score or 0) ~= (best.score or 0) then
+return (candidate.score or 0) > (best.score or 0)
+end
+if (candidate.value or 0) ~= (best.value or 0) then
+return (candidate.value or 0) > (best.value or 0)
+end
+else
+if (candidate.value or 0) ~= (best.value or 0) then
+return (candidate.value or 0) > (best.value or 0)
+end
+if (candidate.score or 0) ~= (best.score or 0) then
+return (candidate.score or 0) > (best.score or 0)
+end
+end
+if candidate.kind ~= best.kind and CONFIG.PREFER_CARRIED_ON_RARITY_TIE then
+return candidate.kind == "carrier"
+end
+return (candidate.distance or math.huge) < (best.distance or math.huge)
+end
+local function pickupInfo(inst)
+if typeof(inst) ~= "Instance"
+or not inst.Parent
+or not CollectionService:HasTag(inst, "AnimalPickup")
+or inst:GetAttribute("Despawning") then
+return nil
+end
+local rarity = inst:GetAttribute("Rarity")
+local animal = inst:GetAttribute("AnimalName") or inst.Name
+local pos = positionOf(inst)
+-- V25 IMPORTANT:
+-- DO NOT resolve stage here.
+-- This function runs for every exposed AnimalPickup.
+return {
+inst = inst,
+animal = tostring(animal),
+rarity = tostring(rarity or "Unknown"),
+score = rarityScore(rarity),
+value = petCashPerSecond(
+tostring(animal),
+inst:GetAttribute("SizeMult"),
+inst:GetAttribute("Mutation"),
+inst:GetAttribute("WeightKg"),
+inst:GetAttribute("Variant")
+),
+distance = distanceTo(inst),
+pos = pos,
+hatchId = inst:GetAttribute("HatchId"),
+stage = nil,
+}
+end
+local function ensurePickupStage(info)
+if not info then
+return nil
+end
+if info.stage then
+return info.stage
+end
+if not info.inst
+or not info.inst.Parent then
+return nil
+end
+-- Refresh position once for the chosen target only.
+local pos =
+positionOf(info.inst)
+or info.pos
+info.pos = pos
+local started =
+os.clock()
+log(
+"SOURCE_STAGE_RESOLVE_BEGIN",
+"animal="
+.. tostring(info.animal),
+"position="
+.. tostring(pos)
+)
+info.stage =
+resolvePickupStage(
+info.inst,
+pos
+)
+log(
+"SOURCE_STAGE_RESOLVED",
+"animal="
+.. tostring(info.animal),
+"stage="
+.. stageLabel(info.stage),
+"stageIndex="
+.. tostring(
+info.stage
+and info.stage.index
+or nil
+),
+"source="
+.. tostring(
+info.stage
+and info.stage.source
+or "none"
+),
+"raycastPart="
+.. safeName(
+info.stage
+and info.stage.raycastPart
+or nil
+),
+"resolveMs="
+.. string.format(
+"%.1f",
+(
+os.clock()
+- started
+) * 1000
+)
+)
+return info.stage
+end
+local function getPickups(maxDistance)
+local list = {}
+for _, inst in ipairs(CollectionService:GetTagged("AnimalPickup")) do
+local info = pickupInfo(inst)
+if info
+and (not maxDistance or info.distance <= maxDistance) then
+list[#list + 1] = info
+end
+end
+return list
+end
+local function carrierStage(plr)
+if not plr then
+return nil
+end
+local zoneValue =
+plr:GetAttribute(
+"CarryingZone"
+)
+local index =
+stageIndexFromValue(
+zoneValue
+)
+if index then
+local stage =
+stageByIndex(index)
+stage.source =
+"carrier_attribute:CarryingZone"
+return stage
+end
+local c = plr.Character
+local p =
+c
+and positionOf(c)
+or nil
+if p then
+local stage =
+stageFromPosition(p)
+if stage then
+stage.source =
+"carrier_position:"
+.. tostring(
+stage.source
+)
+end
+return stage
+end
+return nil
+end
+local function bestCarriedTarget()
+local myRoot = root()
+local best = nil
+for _, plr in ipairs(Players:GetPlayers()) do
+if plr ~= LP then
+local animal = plr:GetAttribute("Carrying")
+local rarity = plr:GetAttribute("CarryingRarity")
+local c = plr.Character
+local tr = c and c:FindFirstChild("HumanoidRootPart") or nil
+if animal ~= nil and rarity ~= nil and tr then
+local distance = myRoot
+and (tr.Position - myRoot.Position).Magnitude
+or math.huge
+local candidate = {
+kind = "carrier",
+player = plr,
+animal = tostring(animal),
+rarity = tostring(rarity),
+score = rarityScore(rarity),
+value = petCashPerSecond(
+tostring(animal),
+plr:GetAttribute("CarryingSizeMult"),
+nil,
+plr:GetAttribute("CarryingKg"),
+nil
+),
+distance = distance,
+pos = tr.Position,
+hatchId = nil,
+inst = nil,
+stage = carrierStage(plr),
+}
+if stealTargetQualifies(candidate)
+and betterStealTarget(candidate, best) then
+best = candidate
+end
+end
+end
+end
+return best
+end
+local function logCarrier(
+prefix,
+info
+)
+if not info then
+log(
+prefix,
+"<none>"
+)
+return
+end
+log(
+prefix,
+"player="
+.. tostring(
+info.player
+and info.player.Name
+or nil
+),
+"animal="
+.. tostring(info.animal),
+"rarity="
+.. tostring(info.rarity),
+"score="
+.. tostring(info.score),
+"distance="
+.. string.format(
+"%.2f",
+info.distance
+or math.huge
+),
+"stage="
+.. stageLabel(info.stage),
+"stageSource="
+.. tostring(
+info.stage
+and info.stage.source
+or "none"
+)
+)
+end
+local function bestPickup(maxDistance)
+local best = nil
+local count = 0
+for _, inst in ipairs(CollectionService:GetTagged("AnimalPickup")) do
+local info = pickupInfo(inst)
+if info
+and (not maxDistance or info.distance <= maxDistance) then
+count += 1
+info.kind = "exposed"
+if stealTargetQualifies(info)
+and betterStealTarget(info, best) then
+best = info
+end
+end
+end
+return best, count
+end
+local function bestGlobalRarestTarget()
+if not SETTINGS.AutoSteal then
+return nil, "none", nil
+end
+local exposed = select(1, bestPickup(nil))
+local carried = bestCarriedTarget()
+if carried and betterStealTarget(carried, exposed) then
+return carried, "carried", exposed
+end
+if exposed then
+exposed.kind = "exposed"
+return exposed, "exposed", carried
+end
+return carried, carried and "carried" or "none", exposed
+end
+local function nearestPickup(maxDistance)
+local list = getPickups(maxDistance)
+table.sort(list, function(a, b)
+if a.distance ~= b.distance then
+return a.distance < b.distance
+end
+return a.score > b.score
+end)
+return list[1], list
+end
+local function logPickup(prefix, info)
+if not info then
+log(prefix, "<none>")
+return
+end
+log(
+prefix,
+"animal=" .. info.animal,
+"rarity=" .. info.rarity,
+"score=" .. tostring(info.score),
+"distance=" .. string.format("%.2f", info.distance),
+"hatchId=" .. tostring(info.hatchId),
+"stage="
+.. stageLabel(info.stage),
+"stageIndex="
+.. tostring(
+info.stage
+and info.stage.index
+or nil
+),
+"stageSource="
+.. tostring(
+info.stage
+and info.stage.source
+or "none"
+),
+"stageDistance="
+.. tostring(
+info.stage
+and info.stage.distance
+or nil
+),
+"path=" .. safeName(info.inst)
+)
+end
+-- =========================================================
+-- Breakable egg selection
+-- =========================================================
+local function eggLive(egg)
+return typeof(egg) == "Instance"
+and egg.Parent ~= nil
+and egg:IsA("BasePart")
+and CollectionService:HasTag(egg, "BreakableEgg")
+and not egg:GetAttribute("Broken")
+and not egg:GetAttribute("Hatching")
+and not egg:GetAttribute("Despawning")
+end
+local function nearestEgg()
+local best = nil
+local bestDistance = math.huge
+for _, egg in ipairs(CollectionService:GetTagged("BreakableEgg")) do
+if eggLive(egg) then
+local d = distanceTo(egg)
+if d < bestDistance
+and d <= CONFIG.EGG_SEARCH_RADIUS then
+best = egg
+bestDistance = d
+end
+end
+end
+return best, bestDistance
+end
+local function zoneConfigByIndex(index)
+if not ZonesConfig or type(ZonesConfig.Zones) ~= "table" then
+return nil
+end
+return ZonesConfig.Zones[index]
+end
+local function highestAccessibleZone()
+local power = tonumber(LP:GetAttribute("SpeedPower")) or 0
+local best = 1
+if ZonesConfig and type(ZonesConfig.Zones) == "table" then
+for index, zone in ipairs(ZonesConfig.Zones) do
+local required = tonumber(zone.RequiredPower) or 0
+if power >= required then
+best = math.max(best, index)
+end
+end
+end
+return best
+end
+local function eggZoneIndex(egg)
+local direct = tonumber(egg and egg:GetAttribute("ZoneIndex"))
+if direct then
+return direct
+end
+local eggType = egg and egg:GetAttribute("EggType")
+if EggRewards and type(EggRewards.ZoneOfEggType) == "function"
+and typeof(eggType) == "string" then
+local ok, value = pcall(EggRewards.ZoneOfEggType, eggType)
+if ok and tonumber(value) then
+return tonumber(value)
+end
+end
+local stage = egg and stageFromAncestors(egg)
+return stage and stage.index or nil
+end
+local function eggZoneRarity(egg)
+local index = eggZoneIndex(egg)
+local zone = index and zoneConfigByIndex(index)
+if zone and typeof(zone.Rarity) == "string" then
+return zone.Rarity
+end
+local eggType = egg and egg:GetAttribute("EggType")
+if EggTypeConfig and type(EggTypeConfig.Get) == "function"
+and typeof(eggType) == "string" then
+local ok, cfg = pcall(EggTypeConfig.Get, eggType)
+if ok and type(cfg) == "table" and typeof(cfg.Rarity) == "string" then
+return cfg.Rarity
+end
+end
+return "Unknown"
+end
+local function eggTier(egg)
+local index = eggZoneIndex(egg)
+local eggType = egg and egg:GetAttribute("EggType")
+if index and EggRewards and type(EggRewards.ZoneEggs) == "table" then
+local zone = EggRewards.ZoneEggs["Zone" .. tostring(index)]
+if zone and type(zone.Eggs) == "table" then
+for tier, name in ipairs(zone.Eggs) do
+if tostring(name) == tostring(eggType) then
+return tier
+end
+end
+end
+end
+local luck = tonumber(egg and egg:GetAttribute("Luck")) or 0
+if luck >= 1.24 then return 3 end
+if luck >= 1.09 then return 2 end
+return 1
+end
+local function breakEggQualifies(egg)
+if not SETTINGS.AutoBreak or not eggLive(egg) then
+return false
+end
+local zoneIndex = eggZoneIndex(egg)
+if SETTINGS.BreakStageMode == "Specific"
+and zoneIndex ~= SETTINGS.BreakSpecificStage then
+return false
+end
+local eggType = tostring(egg:GetAttribute("EggType") or egg.Name)
+if hasSelections(SETTINGS.BreakEggNames)
+and not selected(SETTINGS.BreakEggNames, eggType) then
+return false
+end
+local rarity = eggZoneRarity(egg)
+if hasSelections(SETTINGS.BreakRarities)
+and not selected(SETTINGS.BreakRarities, rarity) then
+return false
+end
+return true
+end
+local function betterBreakEgg(candidate, best)
+if not best then
+return true
+end
+if SETTINGS.BreakSort == "Nearest" then
+if candidate.distance ~= best.distance then
+return candidate.distance < best.distance
+end
+else
+if candidate.zoneIndex ~= best.zoneIndex then
+return candidate.zoneIndex > best.zoneIndex
+end
+if candidate.tier ~= best.tier then
+return candidate.tier > best.tier
+end
+local cHatch = tonumber(candidate.egg:GetAttribute("HatchSizeMult")) or 0
+local bHatch = tonumber(best.egg:GetAttribute("HatchSizeMult")) or 0
+if cHatch ~= bHatch then
+return cHatch > bHatch
+end
+local cWeight = tonumber(candidate.egg:GetAttribute("WeightKg")) or 0
+local bWeight = tonumber(best.egg:GetAttribute("WeightKg")) or 0
+if cWeight ~= bWeight then
+return cWeight > bWeight
+end
+end
+return candidate.distance < best.distance
+end
+local function bestBreakEgg()
+if not SETTINGS.AutoBreak then
+return nil
+end
+local recommended = highestAccessibleZone()
+local best = nil
+for _, egg in ipairs(CollectionService:GetTagged("BreakableEgg")) do
+if breakEggQualifies(egg) then
+local zoneIndex = eggZoneIndex(egg) or 0
+-- Recommended means the highest unlocked stage that currently has
+-- a valid egg. If the highest unlocked stage has none, gracefully
+-- fall downward instead of idling forever.
+if SETTINGS.BreakStageMode ~= "Specific"
+and zoneIndex <= recommended then
+local candidate = {
+egg = egg,
+zoneIndex = zoneIndex,
+rarity = eggZoneRarity(egg),
+tier = eggTier(egg),
+eggType = tostring(egg:GetAttribute("EggType") or egg.Name),
+distance = distanceTo(egg),
+}
+if candidate.distance <= CONFIG.EGG_SEARCH_RADIUS
+and betterBreakEgg(candidate, best) then
+best = candidate
+end
+elseif SETTINGS.BreakStageMode == "Specific" then
+local candidate = {
+egg = egg,
+zoneIndex = zoneIndex,
+rarity = eggZoneRarity(egg),
+tier = eggTier(egg),
+eggType = tostring(egg:GetAttribute("EggType") or egg.Name),
+distance = distanceTo(egg),
+}
+if candidate.distance <= CONFIG.EGG_SEARCH_RADIUS
+and betterBreakEgg(candidate, best) then
+best = candidate
+end
+end
+end
+end
+return best
+end
+local function eggState(egg)
+if typeof(egg) ~= "Instance" then
+return "<nil>"
+end
+return table.concat({
+"path=" .. safeName(egg),
+"Health=" .. tostring(egg:GetAttribute("Health")),
+"MaxHealth=" .. tostring(egg:GetAttribute("MaxHealth")),
+"Broken=" .. tostring(egg:GetAttribute("Broken")),
+"Hatching=" .. tostring(egg:GetAttribute("Hatching")),
