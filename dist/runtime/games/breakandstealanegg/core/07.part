@@ -1,0 +1,913 @@
+local function forceRespawnForTreadmill(reason)
+setState(
+"TREADMILL_FORCE_RESPAWN"
+)
+local oldCharacter =
+character()
+local oldRoot =
+root()
+log(
+"TREADMILL_RESPAWN_TRIGGER",
+"reason="
+.. tostring(reason),
+"failureStreak="
+.. tostring(
+R.TreadmillFailStreak
+),
+"position="
+.. tostring(
+oldRoot
+and oldRoot.Position
+or nil
+),
+"noArtificialCooldown=true"
+)
+local h =
+humanoid()
+if h then
+pcall(function()
+h.Health = 0
+end)
+end
+-- Fallback if the Humanoid health assignment does not destroy the rig.
+task.wait()
+if oldCharacter
+and oldCharacter.Parent
+and LP.Character == oldCharacter then
+local oldHum =
+oldCharacter:
+FindFirstChildOfClass(
+"Humanoid"
+)
+if oldHum
+and oldHum.Health > 0 then
+pcall(function()
+oldCharacter:
+BreakJoints()
+end)
+end
+end
+local deadline =
+os.clock()
++ CONFIG.RESPAWN_TIMEOUT
+while R.Active
+and os.clock() < deadline do
+local c = character()
+local h2 = humanoid()
+local r2 = root()
+if c
+and c ~= oldCharacter
+and h2
+and r2
+and h2.Health > 0 then
+R.HomeCFrame =
+r2.CFrame
+R.RagdollRecoverUntil = 0
+R.TreadmillFailStreak = 0
+log(
+"TREADMILL_RESPAWN_READY",
+"position="
+.. tostring(
+r2.Position
+),
+"homeAnchorRefreshed=true"
+)
+return true
+end
+task.wait(0.03)
+end
+log(
+"TREADMILL_RESPAWN_TIMEOUT"
+)
+return false
+end
+local function recordTreadmillFailure(
+reason,
+treadmill,
+surface
+)
+R.TreadmillFailStreak += 1
+if surface
+and surface.point then
+R.LastTreadmillPoint =
+surface.point
+end
+local distance =
+treadmillDistanceNow(
+surface
+)
+log(
+"TREADMILL_FAILURE",
+"reason="
+.. tostring(reason),
+"streak="
+.. tostring(
+R.TreadmillFailStreak
+),
+"distance="
+.. string.format(
+"%.2f",
+distance
+),
+"far="
+.. tostring(
+distance
+>= CONFIG.TREADMILL_RESET_FAR_DISTANCE
+)
+)
+if R.TreadmillFailStreak
+>= CONFIG.TREADMILL_RESET_FAILURES
+and distance
+>= CONFIG.TREADMILL_RESET_FAR_DISTANCE then
+-- User-requested behavior: reset immediately, skip retry cooldown.
+forceRespawnForTreadmill(
+reason
+)
+return true
+end
+return false
+end
+local function clearTreadmillFailures()
+if R.TreadmillFailStreak > 0 then
+log(
+"TREADMILL_FAILURE_STREAK_CLEARED",
+"previous="
+.. tostring(
+R.TreadmillFailStreak
+)
+)
+end
+R.TreadmillFailStreak = 0
+end
+local function findRealBatWeapon()
+if not BatToolQuery
+or type(
+BatToolQuery.IsBatWeapon
+) ~= "function" then
+return nil
+end
+local c =
+character()
+if c then
+for _, child in ipairs(
+c:GetChildren()
+) do
+local ok, valid =
+pcall(
+BatToolQuery.IsBatWeapon,
+child
+)
+if ok and valid then
+return child,
+"character"
+end
+end
+end
+local bp =
+LP:FindFirstChildOfClass(
+"Backpack"
+)
+if bp then
+for _, child in ipairs(
+bp:GetChildren()
+) do
+local ok, valid =
+pcall(
+BatToolQuery.IsBatWeapon,
+child
+)
+if ok and valid then
+return child,
+"backpack"
+end
+end
+end
+return nil
+end
+local function ensureRealBatEquipped()
+local c,
+h =
+character(),
+humanoid()
+if not c or not h then
+return nil
+end
+local weapon,
+location =
+findRealBatWeapon()
+if not weapon then
+log(
+"AUTO_BAT_NO_REAL_WEAPON",
+"reason=BatToolQuery_found_none"
+)
+return nil
+end
+if location == "character"
+and weapon.Parent == c then
+log(
+"AUTO_BAT_WEAPON_READY",
+"path="
+.. safeName(weapon),
+"tier="
+.. tostring(
+weapon:GetAttribute(
+"BatTier"
+)
+),
+"name="
+.. tostring(
+weapon:GetAttribute(
+"BatName"
+)
+)
+)
+return weapon
+end
+pcall(function()
+h:EquipTool(
+weapon
+)
+end)
+local deadline =
+os.clock()
++ CONFIG.BAT_EQUIP_TIMEOUT
+while R.Active
+and os.clock() < deadline do
+if weapon.Parent == c then
+log(
+"AUTO_BAT_WEAPON_EQUIPPED",
+"path="
+.. safeName(weapon),
+"tier="
+.. tostring(
+weapon:GetAttribute(
+"BatTier"
+)
+),
+"name="
+.. tostring(
+weapon:GetAttribute(
+"BatName"
+)
+)
+)
+return weapon
+end
+task.wait(0.02)
+end
+log(
+"AUTO_BAT_EQUIP_FAILED",
+"path="
+.. safeName(weapon)
+)
+return nil
+end
+local function targetSafeZone(plr)
+if not SafeZoneQuery
+or type(
+SafeZoneQuery.IsBankable
+) ~= "function"
+or not plr then
+return false
+end
+local tr =
+plr.Character
+and plr.Character:
+FindFirstChild(
+"HumanoidRootPart"
+)
+if not tr then
+return false
+end
+local ok, value =
+pcall(
+SafeZoneQuery.IsBankable,
+plr.UserId,
+tr.Position
+)
+return ok
+and value == true
+end
+local function localSafeZone()
+if not SafeZoneQuery
+or type(
+SafeZoneQuery.IsBankable
+) ~= "function" then
+return false
+end
+local r = root()
+if not r then
+return false
+end
+local ok, value =
+pcall(
+SafeZoneQuery.IsBankable,
+LP.UserId,
+r.Position
+)
+return ok
+and value == true
+end
+local batMaxRange
+local function exactBatTargetStatus(
+plr
+)
+local r =
+root()
+if not r
+or not plr
+or not plr.Character then
+return false,
+math.huge,
+nil,
+"missing_character"
+end
+local maxRange =
+batMaxRange()
+local eligible = false
+local distance = math.huge
+if BatTargeting
+and type(
+BatTargeting.IsEligible
+) == "function" then
+local ok,
+e,
+d =
+pcall(
+BatTargeting.IsEligible,
+plr,
+r.Position,
+maxRange
+)
+if ok then
+eligible = e == true
+distance =
+tonumber(d)
+or math.huge
+end
+end
+local selected = nil
+if BatTargeting
+and type(
+BatTargeting.SelectClosestTarget
+) == "function" then
+local ok, value =
+pcall(
+BatTargeting.SelectClosestTarget,
+LP,
+r.Position,
+maxRange
+)
+if ok then
+selected = value
+end
+end
+local c =
+plr.Character
+local reason =
+eligible
+and (
+selected == plr
+and "ready"
+or "not_closest_eligible"
+)
+or (
+c:GetAttribute(
+"Ragdolled"
+) == true
+and "target_ragdolled"
+or c:GetAttribute(
+"BatImmune"
+) == true
+and "target_bat_immune"
+or targetSafeZone(plr)
+and "target_safe_zone"
+or localSafeZone()
+and "local_safe_zone"
+or "not_eligible"
+)
+return eligible
+and selected == plr,
+distance,
+selected,
+reason
+end
+batMaxRange = function()
+if BatTargeting
+and type(
+BatTargeting.MaxRange
+) == "function" then
+local ok, value =
+pcall(
+BatTargeting.MaxRange,
+LP
+)
+if ok
+and tonumber(value) then
+return tonumber(value)
+end
+end
+return 15
+end
+local function batCooldown()
+local base =
+BatConfig
+and tonumber(
+BatConfig.ServerCooldown
+)
+or 0.7
+return base
++ CONFIG.BAT_COOLDOWN_PADDING
+end
+local function findDroppedCarrierPet(
+carrierInfo,
+aroundPosition
+)
+local best = nil
+local bestDistance = math.huge
+for _, inst in ipairs(
+CollectionService:GetTagged(
+"AnimalPickup"
+)
+) do
+local info =
+pickupInfo(inst)
+if info
+and info.animal
+== carrierInfo.animal then
+local rarityMatch =
+tostring(info.rarity)
+== tostring(
+carrierInfo.rarity
+)
+local pos =
+info.pos
+local d =
+pos
+and aroundPosition
+and (
+pos
+- aroundPosition
+).Magnitude
+or math.huge
+if d
+<= CONFIG.BAT_DROP_RADIUS
+and (
+not best
+or (
+rarityMatch
+and tostring(
+best.rarity
+)
+~= tostring(
+carrierInfo.rarity
+)
+)
+or d < bestDistance
+) then
+best = info
+bestDistance = d
+end
+end
+end
+if best then
+best.stage =
+carrierInfo.stage
+or best.stage
+end
+return best,
+bestDistance
+end
+local function acquireCarriedRarestCore(
+carrierInfo
+)
+if not carrierInfo
+or not carrierInfo.player then
+return nil
+end
+if not BatController
+or type(
+BatController.Swing
+) ~= "function" then
+log(
+"AUTO_BAT_FAILED",
+"reason=BatController.Swing_missing"
+)
+return nil
+end
+local plr =
+carrierInfo.player
+setState(
+"AUTO_BAT_RAREST_CARRIER"
+)
+logCarrier(
+"AUTO_BAT_TARGET",
+carrierInfo
+)
+local weapon =
+ensureRealBatEquipped()
+if not weapon then
+return nil
+end
+for attempt = 1,
+CONFIG.BAT_ATTEMPTS do
+if not R.Active then
+return nil
+end
+if tostring(
+plr:GetAttribute(
+"Carrying"
+)
+) ~= tostring(
+carrierInfo.animal
+) then
+log(
+"AUTO_BAT_TARGET_CHANGED",
+"player="
+.. plr.Name,
+"action=rescan"
+)
+return nil
+end
+local c =
+plr.Character
+local targetRoot =
+c
+and c:FindFirstChild(
+"HumanoidRootPart"
+)
+or nil
+if not targetRoot then
+return nil
+end
+local maxRange =
+batMaxRange()
+log(
+"AUTO_BAT_RANGE_READY",
+"player="
+.. plr.Name,
+"maxRange="
+.. string.format(
+"%.2f",
+maxRange
+)
+)
+-- Put ourselves very close so the intended carrier becomes
+-- BatTargeting.SelectClosestTarget(), just like a normal swing.
+local approach =
+math.max(
+1.5,
+math.min(
+maxRange * 0.12,
+2.5
+)
+)
+local exactReady = false
+local lastReason = "unknown"
+local liveDistance = math.huge
+local selected = nil
+for lockAttempt = 1,
+CONFIG.BAT_EXACT_TARGET_RETRIES do
+log(
+"AUTO_BAT_TELEPORT_BEGIN",
+"player="
+.. plr.Name,
+"approach="
+.. string.format(
+"%.2f",
+approach
+)
+)
+teleportNear(
+c,
+approach
+)
+task.wait(
+CONFIG.BAT_TELEPORT_SETTLE
+)
+log(
+"AUTO_BAT_TELEPORT_DONE",
+"player="
+.. plr.Name,
+"distance="
+.. string.format(
+"%.2f",
+(
+root()
+and targetRoot
+and (
+root().Position
+- targetRoot.Position
+).Magnitude
+or math.huge
+)
+)
+)
+exactReady,
+liveDistance,
+selected,
+lastReason =
+exactBatTargetStatus(
+plr
+)
+log(
+"AUTO_BAT_TARGET_CHECK",
+"attempt="
+.. tostring(attempt),
+"lockAttempt="
+.. tostring(
+lockAttempt
+),
+"player="
+.. plr.Name,
+"distance="
+.. string.format(
+"%.2f",
+liveDistance
+),
+"maxRange="
+.. string.format(
+"%.2f",
+maxRange
+),
+"eligibleExact="
+.. tostring(
+exactReady
+),
+"selected="
+.. tostring(
+selected
+and selected.Name
+or nil
+),
+"reason="
+.. tostring(
+lastReason
+)
+)
+if exactReady then
+break
+end
+if lastReason
+== "target_safe_zone"
+or lastReason
+== "local_safe_zone" then
+log(
+"AUTO_BAT_BLOCKED_SAFEZONE",
+"player="
+.. plr.Name,
+"reason="
+.. lastReason,
+"action=skip_carrier_for_now"
+)
+return nil
+end
+task.wait(0.05)
+end
+if not exactReady then
+log(
+"AUTO_BAT_NOT_ELIGIBLE",
+"player="
+.. plr.Name,
+"reason="
+.. tostring(
+lastReason
+)
+)
+return nil
+end
+local remain =
+batCooldown()
+- (
+os.clock()
+- R.LastBatAt
+)
+if remain > 0 then
+task.wait(remain)
+end
+-- Re-check immediately before the real normal swing.
+local readyNow,
+distanceNow,
+selectedNow,
+reasonNow =
+exactBatTargetStatus(
+plr
+)
+if not readyNow then
+log(
+"AUTO_BAT_PRE_SWING_LOST_TARGET",
+"player="
+.. plr.Name,
+"distance="
+.. string.format(
+"%.2f",
+distanceNow
+),
+"selected="
+.. tostring(
+selectedNow
+and selectedNow.Name
+or nil
+),
+"reason="
+.. tostring(
+reasonNow
+)
+)
+continue
+end
+local carryingBefore =
+plr:GetAttribute(
+"Carrying"
+)
+log(
+"AUTO_BAT_SWING",
+"method=BatController.Swing",
+"attempt="
+.. tostring(attempt),
+"player="
+.. plr.Name,
+"animal="
+.. tostring(
+carrierInfo.animal
+),
+"distance="
+.. string.format(
+"%.2f",
+distanceNow
+),
+"maxRange="
+.. string.format(
+"%.2f",
+maxRange
+),
+"weapon="
+.. safeName(weapon)
+)
+R.LastBatAt =
+os.clock()
+local ok, err =
+pcall(
+BatController.Swing
+)
+log(
+"AUTO_BAT_SWING_CALL",
+"ok="
+.. tostring(ok),
+"error="
+.. tostring(
+ok and nil or err
+)
+)
+local targetPosition =
+targetRoot.Position
+local deadline =
+os.clock()
++ CONFIG.BAT_DROP_WAIT
+local sawRagdoll = false
+local sawCarryChange = false
+while R.Active
+and os.clock() < deadline do
+local liveCharacter =
+plr.Character
+local liveRoot =
+liveCharacter
+and liveCharacter:
+FindFirstChild(
+"HumanoidRootPart"
+)
+local around =
+liveRoot
+and liveRoot.Position
+or targetPosition
+if liveCharacter
+and liveCharacter:
+GetAttribute(
+"Ragdolled"
+) == true then
+if not sawRagdoll then
+sawRagdoll = true
+log(
+"AUTO_BAT_HIT_CONFIRMED",
+"signal=target_ragdolled",
+"player="
+.. plr.Name
+)
+end
+end
+local carryingNow =
+plr:GetAttribute(
+"Carrying"
+)
+if tostring(carryingNow)
+~= tostring(
+carryingBefore
+) then
+if not sawCarryChange then
+sawCarryChange = true
+log(
+"AUTO_BAT_CARRY_CHANGED",
+"player="
+.. plr.Name,
+"before="
+.. tostring(
+carryingBefore
+),
+"after="
+.. tostring(
+carryingNow
+)
+)
+end
+end
+local dropped,
+droppedDistance =
+findDroppedCarrierPet(
+carrierInfo,
+around
+)
+if dropped then
+log(
+"AUTO_BAT_DROP_CONFIRMED",
+"player="
+.. plr.Name,
+"animal="
+.. tostring(
+dropped.animal
+),
+"distance="
+.. string.format(
+"%.2f",
+droppedDistance
+),
+"sawRagdoll="
+.. tostring(
+sawRagdoll
+),
+"sawCarryChange="
+.. tostring(
+sawCarryChange
+)
+)
+return dropped
+end
+task.wait(0.025)
+end
+log(
+"AUTO_BAT_NO_DROP",
+"attempt="
+.. tostring(attempt),
+"player="
+.. plr.Name,
+"sawRagdoll="
+.. tostring(
+sawRagdoll
+),
+"sawCarryChange="
+.. tostring(
+sawCarryChange
+)
+)
+end
+return nil
+end
+local function acquireCarriedRarest(
+carrierInfo
+)
+local ok,
+result =
+xpcall(
+function()
+return acquireCarriedRarestCore(
+carrierInfo
+)
+end,
+function(err)
+return debug.traceback(
+tostring(err),
+2
+)
+end
+)
+if not ok then
+log(
+"AUTO_BAT_RUNTIME_ERROR",
+tostring(result)
+)
+flush()
+return nil
+end
+return result
+end
+local function treadmillHoldVerified(
+surface
+)
+local r = root()
+if not surface
+or not surface.point
+or not r then
+return false,
+math.huge,
+math.huge
+end
+local delta =
