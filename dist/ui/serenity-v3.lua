@@ -1,15 +1,48 @@
 -- Serenity shared entrypoint: shared V3 rollout; Phonk retains its device-approved adapter.
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
 local cache={}
+local CACHE_TAG="3.2.0-bsae-i18n1"
+
 local function module(path)
     if cache[path] then return cache[path] end
-    local source=game:HttpGet(BASE..path.."?serenity=3.2.0-loottoforge-i18n2",true)
+    local source=game:HttpGet(BASE..path.."?serenity="..CACHE_TAG,true)
     local fn,err=loadstring(source,"@Serenity/"..path)
     if not fn then error("[SERENITY HUB] UI compile failed: "..tostring(err),0) end
     local result=fn()
     cache[path]=result
     return result
 end
+
+-- Shared supplemental dictionary. This extends the same I18N.Packs used by the
+-- production adapters; canonical English values, IDs and callbacks stay unchanged.
+local EXTRA_LOCALE_CODES={"fil","id","vi","th","es","pt","fr","de","ru"}
+local extraLocalesApplied=setmetatable({}, {__mode="k"})
+
+local function applySupplementalLocales(uiModule)
+    if type(uiModule)~="table" or extraLocalesApplied[uiModule] then return end
+    local i18n=uiModule.I18N
+    local packs=i18n and i18n.Packs
+    if type(packs)~="table" then return end
+
+    for _,code in ipairs(EXTRA_LOCALE_CODES) do
+        local ok,rows=pcall(module,"dist/ui/localization-extra/"..code..".lua")
+        if ok and type(rows)=="table" then
+            local pack=packs[code]
+            if type(pack)~="table" then
+                pack={}
+                packs[code]=pack
+            end
+            for key,value in pairs(rows) do
+                if type(key)=="string" and type(value)=="string" then
+                    pack[key]=value
+                end
+            end
+        end
+    end
+
+    extraLocalesApplied[uiModule]=true
+end
+
 -- Account presence: UserId is sent over HTTPS and HMAC-hashed by the Worker; one combined heartbeat.
 -- Opt out before execution with getgenv().SerenityPresenceEnabled = false.
 local function startPresence(app,manifest)
@@ -82,7 +115,6 @@ local function startPresence(app,manifest)
             task.wait(interval)
         end
     end)
-
 end
 
 -- Startup Discord invite: at most once every 24 hours, shared across games.
@@ -132,27 +164,29 @@ local function showDiscord(app)
 end
 
 local Serenity={Version="3.2.0",APIVersion=3}
+
 function Serenity.Detect()
     return module("dist/ui/serenity-v3-legacy.lua").Detect()
 end
+
 function Serenity.Build(manifest,options)
     local phonk=game.PlaceId==104809044319701 or game.GameId==10544327471
-    local app
+    local uiModule
+
     if phonk and type(manifest)=="table" and manifest.GameName=="+1 Phonk Evolution" then
-        app=module("dist/ui/phonk-v3-1-0.lua").Build(manifest,options)
+        uiModule=module("dist/ui/phonk-v3-1-0.lua")
     elseif type(manifest)=="table" and manifest.SerenityAPIVersion==3 then
-        app=module("dist/ui/universal-v3-2-0.lua").Build(manifest,options)
+        uiModule=module("dist/ui/universal-v3-2-0.lua")
     else
-        app=module("dist/ui/serenity-v3-legacy.lua").Build(manifest,options)
+        uiModule=module("dist/ui/serenity-v3-legacy.lua")
     end
+
+    pcall(applySupplementalLocales,uiModule)
+
+    local app=uiModule.Build(manifest,options)
     pcall(startPresence,app,manifest)
     pcall(showDiscord,app)
     return app
 end
+
 return Serenity
-
-
-
-
-
-
