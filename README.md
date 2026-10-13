@@ -32,6 +32,7 @@ Serenity Hub is made to stay simple to use and easy to come back to. Open it wit
 - **Mine a Mountain**
 - **Lift a Cube**
 - **+1 Loot to Forge**
+- **Lift Rock for Eggs**
 
 ---
 
