@@ -15,8 +15,9 @@ local isRideAPet=game.PlaceId==124216119978534 or game.GameId==10035204815
 local isStrengthGrowArm=game.PlaceId==86259628805375 or game.GameId==10310999762
 local isAnimeDice=game.PlaceId==113290951185459 or game.GameId==10708913337
 local isLootToForge=game.PlaceId==118805555015549 or game.GameId==10684750879
+local isLiftRockForEggs=game.PlaceId==76731343328034 or game.GameId==10768316438
 
-if isStealASeed or isLiftACube or isStealAnAnimeEgg or isBreakAndStealAnEgg or isRideAPet or isStrengthGrowArm or isAnimeDice or isLootToForge then
+if isStealASeed or isLiftACube or isStealAnAnimeEgg or isBreakAndStealAnEgg or isRideAPet or isStrengthGrowArm or isAnimeDice or isLootToForge or isLiftRockForEggs then
     local env=(type(getgenv)=="function" and getgenv()) or _G
     env.__SERENITY_PAYLOAD_AUTHORIZED=true
     _G.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -49,6 +50,9 @@ elseif isAnimeDice then
 elseif isLootToForge then
     target="dist/runtime/games/loottoforge.lua"
     chunkName="@SerenityHub/Game-LootToForge"
+elseif isLiftRockForEggs then
+    target="dist/runtime/games/LiftRockForEggs.lua"
+    chunkName="@SerenityHub/Game-LiftRockForEggs"
 else
     target="dist/loader.lua"
     chunkName="@SerenityHub/CurrentLoader"
