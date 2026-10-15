@@ -87,7 +87,7 @@ local results=table.pack(fn())
 -- stolen eggs to be returned.
 --
 -- Ride A Pet:
---   executor-native mousemoverel pulse every 60 seconds.
+--   shared anti-AFK disabled; previous workers are stopped.
 --
 -- Other games:
 --   legacy VirtualUser Idled handler.
@@ -133,58 +133,10 @@ pcall(function()
     end
 
     if isRideAPet then
-        -- IMPORTANT:
-        -- Do not call game:GetService("VirtualUser") anywhere in this branch.
-
-        local function findExecutorFunction(name)
-            local direct=rawget(env,name)
-            if type(direct)=="function" then
-                return direct
-            end
-
-            direct=rawget(_G,name)
-            if type(direct)=="function" then
-                return direct
-            end
-
-            local okEnv,callerEnv=pcall(function()
-                return getfenv and getfenv()
-            end)
-
-            if okEnv
-                and type(callerEnv)=="table"
-                and type(callerEnv[name])=="function" then
-                return callerEnv[name]
-            end
-
-            return nil
-        end
-
-        local mouseMove=findExecutorFunction("mousemoverel")
-
-        if not mouseMove then
-            -- Compatibility wins over forcing an unsafe fallback.
-            runtime.Mode="unsupported"
-            return
-        end
-
-        runtime.Mode="mousemoverel"
-
-        task.spawn(function()
-            -- Match the validated AA1 cadence.
-            task.wait(60)
-
-            while runtime.Alive
-                and env.__SERENITY_IDLE_RUNTIME==runtime do
-
-                pcall(mouseMove,1,0)
-                task.wait(0.03)
-                pcall(mouseMove,-1,0)
-
-                task.wait(60)
-            end
-        end)
-
+        -- Shared anti-AFK is disabled for Ride A Pet.
+        -- Stop any previous worker above; do not acquire VirtualUser.
+        runtime.Alive=false
+        runtime.Mode="disabled"
         return
     end
 
