@@ -20,6 +20,7 @@ local injected=[[
                 "dist/ui/localization-extra/bsae-v10-current.lua",
                 "dist/ui/localization-extra/bsae-v10-ui-fix.lua",
                 "dist/ui/localization-extra/bsae-v10-v18-33.lua",
+                "dist/ui/localization-extra/bsae-v10-v33.lua",
             }
             for _,path in ipairs(extraFiles) do
                 local ok,rows=pcall(module,path)
