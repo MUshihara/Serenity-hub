@@ -1,7 +1,7 @@
 -- BSAE-scoped Serenity V3 entrypoint.
 -- Keeps the shared entrypoint intact, then injects only BSAE exact-string locale patches before UI.Build.
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
-local source=game:HttpGet(BASE.."dist/ui/serenity-v3.lua?serenity=bsae-i18n3",true)
+local source=game:HttpGet(BASE.."dist/ui/serenity-v3.lua?serenity=bsae-i18n4",true)
 
 local marker="    pcall(applySupplementalLocales,uiModule)\n"
 local first,last=source:find(marker,1,true)
@@ -19,6 +19,7 @@ local injected=[[
             local extraFiles={
                 "dist/ui/localization-extra/bsae-v10-current.lua",
                 "dist/ui/localization-extra/bsae-v10-ui-fix.lua",
+                "dist/ui/localization-extra/bsae-v10-v18-33.lua",
             }
             for _,path in ipairs(extraFiles) do
                 local ok,rows=pcall(module,path)
