@@ -7,6 +7,7 @@ if not game:IsLoaded() then
 end
 
 local BASE="https://raw.githubusercontent.com/MUshihara/Serenity-hub/main/"
+local isMM2=game.PlaceId==142823291 or game.GameId==66654135
 local isStealASeed=game.PlaceId==122216176958450 or game.GameId==10764328008
 local isLiftACube=game.PlaceId==109530157755211 or game.GameId==10759860151
 local isStealAnAnimeEgg=game.PlaceId==76377501906469 or game.GameId==10747748563
@@ -17,7 +18,7 @@ local isAnimeDice=game.PlaceId==113290951185459 or game.GameId==10708913337
 local isLootToForge=game.PlaceId==118805555015549 or game.GameId==10684750879
 local isLiftRockForEggs=game.PlaceId==76731343328034 or game.GameId==10768316438
 
-if isStealASeed or isLiftACube or isStealAnAnimeEgg or isBreakAndStealAnEgg or isRideAPet or isStrengthGrowArm or isAnimeDice or isLootToForge or isLiftRockForEggs then
+if isMM2 or isStealASeed or isLiftACube or isStealAnAnimeEgg or isBreakAndStealAnEgg or isRideAPet or isStrengthGrowArm or isAnimeDice or isLootToForge or isLiftRockForEggs then
     local env=(type(getgenv)=="function" and getgenv()) or _G
     env.__SERENITY_PAYLOAD_AUTHORIZED=true
     _G.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -26,7 +27,10 @@ end
 local target
 local chunkName
 
-if isStealASeed then
+if isMM2 then
+    target="dist/runtime/games/MM2.lua"
+    chunkName="@SerenityHub/Game-MM2"
+elseif isStealASeed then
     target="dist/runtime/games/stealaseed.lua"
     chunkName="@SerenityHub/Game-StealASeed"
 elseif isLiftACube then
