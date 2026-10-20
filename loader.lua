@@ -78,87 +78,21 @@ end
 -- Run the selected Serenity payload first.
 local results=table.pack(fn())
 
--- ============================================================
--- SHARED ANTI-AFK
---
--- Ride A Pet compatibility rule:
---   NEVER acquire VirtualUser in Ride A Pet.
--- Live isolation proved that merely acquiring VirtualUser can cause
--- stolen eggs to be returned.
---
--- Ride A Pet:
---   shared anti-AFK disabled; previous workers are stopped.
---
--- Other games:
---   legacy VirtualUser Idled handler.
---
--- Re-execution:
---   one runtime owner; old worker/connection is stopped first.
--- ============================================================
+-- Stop shared anti-AFK left by an earlier loader execution.
+-- No idle handler or simulated input is started by this loader.
 pcall(function()
     local env=(type(getgenv)=="function" and getgenv()) or _G
-
-    -- Stop the new shared runtime from a previous execution.
-    local oldRuntime=env.__SERENITY_IDLE_RUNTIME
-    if type(oldRuntime)=="table" then
-        oldRuntime.Alive=false
-
-        if oldRuntime.Connection then
-            pcall(function()
-                oldRuntime.Connection:Disconnect()
-            end)
+    local previous=env.__SERENITY_IDLE_RUNTIME
+    if type(previous)=="table" then
+        previous.Alive=false
+        if previous.Connection then
+            pcall(function() previous.Connection:Disconnect() end)
         end
     end
-
-    -- Backward compatibility: disconnect the old loader's legacy connection.
-    local oldLegacy=env.__SERENITY_IDLE_CONNECTION
-    if oldLegacy then
-        pcall(function()
-            oldLegacy:Disconnect()
-        end)
-    end
+    local legacy=env.__SERENITY_IDLE_CONNECTION
+    if legacy then pcall(function() legacy:Disconnect() end) end
+    env.__SERENITY_IDLE_RUNTIME=nil
     env.__SERENITY_IDLE_CONNECTION=nil
-
-    local runtime={
-        Alive=true,
-        Connection=nil,
-        Mode=nil,
-    }
-    env.__SERENITY_IDLE_RUNTIME=runtime
-
-    local player=game:GetService("Players").LocalPlayer
-    if not player then
-        runtime.Alive=false
-        return
-    end
-
-    if isRideAPet then
-        -- Shared anti-AFK is disabled for Ride A Pet.
-        -- Stop any previous worker above; do not acquire VirtualUser.
-        runtime.Alive=false
-        runtime.Mode="disabled"
-        return
-    end
-
-    -- Existing universal behavior for games that have not shown a conflict.
-    local virtualUser=game:GetService("VirtualUser")
-    runtime.Mode="VirtualUser"
-
-    runtime.Connection=
-        player.Idled:Connect(function()
-            if not runtime.Alive
-                or env.__SERENITY_IDLE_RUNTIME~=runtime then
-                return
-            end
-
-            pcall(function()
-                virtualUser:CaptureController()
-                virtualUser:ClickButton2(Vector2.new(0,0))
-            end)
-        end)
-
-    -- Keep legacy key populated for compatibility with anything that inspects it.
-    env.__SERENITY_IDLE_CONNECTION=runtime.Connection
 end)
 
 -- Copy the community invite at most once every 24 hours.
