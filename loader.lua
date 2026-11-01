@@ -63,7 +63,7 @@ elseif isThrowFoodForAnimals then
     target="dist/runtime/games/1.lua"
     chunkName="@SerenityHub/Game-ThrowFoodForAnimals"
 elseif isBikeForEgg then
-    target="dist/2.lua"
+    target="dist/runtime/games/2.lua"
     chunkName="@SerenityHub/Game-BikeForEgg"
 else
     target="dist/loader.lua"
