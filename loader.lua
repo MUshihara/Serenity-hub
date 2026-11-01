@@ -18,8 +18,9 @@ local isAnimeDice=game.PlaceId==113290951185459 or game.GameId==10708913337
 local isLootToForge=game.PlaceId==118805555015549 or game.GameId==10684750879
 local isLiftRockForEggs=game.PlaceId==76731343328034 or game.GameId==10768316438
 local isThrowFoodForAnimals=game.PlaceId==120219252362013 or game.GameId==10766972131
+local isBikeForEgg=game.PlaceId==74023858073178
 
-if isMM2 or isStealASeed or isLiftACube or isStealAnAnimeEgg or isBreakAndStealAnEgg or isRideAPet or isStrengthGrowArm or isAnimeDice or isLootToForge or isLiftRockForEggs or isThrowFoodForAnimals then
+if isMM2 or isStealASeed or isLiftACube or isStealAnAnimeEgg or isBreakAndStealAnEgg or isRideAPet or isStrengthGrowArm or isAnimeDice or isLootToForge or isLiftRockForEggs or isThrowFoodForAnimals or isBikeForEgg then
     local env=(type(getgenv)=="function" and getgenv()) or _G
     env.__SERENITY_PAYLOAD_AUTHORIZED=true
     _G.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -61,6 +62,9 @@ elseif isLiftRockForEggs then
 elseif isThrowFoodForAnimals then
     target="dist/runtime/games/1.lua"
     chunkName="@SerenityHub/Game-ThrowFoodForAnimals"
+elseif isBikeForEgg then
+    target="dist/2.lua"
+    chunkName="@SerenityHub/Game-BikeForEgg"
 else
     target="dist/loader.lua"
     chunkName="@SerenityHub/CurrentLoader"
