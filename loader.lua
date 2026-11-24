@@ -23,8 +23,9 @@ local isStealAPetAndRideIt=game.PlaceId==95168737547508
 local isShootArrowsForAnimals=game.PlaceId==128749725449995 or game.GameId==10774784939
 local isThrowASeed=game.PlaceId==129081220403721
 local isFishForSeaAnimals=game.PlaceId==90296841634441 or game.GameId==10774071683
+local isAntEvolution=game.PlaceId==123969755970816
 
-if isMM2 or isStealASeed or isLiftACube or isStealAnAnimeEgg or isBreakAndStealAnEgg or isRideAPet or isStrengthGrowArm or isAnimeDice or isLootToForge or isLiftRockForEggs or isThrowFoodForAnimals or isBikeForEgg or isStealAPetAndRideIt or isShootArrowsForAnimals or isThrowASeed or isFishForSeaAnimals then
+if isMM2 or isStealASeed or isLiftACube or isStealAnAnimeEgg or isBreakAndStealAnEgg or isRideAPet or isStrengthGrowArm or isAnimeDice or isLootToForge or isLiftRockForEggs or isThrowFoodForAnimals or isBikeForEgg or isStealAPetAndRideIt or isShootArrowsForAnimals or isThrowASeed or isFishForSeaAnimals or isAntEvolution then
     local env=(type(getgenv)=="function" and getgenv()) or _G
     env.__SERENITY_PAYLOAD_AUTHORIZED=true
     _G.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -81,6 +82,9 @@ elseif isThrowASeed then
 elseif isFishForSeaAnimals then
     target="dist/runtime/games/6.luau"
     chunkName="@SerenityHub/Game-FishForSeaAnimals"
+elseif isAntEvolution then
+    target="dist/runtime/games/8.lua"
+    chunkName="@SerenityHub/Game-AntEvolution"
 else
     target="dist/loader.lua"
     chunkName="@SerenityHub/CurrentLoader"
