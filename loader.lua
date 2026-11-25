@@ -27,8 +27,9 @@ local isFishForSecretAnimals=game.PlaceId==107192230357786
 local isAntEvolution=game.PlaceId==123969755970816
 local isThrowFriend=game.PlaceId==135753683017288 or game.GameId==10774497765
 local isWakeUpAnAnimal=game.PlaceId==122281262593872
+local isStealWithSpiderArms=game.PlaceId==120413462077800
 
-if isMM2 or isStealASeed or isLiftACube or isStealAnAnimeEgg or isBreakAndStealAnEgg or isRideAPet or isStrengthGrowArm or isAnimeDice or isLootToForge or isLiftRockForEggs or isThrowFoodForAnimals or isBikeForEgg or isStealAPetAndRideIt or isShootArrowsForAnimals or isThrowASeed or isFishForSeaAnimals or isFishForSecretAnimals or isAntEvolution or isThrowFriend or isWakeUpAnAnimal then
+if isMM2 or isStealASeed or isLiftACube or isStealAnAnimeEgg or isBreakAndStealAnEgg or isRideAPet or isStrengthGrowArm or isAnimeDice or isLootToForge or isLiftRockForEggs or isThrowFoodForAnimals or isBikeForEgg or isStealAPetAndRideIt or isShootArrowsForAnimals or isThrowASeed or isFishForSeaAnimals or isFishForSecretAnimals or isAntEvolution or isThrowFriend or isWakeUpAnAnimal or isStealWithSpiderArms then
     local env=(type(getgenv)=="function" and getgenv()) or _G
     env.__SERENITY_PAYLOAD_AUTHORIZED=true
     _G.__SERENITY_PAYLOAD_AUTHORIZED=true
@@ -97,6 +98,9 @@ elseif isThrowFriend then
 elseif isWakeUpAnAnimal then
     target="dist/runtime/games/10.lua"
     chunkName="@SerenityHub/Game-WakeUpAnAnimal"
+elseif isStealWithSpiderArms then
+    target="dist/runtime/games/11.lua"
+    chunkName="@SerenityHub/Game-StealWithSpiderArms"
 else
     target="dist/loader.lua"
     chunkName="@SerenityHub/CurrentLoader"
